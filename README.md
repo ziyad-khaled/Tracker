@@ -89,7 +89,7 @@ Settings tab → paste both values → Test Connection.
 
 ### 5. Deploy to GitHub Pages
 Upload files to a public repo → Settings → Pages → main branch → Save.  
-URL: `https://yourusername.github.io/focus-tracker`
+URL: `https://yourusername.github.io/Tracker/`
 
 ### 6. Install as desktop app
 Chrome → open the GitHub Pages URL → install icon in address bar → Install.
