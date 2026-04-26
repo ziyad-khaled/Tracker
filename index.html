@@ -351,7 +351,7 @@ td.dim{color:var(--muted);}
           <div class="metric-cell">
             <div class="metric-cell-lbl">This Week avg/day</div>
             <div class="metric-cell-val" id="m-thisweek">—</div>
-            <div class="metric-cell-sub">Sat → Fri ÷ 7</div>
+            <div class="metric-cell-sub" id="m-thisweek-sub">Sat → Fri</div>
           </div>
           <div class="metric-cell">
             <div class="metric-cell-lbl">Last Week avg/day</div>
@@ -888,6 +888,13 @@ function getWeekBounds(offsetWeeks) {
   return [startOfWeek.toISOString().slice(0,10), endOfWeek.toISOString().slice(0,10)];
 }
 
+// How many days have elapsed in the current week (including today).
+// Saturday = day 1, Sunday = day 2, ..., Friday = day 7.
+function daysElapsedInWeek() {
+  var day = new Date().getDay(); // 0=Sun … 6=Sat
+  return (day + 1) % 7 + 1;     // Sat→1, Sun→2, Mon→3 … Fri→7
+}
+
 function weekTotal(sessions, bounds) {
   var total = 0;
   sessions.forEach(function(s) {
@@ -914,13 +921,15 @@ async function refreshMetrics() {
   document.getElementById('m-today-sub').textContent = seqToday + ' session' + (seqToday !== 1 ? 's' : '');
   document.getElementById('session-seq') && (document.getElementById('session-seq').textContent = seqToday);
 
-  // This week (÷7)
+  // This week — running average: divide by days elapsed so far (Sat=1, Sun=2 … Fri=7)
+  var twElapsed = daysElapsedInWeek();
   var twRes = await sb.from('sessions').select('focus_min').gte('session_date', thisWeek[0]).lte('session_date', thisWeek[1]);
   var twTotal = (twRes.data||[]).reduce(function(a,s) { return a+(s.focus_min||0); }, 0);
-  var twAvg   = Math.round(twTotal / 7);
+  var twAvg   = Math.round(twTotal / twElapsed);
   document.getElementById('m-thisweek').textContent = twAvg ? twAvg + 'm' : '—';
+  document.getElementById('m-thisweek-sub').textContent = 'day ' + twElapsed + ' of 7';
 
-  // Last week (÷7)
+  // Last week — complete week, always ÷7
   var lwRes = await sb.from('sessions').select('focus_min').gte('session_date', lastWeek[0]).lte('session_date', lastWeek[1]);
   var lwTotal = (lwRes.data||[]).reduce(function(a,s) { return a+(s.focus_min||0); }, 0);
   var lwAvg   = Math.round(lwTotal / 7);
@@ -1257,19 +1266,20 @@ async function loadAnalytics() {
   var lastWeek = getWeekBounds(1);
   var twTotal  = weekTotal(sessions, thisWeek);
   var lwTotal  = weekTotal(sessions, lastWeek);
-  var twAvg    = Math.round(twTotal / 7);
-  var lwAvg    = Math.round(lwTotal / 7);
+  var twElapsed = daysElapsedInWeek();
+  var twAvg    = Math.round(twTotal / twElapsed);   // running avg: ÷ days elapsed so far
+  var lwAvg    = Math.round(lwTotal / 7);            // complete week: always ÷7
 
-  // Count active days in each week
+  // Count active days in each week for context
   var twDays = {};
   sessions.forEach(function(s) { if (s.session_date >= thisWeek[0] && s.session_date <= thisWeek[1]) twDays[s.session_date] = 1; });
   var lwDays = {};
   sessions.forEach(function(s) { if (s.session_date >= lastWeek[0] && s.session_date <= lastWeek[1]) lwDays[s.session_date] = 1; });
 
-  document.getElementById('an-thisweek').textContent = twAvg ? twAvg + 'm' : '—';
-  document.getElementById('an-thisweek-sub').textContent = Object.keys(twDays).length + ' active days / 7';
-  document.getElementById('an-lastweek').textContent = lwAvg ? lwAvg + 'm' : '—';
-  document.getElementById('an-lastweek-sub').textContent = Object.keys(lwDays).length + ' active days / 7';
+  document.getElementById('an-thisweek').textContent    = twAvg ? twAvg + 'm' : '—';
+  document.getElementById('an-thisweek-sub').textContent = 'day ' + twElapsed + ' of 7 · ' + Object.keys(twDays).length + ' active';
+  document.getElementById('an-lastweek').textContent    = lwAvg ? lwAvg + 'm' : '—';
+  document.getElementById('an-lastweek-sub').textContent = Object.keys(lwDays).length + ' active days (÷7)';
 
   // Daily bars
   var daily = {};
