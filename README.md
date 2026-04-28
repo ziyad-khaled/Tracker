@@ -119,7 +119,7 @@ Settings tab → paste both values → **Test Connection**.
 1. Create a public repo named `focus-tracker`
 2. Upload all files from this zip (the files inside the folder, not the folder itself)
 3. Repo **Settings → Pages → Source: main branch → root** → Save
-4. Wait ~60 seconds → `https://yourusername.github.io/focus-tracker`
+4. Wait ~60 seconds → `https://yourusername.github.io/Tracker/`
 
 ### 6. Install as desktop app
 Open the GitHub Pages URL in Chrome → click the install icon (⊕) in the address bar → **Install**.
