@@ -58,6 +58,11 @@ nav{width:100%;max-width:960px;display:flex;align-items:center;justify-content:s
 .ci-energy-btn[data-e="1"].active{border-color:var(--danger);color:var(--danger);background:rgba(255,95,95,.1);}
 .ci-energy-btn[data-e="2"].active{border-color:var(--warn);color:var(--warn);background:rgba(255,170,68,.1);}
 .ci-energy-btn[data-e="3"].active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
+/* sidebar energy reuses same data-e selectors */
+.energy-btn[data-e="1"].active{border-color:var(--danger);color:var(--danger);background:rgba(255,95,95,.1);}
+.energy-btn[data-e="2"].active{border-color:var(--warn);color:var(--warn);background:rgba(255,170,68,.1);}
+.energy-btn[data-e="3"].active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
+.energy-btn{font-family:var(--mono);font-size:11px;height:34px;border-radius:var(--r);cursor:pointer;border:1px solid var(--border);color:var(--muted);background:none;transition:all .12s;}
 .btn-checkin-save{width:100%;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:12px;border-radius:var(--r);cursor:pointer;background:var(--accent);color:#0a0a0a;border:none;font-weight:700;margin-top:.5rem;transition:filter .15s;}
 .btn-checkin-save:hover{filter:brightness(1.08);}
 .btn-checkin-skip{display:block;width:100%;margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;padding:6px;}
@@ -315,8 +320,8 @@ td.dim{color:var(--muted);}
     <div>
       <div class="mode-tabs">
         <button class="mode-btn active" onclick="setMode('pomodoro')">Pomodoro</button>
-        <button class="mode-btn" onclick="setMode('short')">Short Break</button>
-        <button class="mode-btn" onclick="setMode('long')">Long Break</button>
+        <button class="mode-btn" onclick="startManualBreak('short')">Short Break</button>
+        <button class="mode-btn" onclick="startManualBreak('long')">Long Break</button>
       </div>
       <div class="ring-wrap">
         <div class="ring-container">
@@ -387,6 +392,15 @@ td.dim{color:var(--muted);}
       <div class="sb-section">
         <div class="sb-label">Category</div>
         <div class="cat-grid" id="cat-grid-dynamic"></div>
+      </div>
+
+      <div class="sb-section">
+        <div class="sb-label">Energy this session</div>
+        <div style="display:flex;gap:6px;">
+          <button class="energy-btn" data-e="1" onclick="setSidebarEnergy(1)" title="Low" style="flex:1;">↓ Low</button>
+          <button class="energy-btn" data-e="2" onclick="setSidebarEnergy(2)" title="Medium" style="flex:1;">→ Med</button>
+          <button class="energy-btn" data-e="3" onclick="setSidebarEnergy(3)" title="High" style="flex:1;">↑ High</button>
+        </div>
       </div>
 
       <div class="sb-section">
@@ -537,6 +551,14 @@ FROM sessions WHERE focus_min > 25 ORDER BY overtime_min DESC LIMIT 20;</pre>
         <div><div class="setting-name">Flow mode</div><div class="setting-sub">Timer counts past target; you end manually</div></div>
         <div class="toggle on" id="tog-flowMode" onclick="toggleSetting('flowMode')"></div>
       </div>
+      <div class="setting-row">
+        <div><div class="setting-name">Auto-start breaks</div><div class="setting-sub">Break overlay opens automatically after session</div></div>
+        <div class="toggle" id="tog-autoBreak" onclick="toggleSetting('autoBreak')"></div>
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-name">Auto-start Pomodoro</div><div class="setting-sub">Timer starts automatically after break ends</div></div>
+        <div class="toggle" id="tog-autoPomo" onclick="toggleSetting('autoPomo')"></div>
+      </div>
     </div>
     <div class="full-col">
       <div class="settings-title">Session Categories</div>
@@ -620,7 +642,7 @@ var CAT = {};
 var sb = null;
 var offlineQueue = [];
 var deferredInstall = null;
-var settings = { pomodoro:25, short:5, long:15, interval:4, overdue:3, flowMode:true };
+var settings = { pomodoro:25, short:5, long:15, interval:4, overdue:3, flowMode:true, autoBreak:false, autoPomo:false };
 
 // Timer
 var mode = 'pomodoro';
@@ -628,8 +650,9 @@ var timeLeft = 25 * 60;
 var totalSecs = 25 * 60;
 var running = false;
 var tickInterval = null;
-var sessionStart = null;
-var elapsedSecs = 0;
+var sessionStart = null;   // Date object when session started
+var pausedMs = 0;            // total ms spent paused
+var pauseStartMs = null;     // wall-clock when current pause began
 var inOvertime = false;
 var pomodoroCount = 0;
 var seqToday = 0;
@@ -1084,7 +1107,7 @@ async function refreshMetrics() {
 function setMode(m) {
   if (running) return;
   stopAlarm();
-  mode = m; inOvertime = false; elapsedSecs = 0;
+  mode = m; inOvertime = false; pausedMs = 0; pauseStartMs = null;
   clearInterval(tickInterval); tickInterval = null;
   running = false;
   document.getElementById('start-btn').textContent = 'START';
@@ -1104,27 +1127,71 @@ function setMode(m) {
   });
 }
 
+function startManualBreak(type) {
+  // Start a standalone break timer without saving a session
+  if (running) pauseTimer();
+  clearInterval(breakTick); breakTick = null;
+  stopAlarm();
+  // Reset mode tabs display
+  document.querySelectorAll('.mode-btn').forEach(function(b, i) {
+    b.classList.toggle('active', ['pomodoro','short','long'][i] === type);
+  });
+  var breakTotalSecs2 = (type === 'long' ? settings.long : settings.short) * 60;
+  var breakStart2 = new Date();
+  var breakAlarm2 = false; var breakOverdue2 = false;
+  // Show a simple countdown in the ring area (reuse timer display)
+  document.getElementById('timer-label').textContent = type === 'long' ? 'LONG BREAK' : 'SHORT BREAK';
+  document.getElementById('ring').style.stroke = 'var(--info)';
+  document.getElementById('timer-display').style.color = '';
+  document.getElementById('flow-hint').textContent = 'Break running — click Pomodoro to cancel';
+  function tickManualBreak() {
+    var elapsedB2 = Math.floor((Date.now() - breakStart2.getTime()) / 1000);
+    var left2 = breakTotalSecs2 - elapsedB2;
+    var abs2 = Math.abs(left2);
+    var mm2 = String(Math.floor(abs2 / 60)).padStart(2, '0');
+    var ss2 = String(abs2 % 60).padStart(2, '0');
+    document.getElementById('timer-display').textContent = (left2 < 0 ? '+' : '') + mm2 + ':' + ss2;
+    document.title = (left2 < 0 ? '+' : '') + mm2 + ':' + ss2 + ' · Break';
+    setRing(Math.max(0, left2 / breakTotalSecs2));
+    if (left2 <= 0 && !breakAlarm2) { breakAlarm2 = true; playAlarm(); }
+    if (left2 <= -(settings.overdue * 60) && !breakOverdue2) { breakOverdue2 = true; playAlarm(); }
+  }
+  tickManualBreak();
+  breakTick = setInterval(tickManualBreak, 500);
+}
+
 function toggleTimer() { if (running) { pauseTimer(); } else { startTimer(); } }
 
 function startTimer() {
   if (mode !== 'pomodoro') { setMode('pomodoro'); setTimeout(startTimer, 50); return; }
-  if (!sessionStart) { sessionStart = new Date(); seqToday++; }
+  if (!sessionStart) {
+    sessionStart = new Date();
+    pausedMs = 0;
+    pauseStartMs = null;
+    seqToday++;
+  } else if (pauseStartMs !== null) {
+    // Resuming — add pause duration to total paused time
+    pausedMs += Date.now() - pauseStartMs;
+    pauseStartMs = null;
+  }
   running = true;
   document.getElementById('start-btn').textContent = 'PAUSE';
   document.getElementById('end-btn').classList.add('show');
   document.getElementById('flow-hint').textContent = 'Running — hit "End Session" when ready';
-  tickInterval = setInterval(doTick, 1000);
+  tickInterval = setInterval(doTick, 500);   // 500ms interval for smoother display
 }
 
 function pauseTimer() {
-  running = false; clearInterval(tickInterval); tickInterval = null;
+  running = false;
+  clearInterval(tickInterval); tickInterval = null;
+  pauseStartMs = Date.now();   // record when pause began
   document.getElementById('start-btn').textContent = 'RESUME';
   document.getElementById('flow-hint').textContent = 'Paused — resume or end the session';
 }
 
 function resetTimer() {
   clearInterval(tickInterval); tickInterval = null;
-  running = false; sessionStart = null; elapsedSecs = 0; inOvertime = false;
+  running = false; sessionStart = null; pausedMs = 0; pauseStartMs = null; inOvertime = false;
   pomodoroCount = Math.max(0, pomodoroCount - 1);
   setMode('pomodoro');
 }
@@ -1137,10 +1204,17 @@ function endSession() {
   document.getElementById('overtime-badge').classList.remove('show');
   document.getElementById('timer-display').style.color = '';
 
-  var end      = new Date();
-  var focusMin = Math.max(1, Math.round(elapsedSecs / 60));
-  var spanMin  = sessionStart ? Math.max(Math.round((end - sessionStart) / 60000), focusMin) : focusMin;
-  var otMin    = Math.max(0, focusMin - settings.pomodoro);
+  var end          = new Date();
+  var focusSec     = sessionStart ? wallElapsedSecs() : settings.pomodoro * 60;
+  var spanSec      = sessionStart ? Math.floor((end.getTime() - sessionStart.getTime()) / 1000) : focusSec;
+  // Store seconds-precision, display as floor(s/60)
+  var focusMin     = Math.max(1, Math.floor(focusSec / 60));
+  var spanMin      = Math.max(focusMin, Math.floor(spanSec / 60));
+  var focusSec_r   = focusSec % 60;   // remainder seconds for ratio calc
+  var spanSec_r    = spanSec  % 60;
+  // Ratio calculated in seconds for full precision
+  var ratio        = Math.round(focusSec / Math.max(spanSec, 1) * 100);
+  var otMin        = Math.max(0, focusMin - settings.pomodoro);
   var meta     = loadMeta();
   var td       = meta[isoDate()] || {};
 
@@ -1150,7 +1224,7 @@ function endSession() {
     end_time:     fmt24(end),
     span_min:     spanMin,
     focus_min:    focusMin,
-    ratio:        Math.round(focusMin / spanMin * 100),
+    ratio:        ratio,
     project:      currentProject && projects[currentProject] ? projects[currentProject].name : null,
     task:         currentTask    && currentProject && projects[currentProject] ? projects[currentProject].tasks[currentTask] : null,
     task_type:    currentCat || null,
@@ -1162,17 +1236,33 @@ function endSession() {
     _otMin:       otMin
   };
 
-  sessionStart = null; elapsedSecs = 0; inOvertime = false;
-  showBreakOverlay(pomodoroCount % settings.interval === 0 ? 'long' : 'short');
+  sessionStart = null; pausedMs = 0; pauseStartMs = null; inOvertime = false;
+  if (settings.autoBreak) {
+    showBreakOverlay(pomodoroCount % settings.interval === 0 ? 'long' : 'short');
+  } else {
+    // Just reset to pomodoro mode; user starts break manually
+    setMode('pomodoro');
+    refreshMetrics();
+    document.getElementById('flow-hint').textContent = 'Session saved — start break or next session';
+  }
+}
+
+function wallElapsedSecs() {
+  // Real elapsed focus seconds using wall-clock, not tick count
+  if (!sessionStart) return 0;
+  var focusMs = (Date.now() - sessionStart.getTime()) - pausedMs;
+  return Math.floor(focusMs / 1000);
 }
 
 function doTick() {
-  elapsedSecs++;
-  if (!inOvertime) {
-    timeLeft--;
-    setRing(Math.max(0, timeLeft / totalSecs));
-    renderClock(timeLeft, false);
-    if (timeLeft <= 0) {
+  var elapsed = wallElapsedSecs();
+  var remaining = totalSecs - elapsed;
+  if (remaining > 0) {
+    setRing(remaining / totalSecs);
+    renderClock(remaining, false);
+  } else {
+    setRing(0);
+    if (!inOvertime) {
       if (settings.flowMode) {
         inOvertime = true;
         document.getElementById('overtime-badge').classList.add('show');
@@ -1181,11 +1271,10 @@ function doTick() {
         document.getElementById('flow-hint').textContent = 'Target reached — keep going or end when ready';
         document.getElementById('flow-hint').className = 'overtime';
       } else {
-        endSession();
+        endSession(); return;
       }
     }
-  } else {
-    renderClock(elapsedSecs - totalSecs, true);
+    renderClock(elapsed - totalSecs, true);
   }
 }
 
@@ -1227,34 +1316,34 @@ function showBreakOverlay(type) {
   document.getElementById('overdue-warn').classList.remove('show');
   document.getElementById('break-clock').className = 'break-clock';
 
-  var breakSecs = (type === 'long' ? settings.long : settings.short) * 60;
-  var left = breakSecs;
+  var breakTotalSecs = (type === 'long' ? settings.long : settings.short) * 60;
   breakStart = new Date();
 
   function tickBreak() {
+    var elapsedB = Math.floor((Date.now() - breakStart.getTime()) / 1000);
+    var left = breakTotalSecs - elapsedB;   // positive = remaining, negative = overdue
     var abs = Math.abs(left);
     var mm  = String(Math.floor(abs / 60)).padStart(2, '0');
     var ss  = String(abs % 60).padStart(2, '0');
     document.getElementById('break-clock').textContent = (left < 0 ? '+' : '') + mm + ':' + ss;
 
-    // Break ends — fire alarm
-    if (left === 0 && !breakAlarmFired) {
+    // Break ends — fire alarm once
+    if (left <= 0 && !breakAlarmFired) {
       breakAlarmFired = true;
       playAlarm();
       document.getElementById('break-clock').className = 'break-clock ended';
     }
 
-    // Overdue warning + second alarm
+    // Overdue warning + second alarm burst
     if (left <= -(settings.overdue * 60) && !overdueShown) {
       overdueShown = true;
       document.getElementById('overdue-warn').classList.add('show');
       playAlarm();
     }
-    left--;
   }
 
   tickBreak();
-  breakTick = setInterval(tickBreak, 1000);
+  breakTick = setInterval(tickBreak, 500);
 }
 
 function toggleBreakAct(el, act) {
@@ -1270,7 +1359,8 @@ async function endBreak(returned) {
   breakTick = null;
 
   var breakEnd    = new Date();
-  var breakDurMin = breakStart ? Math.round((breakEnd - breakStart) / 60000) : 0;
+  var breakDurSec = breakStart ? Math.floor((breakEnd.getTime() - breakStart.getTime()) / 1000) : 0;
+  var breakDurMin = Math.floor(breakDurSec / 60);
 
   var sess = {
     session_date:      pending.session_date,
@@ -1312,15 +1402,17 @@ async function endBreak(returned) {
     pending = null;
     // Hard reset the timer state before setMode
     running = false;
-    elapsedSecs = 0;
+    sessionStart = null; pausedMs = 0; pauseStartMs = null;
     inOvertime = false;
-    sessionStart = null;
     timeLeft = settings.pomodoro * 60;
     totalSecs = settings.pomodoro * 60;
     mode = 'pomodoro';
     // Now safe to call setMode
     setMode('pomodoro');
     refreshMetrics();
+    if (settings.autoPomo) {
+      setTimeout(startTimer, 300);
+    }
   }, 800);
 }
 
@@ -1459,6 +1551,8 @@ function loadSettings() {
   document.getElementById('set-interval').value = settings.interval;
   document.getElementById('set-overdue').value  = settings.overdue;
   document.getElementById('tog-flowMode').classList.toggle('on', settings.flowMode);
+  document.getElementById('tog-autoBreak').classList.toggle('on', settings.autoBreak);
+  document.getElementById('tog-autoPomo').classList.toggle('on', settings.autoPomo);
 }
 function saveSettings() {
   settings.pomodoro = parseInt(document.getElementById('set-pomodoro').value);
@@ -1481,6 +1575,13 @@ function clearLocalCache() {
 }
 
 // ─── UI HELPERS ──────────────────────────────────────────────────────────────
+function setSidebarEnergy(e) {
+  currentEnergy = e;
+  document.querySelectorAll('.energy-btn[data-e]').forEach(function(b) {
+    b.classList.toggle('active', parseInt(b.dataset.e) === e);
+  });
+}
+
 function setCategory(cat) {
   currentCat = cat;
   renderCategoryChips();   // re-render so active state updates
@@ -1517,6 +1618,19 @@ function showPage(id) {
   if (id === 'log')       loadLog();
   if (id === 'analytics') loadAnalytics();
 }
+
+// ─── VISIBILITY CHANGE — resync after tab/screen resume ─────────────────────
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible') {
+    if (running) {
+      // If we were paused by browser throttle, just re-fire display
+      doTick();
+    }
+    if (breakTick && breakStart) {
+      // Resync break display immediately
+    }
+  }
+});
 
 // ─── SPACEBAR → START / PAUSE ────────────────────────────────────────────────
 window.addEventListener('keydown', function(event) {
