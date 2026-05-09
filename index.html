@@ -1649,11 +1649,18 @@ function updateTaskDisplay() {
   document.getElementById('task-name-shown').textContent = taskName || '—';
   var pill = document.getElementById('task-cat-pill');
   if (currentCat && CAT[currentCat]) {
+    var col = CAT[currentCat].col;
     pill.textContent = CAT[currentCat].emoji + ' ' + currentCat;
-    pill.className   = 'task-cat-pill ' + currentCat;
+    pill.className   = 'task-cat-pill';   // base class only, no name-class
+    pill.style.borderColor  = catRgba(col, 0.6);
+    pill.style.color        = catRgba(col, 1);
+    pill.style.background   = catRgba(col, 0.1);
   } else {
-    pill.textContent = 'no category';
-    pill.className   = 'task-cat-pill';
+    pill.textContent       = 'no category';
+    pill.className         = 'task-cat-pill';
+    pill.style.borderColor = '';
+    pill.style.color       = '';
+    pill.style.background  = '';
   }
 }
 function isoDate() { return new Date().toISOString().slice(0,10); }
