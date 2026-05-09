@@ -669,6 +669,7 @@ var pending = null;
 var breakActs = [];
 var breakStart = null;
 var breakTick = null;
+var manualBreakTick = null;  // separate from overlay breakTick
 var overdueShown = false;
 var breakAlarmFired = false;
 
@@ -881,13 +882,30 @@ function saveCategories() {
   localStorage.setItem('ft_categories', JSON.stringify(arr));
 }
 
+function catRgba(col, alpha) {
+  var map = {
+    'var(--info)'  : '95,180,255',
+    'var(--accent)': '200,240,74',
+    'var(--purple)': '181,123,255',
+    'var(--warn)'  : '255,170,68',
+    'var(--danger)': '255,95,95',
+    'var(--text)'  : '232,232,226',
+    'var(--muted)' : '85,85,85'
+  };
+  var rgb = map[col];
+  return rgb ? 'rgba(' + rgb + ',' + alpha + ')' : col;
+}
+
 function renderCategoryChips() {
   var grid = document.getElementById('cat-grid-dynamic');
   if (!grid) return;
   grid.innerHTML = Object.entries(CAT).map(function(e) {
     var name = e[0], cat = e[1];
     var isActive = name === currentCat;
-    return '<button class="cat-chip' + (isActive ? ' ' + name : '') + '" data-cat="' + escHtml(name) + '" onclick="setCategory(\'' + escHtml(name) + '\')">'
+    var style = isActive
+      ? 'border-color:' + catRgba(cat.col, 0.6) + ';color:' + catRgba(cat.col, 1) + ';background:' + catRgba(cat.col, 0.1) + ';'
+      : '';
+    return '<button class="cat-chip" data-cat="' + escHtml(name) + '" onclick="setCategory(\'' + escHtml(name) + '\')" style="' + style + '">'
       + '<span class="cat-emoji">' + cat.emoji + '</span>'
       + escHtml(name)
       + '</button>';
@@ -1109,6 +1127,7 @@ function setMode(m) {
   stopAlarm();
   mode = m; inOvertime = false; pausedMs = 0; pauseStartMs = null;
   clearInterval(tickInterval); tickInterval = null;
+  clearInterval(manualBreakTick); manualBreakTick = null;
   running = false;
   document.getElementById('start-btn').textContent = 'START';
   document.getElementById('end-btn').classList.remove('show');
@@ -1128,9 +1147,10 @@ function setMode(m) {
 }
 
 function startManualBreak(type) {
-  // Start a standalone break timer without saving a session
+  // Stop everything before starting manual break
   if (running) pauseTimer();
-  clearInterval(breakTick); breakTick = null;
+  clearInterval(tickInterval); tickInterval = null;
+  clearInterval(manualBreakTick); manualBreakTick = null;
   stopAlarm();
   // Reset mode tabs display
   document.querySelectorAll('.mode-btn').forEach(function(b, i) {
@@ -1157,7 +1177,7 @@ function startManualBreak(type) {
     if (left2 <= -(settings.overdue * 60) && !breakOverdue2) { breakOverdue2 = true; playAlarm(); }
   }
   tickManualBreak();
-  breakTick = setInterval(tickManualBreak, 500);
+  manualBreakTick = setInterval(tickManualBreak, 500);
 }
 
 function toggleTimer() { if (running) { pauseTimer(); } else { startTimer(); } }
@@ -1240,10 +1260,36 @@ function endSession() {
   if (settings.autoBreak) {
     showBreakOverlay(pomodoroCount % settings.interval === 0 ? 'long' : 'short');
   } else {
-    // Just reset to pomodoro mode; user starts break manually
+    // Save session directly (no break overlay to save it)
+    var sessNow = {
+      session_date: pending.session_date,
+      start_time:   pending.start_time,
+      end_time:     pending.end_time,
+      span_min:     pending.span_min,
+      focus_min:    pending.focus_min,
+      ratio:        pending.ratio,
+      project:      pending.project,
+      task:         pending.task,
+      task_type:    pending.task_type,
+      seq:          pending.seq,
+      energy:       pending.energy,
+      sleep_hrs:    pending.sleep_hrs,
+      wake_time:    pending.wake_time,
+      note:         pending.note,
+      break_activities:   null,
+      break_note:         null,
+      break_duration_min: null,
+      overdue:            false,
+      returned:           null
+    };
+    pending = null;
+    dbSave(sessNow).then(function(ok) {
+      var hint = document.getElementById('flow-hint');
+      hint.textContent = ok ? '✓ Saved — start break or next session' : '✗ Save failed — check connection';
+      hint.className = ok ? '' : 'overtime';
+    });
     setMode('pomodoro');
     refreshMetrics();
-    document.getElementById('flow-hint').textContent = 'Session saved — start break or next session';
   }
 }
 
@@ -1431,8 +1477,10 @@ async function loadLog() {
     var rCls  = ratio >= 85 ? 'badge-hi' : ratio >= 65 ? 'badge-mid' : 'badge-lo';
     var cat   = s.task_type && CAT[s.task_type];
     var catHtml = cat
-      ? '<span class="cat-tag cat-tag-' + s.task_type + '">' + cat.emoji + ' ' + s.task_type + '</span>'
-      : '<span class="cat-tag cat-tag-default">' + (s.task_type || '—') + '</span>';
+      ? '<span class="cat-tag" style="background:' + catRgba(cat.col, 0.1) + ';color:' + catRgba(cat.col, 1) + ';">' + cat.emoji + ' ' + s.task_type + '</span>'
+      : (s.task_type
+          ? '<span class="cat-tag cat-tag-default">' + s.task_type + '</span>'
+          : '<span class="cat-tag cat-tag-default">—</span>');
     var ret  = s.returned === true ? '✓' : s.returned === false ? '✗' : '—';
     var retC = s.returned ? 'var(--accent)' : 'var(--danger)';
     return '<tr>'
@@ -1555,13 +1603,19 @@ function loadSettings() {
   document.getElementById('tog-autoPomo').classList.toggle('on', settings.autoPomo);
 }
 function saveSettings() {
-  settings.pomodoro = parseInt(document.getElementById('set-pomodoro').value);
-  settings.short    = parseInt(document.getElementById('set-short').value);
-  settings.long     = parseInt(document.getElementById('set-long').value);
-  settings.interval = parseInt(document.getElementById('set-interval').value);
-  settings.overdue  = parseInt(document.getElementById('set-overdue').value);
+  settings.pomodoro = parseInt(document.getElementById('set-pomodoro').value) || 25;
+  settings.short    = parseInt(document.getElementById('set-short').value)    || 5;
+  settings.long     = parseInt(document.getElementById('set-long').value)     || 15;
+  settings.interval = parseInt(document.getElementById('set-interval').value) || 4;
+  settings.overdue  = parseInt(document.getElementById('set-overdue').value)  || 3;
   localStorage.setItem('ft_settings', JSON.stringify(settings));
-  if (!running) setMode(mode);
+  // Only reset display if idle — never interrupt a running session or break overlay
+  var overlayOpen = document.getElementById('break-overlay').classList.contains('show');
+  if (!running && !overlayOpen && !manualBreakTick) {
+    timeLeft = totalSecs = settings.pomodoro * 60;
+    renderClock(timeLeft, false);
+    setRing(1);
+  }
 }
 function toggleSetting(key) {
   settings[key] = !settings[key];
