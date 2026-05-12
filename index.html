@@ -205,6 +205,23 @@ td.dim{color:var(--muted);}
 .cat-tag-Apply{background:rgba(255,95,95,.1);color:var(--danger);}
 .cat-tag-default{background:var(--surface2);color:var(--muted);}
 .empty-state{text-align:center;padding:4rem;color:var(--muted);font-family:var(--mono);font-size:12px;line-height:2;}
+/* EDIT MODAL */
+#edit-modal{display:none;position:fixed;inset:0;z-index:400;background:rgba(10,10,10,.97);align-items:center;justify-content:center;}
+#edit-modal.show{display:flex;animation:fadeIn .2s ease;}
+.edit-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:2rem;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;}
+.edit-box h3{font-size:16px;font-weight:700;margin-bottom:1.25rem;color:var(--accent);}
+.edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem;}
+.edit-field{display:flex;flex-direction:column;gap:4px;}
+.edit-field.full{grid-column:1/-1;}
+.edit-field label{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;}
+.edit-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:1rem;}
+.btn-save-edit{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:10px 24px;border-radius:var(--r);cursor:pointer;background:var(--accent);color:#0a0a0a;border:none;font-weight:700;}
+.btn-cancel-edit{font-family:var(--mono);font-size:11px;padding:10px 18px;border-radius:var(--r);cursor:pointer;background:none;color:var(--muted);border:1px solid var(--border);}
+.btn-del-edit{font-family:var(--mono);font-size:11px;padding:10px 16px;border-radius:var(--r);cursor:pointer;background:none;color:var(--danger);border:1px solid var(--danger);margin-right:auto;}
+.edit-status{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:6px;min-height:14px;}
+.edit-row-btn{font-size:12px;background:none;border:none;color:var(--muted);cursor:pointer;padding:2px 6px;border-radius:2px;}
+.edit-row-btn:hover{color:var(--accent);}
+
 
 /* ANALYTICS */
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:2rem;}
@@ -320,8 +337,8 @@ td.dim{color:var(--muted);}
     <div>
       <div class="mode-tabs">
         <button class="mode-btn active" onclick="setMode('pomodoro')">Pomodoro</button>
-        <button class="mode-btn" onclick="startManualBreak('short')">Short Break</button>
-        <button class="mode-btn" onclick="startManualBreak('long')">Long Break</button>
+        <button class="mode-btn" onclick="setBreakMode('short')">Short Break</button>
+        <button class="mode-btn" onclick="setBreakMode('long')">Long Break</button>
       </div>
       <div class="ring-wrap">
         <div class="ring-container">
@@ -347,6 +364,22 @@ td.dim{color:var(--muted);}
           </div>
         </div>
         <div id="flow-hint">Start a session to begin tracking</div>
+
+        <!-- Manual break activity panel — shown only during manual break -->
+        <div id="manual-break-panel" style="display:none;margin-top:10px;width:100%;max-width:360px;text-align:center;">
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Break Activity</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:8px;">
+            <button class="break-chip" onclick="toggleManualBreakAct(this,'Phone')">📱 Phone</button>
+            <button class="break-chip" onclick="toggleManualBreakAct(this,'Food')">🍽 Food</button>
+            <button class="break-chip" onclick="toggleManualBreakAct(this,'Walk')">🚶 Walk</button>
+            <button class="break-chip" onclick="toggleManualBreakAct(this,'Bathroom')">🚿 Bathroom</button>
+            <button class="break-chip" onclick="toggleManualBreakAct(this,'Nap')">😴 Nap</button>
+            <button class="break-chip" onclick="toggleManualBreakAct(this,'Reading')">📖 Reading</button>
+            <button class="break-chip" onclick="toggleManualBreakAct(this,'Scrolling')">📲 Scrolling</button>
+            <button class="break-chip" onclick="toggleManualBreakAct(this,'Stretch')">🤸 Stretch</button>
+            <button class="break-chip" onclick="toggleManualBreakAct(this,'Porn')">🔞 Porn</button>
+          </div>
+        </div>
         <div class="metrics-row">
           <div class="metric-cell">
             <div class="metric-cell-lbl">Today</div>
@@ -421,6 +454,51 @@ td.dim{color:var(--muted);}
   </div>
 </div>
 
+
+<!-- EDIT LOG MODAL -->
+<div id="edit-modal">
+  <div class="edit-box">
+    <h3>Edit Session</h3>
+    <input type="hidden" id="edit-id">
+    <div class="edit-grid">
+      <div class="edit-field"><label>Date</label><input type="date" class="input-field" id="edit-date"></div>
+      <div class="edit-field"><label>Seq #</label><input type="number" class="input-field" id="edit-seq" min="1"></div>
+      <div class="edit-field"><label>Start Time</label><input type="time" class="input-field" id="edit-start" step="1"></div>
+      <div class="edit-field"><label>End Time</label><input type="time" class="input-field" id="edit-end" step="1"></div>
+      <div class="edit-field"><label>Span (min)</label><input type="number" class="input-field" id="edit-span" min="0"></div>
+      <div class="edit-field"><label>Focus (min)</label><input type="number" class="input-field" id="edit-focus" min="0"></div>
+      <div class="edit-field"><label>Project</label><input type="text" class="input-field" id="edit-project"></div>
+      <div class="edit-field"><label>Task</label><input type="text" class="input-field" id="edit-task"></div>
+      <div class="edit-field"><label>Category</label>
+        <select class="input-field" id="edit-cat"></select>
+      </div>
+      <div class="edit-field"><label>Energy</label>
+        <select class="input-field" id="edit-energy">
+          <option value="">—</option>
+          <option value="1">↓ Low</option>
+          <option value="2">→ Medium</option>
+          <option value="3">↑ High</option>
+        </select>
+      </div>
+      <div class="edit-field"><label>Returned?</label>
+        <select class="input-field" id="edit-returned">
+          <option value="">—</option>
+          <option value="true">Yes ✓</option>
+          <option value="false">No ✗</option>
+        </select>
+      </div>
+      <div class="edit-field"><label>Break acts</label><input type="text" class="input-field" id="edit-break-acts" placeholder="Phone; Walk"></div>
+      <div class="edit-field full"><label>Note</label><textarea class="input-field" id="edit-note" rows="2"></textarea></div>
+    </div>
+    <div class="edit-status" id="edit-status"></div>
+    <div class="edit-actions">
+      <button class="btn-del-edit" onclick="deleteSession()">Delete</button>
+      <button class="btn-cancel-edit" onclick="closeEditModal()">Cancel</button>
+      <button class="btn-save-edit" onclick="saveEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- BREAK OVERLAY -->
 <div id="break-overlay">
   <div class="break-title" id="break-title">Short Break</div>
@@ -458,7 +536,7 @@ td.dim{color:var(--muted);}
     <table>
       <thead>
         <tr>
-          <th>Date</th><th>Start</th><th>End</th><th>Span</th><th>Focus</th>
+          <th></th><th>Date</th><th>Start</th><th>End</th><th>Span</th><th>Focus</th>
           <th>Ratio</th><th>Project</th><th>Task</th><th>Category</th><th>#</th>
           <th>Energy</th><th>Sleep</th><th>Wake</th><th>Break acts</th>
           <th>Break dur</th><th>Overdue</th><th>Returned</th><th>Note</th>
@@ -644,6 +722,9 @@ var offlineQueue = [];
 var deferredInstall = null;
 var settings = { pomodoro:25, short:5, long:15, interval:4, overdue:3, flowMode:true, autoBreak:false, autoPomo:false };
 
+// Category filter for averages (excluded categories set)
+var excludedFromAvg = {};
+
 // Timer
 var mode = 'pomodoro';
 var timeLeft = 25 * 60;
@@ -672,6 +753,7 @@ var breakTick = null;
 var manualBreakTick = null;  // separate from overlay breakTick
 var overdueShown = false;
 var breakAlarmFired = false;
+var manualBreakActs = [];   // break activities logged during manual break
 
 // Modal
 var modalEnergy = null;
@@ -1064,14 +1146,47 @@ function daysElapsedInWeek() {
   return (day + 1) % 7 + 1;     // Sat→1, Sun→2, Mon→3 … Fri→7
 }
 
-function weekTotal(sessions, bounds) {
+function weekTotal(sessions, bounds, exclude) {
   var total = 0;
   sessions.forEach(function(s) {
     if (s.session_date >= bounds[0] && s.session_date <= bounds[1]) {
-      total += (s.focus_min || 0);
+      if (!exclude || !exclude[s.task_type]) {
+        total += (s.focus_min || 0);
+      }
     }
   });
   return total;
+}
+
+
+// ─── CATEGORY FILTER (avg exclusions) ────────────────────────────────────────
+function loadExcluded() {
+  try { excludedFromAvg = JSON.parse(localStorage.getItem('ft_excluded') || '{}'); } catch(e) { excludedFromAvg = {}; }
+  renderExcludeUI();
+}
+
+function saveExcluded() {
+  localStorage.setItem('ft_excluded', JSON.stringify(excludedFromAvg));
+}
+
+function toggleExcluded(cat) {
+  if (excludedFromAvg[cat]) { delete excludedFromAvg[cat]; }
+  else { excludedFromAvg[cat] = true; }
+  saveExcluded();
+  renderExcludeUI();
+  refreshMetrics();
+}
+
+function renderExcludeUI() {
+  var el = document.getElementById('cat-exclude-chips');
+  if (!el) return;
+  el.innerHTML = Object.keys(CAT).map(function(k) {
+    var excluded = excludedFromAvg[k];
+    var col = catRgba(CAT[k].col, excluded ? 0.3 : 1);
+    var bg  = excluded ? 'none' : catRgba(CAT[k].col, 0.12);
+    var textDeco = excluded ? 'line-through' : 'none';
+    return '<button onclick="toggleExcluded(\''+k+'\')" style="font-family:var(--mono);font-size:10px;padding:5px 10px;border-radius:var(--r);cursor:pointer;border:1px solid '+col+';color:'+col+';background:'+bg+';text-decoration:'+textDeco+';transition:all .15s;">'+CAT[k].emoji+' '+k+'</button>';
+  }).join('');
 }
 
 // ─── METRICS ─────────────────────────────────────────────────────────────────
@@ -1092,16 +1207,16 @@ async function refreshMetrics() {
 
   // This week — running average: divide by days elapsed so far (Sat=1, Sun=2 … Fri=7)
   var twElapsed = daysElapsedInWeek();
-  var twRes = await sb.from('sessions').select('focus_min').gte('session_date', thisWeek[0]).lte('session_date', thisWeek[1]);
-  var twTotal = (twRes.data||[]).reduce(function(a,s) { return a+(s.focus_min||0); }, 0);
+  var twRes = await sb.from('sessions').select('focus_min, task_type').gte('session_date', thisWeek[0]).lte('session_date', thisWeek[1]);
+  var twTotal = (twRes.data||[]).reduce(function(a,s) { return (!excludedFromAvg[s.task_type]) ? a+(s.focus_min||0) : a; }, 0);
   var twAvg   = Math.round(twTotal / twElapsed);
   document.getElementById('m-thisweek').textContent = twAvg ? twAvg + 'm' : '—';
   document.getElementById('m-thisweek-sub').textContent = 'day ' + twElapsed + ' of 7';
 
   // Last week — complete week, always ÷7, show active days
-  var lwRes = await sb.from('sessions').select('focus_min, session_date').gte('session_date', lastWeek[0]).lte('session_date', lastWeek[1]);
+  var lwRes = await sb.from('sessions').select('focus_min, session_date, task_type').gte('session_date', lastWeek[0]).lte('session_date', lastWeek[1]);
   var lwData  = lwRes.data || [];
-  var lwTotal = lwData.reduce(function(a,s) { return a+(s.focus_min||0); }, 0);
+  var lwTotal = lwData.reduce(function(a,s) { return (!excludedFromAvg[s.task_type]) ? a+(s.focus_min||0) : a; }, 0);
   var lwAvg   = Math.round(lwTotal / 7);
   var lwActiveDays = {};
   lwData.forEach(function(s) { lwActiveDays[s.session_date] = 1; });
@@ -1129,6 +1244,8 @@ function setMode(m) {
   clearInterval(tickInterval); tickInterval = null;
   clearInterval(manualBreakTick); manualBreakTick = null;
   running = false;
+  document.getElementById('manual-break-panel').style.display = 'none';
+  manualBreakActs = [];
   document.getElementById('start-btn').textContent = 'START';
   document.getElementById('end-btn').classList.remove('show');
   document.getElementById('overtime-badge').classList.remove('show');
@@ -1146,7 +1263,43 @@ function setMode(m) {
   });
 }
 
-function startManualBreak(type) {
+function setBreakMode(type) {
+  // Just switch the display and button label — don't start yet
+  if (running) return;  // don't interfere with active session
+  clearInterval(manualBreakTick); manualBreakTick = null;
+  stopAlarm();
+  // Update mode tabs
+  document.querySelectorAll('.mode-btn').forEach(function(b, i) {
+    b.classList.toggle('active', ['pomodoro','short','long'][i] === type);
+  });
+  // Show break countdown preview and update start button
+  var breakSecs = (type === 'long' ? settings.long : settings.short) * 60;
+  var mm = String(Math.floor(breakSecs / 60)).padStart(2,'0');
+  var ss = String(breakSecs % 60).padStart(2,'0');
+  document.getElementById('timer-display').textContent = mm + ':' + ss;
+  document.getElementById('timer-display').style.color = '';
+  document.getElementById('timer-label').textContent = type === 'long' ? 'LONG BREAK' : 'SHORT BREAK';
+  document.getElementById('ring').style.stroke = 'var(--info)';
+  setRing(1);
+  document.getElementById('flow-hint').textContent = 'Press START BREAK to begin';
+  document.getElementById('start-btn').textContent = 'START BREAK';
+  document.getElementById('end-btn').classList.remove('show');
+  document.getElementById('overtime-badge').classList.remove('show');
+  // Store pending break type so START BREAK knows what to launch
+  document.getElementById('start-btn').dataset.breakType = type;
+  mode = type;  // track that we're in break mode
+}
+
+function toggleManualBreakAct(el, act) {
+  var idx = manualBreakActs.indexOf(act);
+  if (idx >= 0) { manualBreakActs.splice(idx, 1); } else { manualBreakActs.push(act); }
+  el.classList.toggle('active', manualBreakActs.includes(act));
+}
+
+function _runManualBreak(type) {
+  manualBreakActs = [];
+  document.querySelectorAll('#manual-break-panel .break-chip').forEach(function(c){ c.classList.remove('active'); });
+  document.getElementById('manual-break-panel').style.display = 'block';
   // Stop everything before starting manual break
   if (running) pauseTimer();
   clearInterval(tickInterval); tickInterval = null;
@@ -1164,6 +1317,7 @@ function startManualBreak(type) {
   document.getElementById('ring').style.stroke = 'var(--info)';
   document.getElementById('timer-display').style.color = '';
   document.getElementById('flow-hint').textContent = 'Break running — click Pomodoro to cancel';
+  document.getElementById('start-btn').textContent = 'STOP BREAK';
   function tickManualBreak() {
     var elapsedB2 = Math.floor((Date.now() - breakStart2.getTime()) / 1000);
     var left2 = breakTotalSecs2 - elapsedB2;
@@ -1173,14 +1327,31 @@ function startManualBreak(type) {
     document.getElementById('timer-display').textContent = (left2 < 0 ? '+' : '') + mm2 + ':' + ss2;
     document.title = (left2 < 0 ? '+' : '') + mm2 + ':' + ss2 + ' · Break';
     setRing(Math.max(0, left2 / breakTotalSecs2));
-    if (left2 <= 0 && !breakAlarm2) { breakAlarm2 = true; playAlarm(); }
+    if (left2 <= 0 && !breakAlarm2) {
+      breakAlarm2 = true; playAlarm();
+      document.getElementById('flow-hint').textContent = 'Break over! Click Pomodoro to start next session';
+    }
     if (left2 <= -(settings.overdue * 60) && !breakOverdue2) { breakOverdue2 = true; playAlarm(); }
   }
   tickManualBreak();
   manualBreakTick = setInterval(tickManualBreak, 500);
 }
 
-function toggleTimer() { if (running) { pauseTimer(); } else { startTimer(); } }
+function toggleTimer() {
+  if (mode === 'short' || mode === 'long') {
+    // In break mode — start or cancel the manual break
+    if (manualBreakTick) {
+      clearInterval(manualBreakTick); manualBreakTick = null;
+      stopAlarm();
+      document.getElementById('start-btn').textContent = 'START BREAK';
+      document.getElementById('flow-hint').textContent = 'Break paused — press START BREAK to continue';
+    } else {
+      _runManualBreak(mode);
+    }
+    return;
+  }
+  if (running) { pauseTimer(); } else { startTimer(); }
+}
 
 function startTimer() {
   if (mode !== 'pomodoro') { setMode('pomodoro'); setTimeout(startTimer, 50); return; }
@@ -1243,6 +1414,7 @@ function endSession() {
     start_time:   sessionStart ? fmt24(sessionStart) : fmt24(end),
     end_time:     fmt24(end),
     span_min:     spanMin,
+    focus_sec:    focusSec,
     focus_min:    focusMin,
     ratio:        ratio,
     project:      currentProject && projects[currentProject] ? projects[currentProject].name : null,
@@ -1266,6 +1438,7 @@ function endSession() {
       start_time:   pending.start_time,
       end_time:     pending.end_time,
       span_min:     pending.span_min,
+      focus_sec:    pending.focus_sec,
       focus_min:    pending.focus_min,
       ratio:        pending.ratio,
       project:      pending.project,
@@ -1311,12 +1484,14 @@ function doTick() {
     if (!inOvertime) {
       if (settings.flowMode) {
         inOvertime = true;
+        playAlarm();  // alarm at target — you're in flow, keep going
         document.getElementById('overtime-badge').classList.add('show');
         document.getElementById('ring').style.stroke = 'var(--warn)';
         document.getElementById('timer-display').style.color = 'var(--warn)';
         document.getElementById('flow-hint').textContent = 'Target reached — keep going or end when ready';
         document.getElementById('flow-hint').className = 'overtime';
       } else {
+        playAlarm();  // alarm on hard stop
         endSession(); return;
       }
     }
@@ -1462,7 +1637,100 @@ async function endBreak(returned) {
   }, 800);
 }
 
+// ─── EDIT LOG MODAL ───────────────────────────────────────────────────────────
+var editingSessionId = null;
+
+function openEditModal(id) {
+  if (!sb) { alert('Connect Supabase first'); return; }
+  editingSessionId = id;
+  document.getElementById('edit-status').textContent = 'Loading...';
+  document.getElementById('edit-modal').classList.add('show');
+  sb.from('sessions').select('*').eq('id', id).single().then(function(res) {
+    if (res.error || !res.data) {
+      document.getElementById('edit-status').textContent = '✗ Could not load session';
+      return;
+    }
+    var s = res.data;
+    document.getElementById('edit-id').value       = s.id;
+    document.getElementById('edit-date').value     = s.session_date || '';
+    document.getElementById('edit-seq').value      = s.seq != null ? s.seq : '';
+    document.getElementById('edit-start').value    = s.start_time ? s.start_time.slice(0,8) : '';
+    document.getElementById('edit-end').value      = s.end_time   ? s.end_time.slice(0,8)   : '';
+    document.getElementById('edit-span').value     = s.span_min   != null ? s.span_min : '';
+    document.getElementById('edit-focus').value    = s.focus_min  != null ? s.focus_min : '';
+    document.getElementById('edit-project').value  = s.project    || '';
+    document.getElementById('edit-task').value     = s.task       || '';
+    document.getElementById('edit-energy').value   = s.energy     != null ? s.energy : '';
+    document.getElementById('edit-note').value     = s.note       || s.break_note || '';
+    document.getElementById('edit-break-acts').value = s.break_activities || '';
+    document.getElementById('edit-returned').value = s.returned === true ? 'true' : s.returned === false ? 'false' : '';
+    // Populate category dropdown from current CAT
+    var catSel = document.getElementById('edit-cat');
+    catSel.innerHTML = '<option value="">—</option>' +
+      Object.keys(CAT).map(function(k) {
+        return '<option value="'+k+'"'+(s.task_type===k?' selected':'')+'>'+CAT[k].emoji+' '+k+'</option>';
+      }).join('');
+    document.getElementById('edit-status').textContent = '';
+  });
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.remove('show');
+  editingSessionId = null;
+}
+
+async function saveEdit() {
+  if (!sb || !editingSessionId) return;
+  var focusMin  = parseInt(document.getElementById('edit-focus').value) || null;
+  var spanMin   = parseInt(document.getElementById('edit-span').value)  || null;
+  var ratio     = (focusMin && spanMin) ? Math.round(focusMin / spanMin * 100) : null;
+  var retVal    = document.getElementById('edit-returned').value;
+  var updates   = {
+    session_date:     document.getElementById('edit-date').value    || null,
+    seq:              parseInt(document.getElementById('edit-seq').value)  || null,
+    start_time:       document.getElementById('edit-start').value   || null,
+    end_time:         document.getElementById('edit-end').value     || null,
+    span_min:         spanMin,
+    focus_min:        focusMin,
+    ratio:            ratio,
+    project:          document.getElementById('edit-project').value.trim() || null,
+    task:             document.getElementById('edit-task').value.trim()    || null,
+    task_type:        document.getElementById('edit-cat').value            || null,
+    energy:           parseInt(document.getElementById('edit-energy').value) || null,
+    note:             document.getElementById('edit-note').value.trim()    || null,
+    break_activities: document.getElementById('edit-break-acts').value.trim() || null,
+    returned:         retVal === 'true' ? true : retVal === 'false' ? false : null,
+  };
+  document.getElementById('edit-status').textContent = 'Saving...';
+  var res = await sb.from('sessions').update(updates).eq('id', editingSessionId);
+  if (res.error) {
+    document.getElementById('edit-status').textContent = '✗ ' + res.error.message;
+  } else {
+    document.getElementById('edit-status').textContent = '✓ Saved';
+    setTimeout(function() { closeEditModal(); loadLog(); refreshMetrics(); }, 600);
+  }
+}
+
+async function deleteSession() {
+  if (!sb || !editingSessionId) return;
+  if (!confirm('Delete this session permanently?')) return;
+  var res = await sb.from('sessions').delete().eq('id', editingSessionId);
+  if (res.error) {
+    document.getElementById('edit-status').textContent = '✗ ' + res.error.message;
+  } else {
+    closeEditModal(); loadLog(); refreshMetrics();
+  }
+}
+
 // ─── LOG ─────────────────────────────────────────────────────────────────────
+function fmtFocusSec(s) {
+  // Format seconds to M:SS — used in log table
+  if (s == null) return '—';
+  var m = Math.floor(s / 60);
+  var sec = s % 60;
+  return m + ':' + String(sec).padStart(2,'0');
+}
+
 async function loadLog() {
   document.getElementById('log-count').textContent = 'Loading...';
   var sessions = await fetchSessions();
@@ -1484,11 +1752,12 @@ async function loadLog() {
     var ret  = s.returned === true ? '✓' : s.returned === false ? '✗' : '—';
     var retC = s.returned ? 'var(--accent)' : 'var(--danger)';
     return '<tr>'
+      + '<td><button class="edit-row-btn" onclick="openEditModal(\''+s.id+'\')" title="Edit">✏</button></td>'
       + '<td>' + (s.session_date||'—') + '</td>'
       + '<td class="dim">' + (s.start_time||'—') + '</td>'
       + '<td class="dim">' + (s.end_time||'—') + '</td>'
       + '<td>' + (s.span_min!=null?s.span_min+'m':'—') + '</td>'
-      + '<td><b>' + (s.focus_min!=null?s.focus_min+'m':'—') + '</b></td>'
+      + '<td><b>' + (s.focus_sec!=null ? fmtFocusSec(s.focus_sec) : (s.focus_min!=null ? s.focus_min+'m' : '—')) + '</b></td>'
       + '<td><span class="badge ' + rCls + '">' + ratio + '%</span></td>'
       + '<td class="dim">' + (s.project||'—') + '</td>'
       + '<td>' + (s.task||'—') + '</td>'
@@ -1593,6 +1862,17 @@ function loadSettings() {
     var saved = JSON.parse(localStorage.getItem('ft_settings') || '{}');
     settings = Object.assign(settings, saved);
   } catch(e) {}
+  // Clamp to safe ranges — wipes any corruption from previous bugs
+  settings.pomodoro  = Math.min(120, Math.max(1,  parseInt(settings.pomodoro)  || 25));
+  settings.short     = Math.min(30,  Math.max(1,  parseInt(settings.short)     || 5));
+  settings.long      = Math.min(60,  Math.max(1,  parseInt(settings.long)      || 15));
+  settings.interval  = Math.min(10,  Math.max(2,  parseInt(settings.interval)  || 4));
+  settings.overdue   = Math.min(20,  Math.max(0,  parseInt(settings.overdue)   || 3));
+  settings.flowMode  = settings.flowMode  !== false;   // default true
+  settings.autoBreak = settings.autoBreak === true;    // default false
+  settings.autoPomo  = settings.autoPomo  === true;    // default false
+  // Write cleaned values back so corrupted storage is fixed immediately
+  localStorage.setItem('ft_settings', JSON.stringify(settings));
   document.getElementById('set-pomodoro').value = settings.pomodoro;
   document.getElementById('set-short').value    = settings.short;
   document.getElementById('set-long').value     = settings.long;
@@ -1704,9 +1984,18 @@ window.addEventListener('keydown', function(event) {
 
 // ─── BOOT ────────────────────────────────────────────────────────────────────
 (function init() {
+  // One-time fix: wipe corrupted settings from earlier bug (short was set to 25)
+  try {
+    var raw = JSON.parse(localStorage.getItem('ft_settings') || '{}');
+    if ((raw.short && raw.short > 30) || (raw.long && raw.long > 60)) {
+      localStorage.removeItem('ft_settings');
+    }
+  } catch(e) { localStorage.removeItem('ft_settings'); }
+
   buildAlarm();
   loadSettings();
   loadCategories();
+  loadExcluded();
   loadProjects();
   setRing(1);
   initSupabase();
