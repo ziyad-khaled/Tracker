@@ -753,6 +753,7 @@ var breakTick = null;
 var manualBreakTick = null;  // separate from overlay breakTick
 var overdueShown = false;
 var breakAlarmFired = false;
+var lastSavedSessionId = null;  // id of the focus session just saved, for break update
 var manualBreakActs = [];   // break activities logged during manual break
 
 // Modal
@@ -802,6 +803,17 @@ function saveCheckin() {
   currentEnergy = modalEnergy;
   document.getElementById('checkin-modal').classList.remove('show');
   updateCheckinSummary(meta[isoDate()]);
+  // Write to Supabase daily_checkins table (upsert by date)
+  if (sb) {
+    sb.from('daily_checkins').upsert([{
+      date:      isoDate(),
+      sleep_hrs: sleep ? parseFloat(sleep) : null,
+      wake_time: wake  || null,
+      energy:    modalEnergy || null
+    }], { onConflict: 'date' }).then(function(res) {
+      if (res.error) console.warn('daily_checkins upsert:', res.error.message);
+    });
+  }
 }
 function skipCheckin() {
   var meta = loadMeta();
@@ -985,8 +997,8 @@ function renderCategoryChips() {
     var name = e[0], cat = e[1];
     var isActive = name === currentCat;
     var style = isActive
-      ? 'border-color:' + catRgba(cat.col, 0.6) + ';color:' + catRgba(cat.col, 1) + ';background:' + catRgba(cat.col, 0.1) + ';'
-      : '';
+      ? 'border-color:' + catRgba(cat.col, 0.7) + ';color:' + catRgba(cat.col, 1) + ';background:' + catRgba(cat.col, 0.12) + ';'
+      : 'border-color:' + catRgba(cat.col, 0.25) + ';color:' + catRgba(cat.col, 0.55) + ';';
     return '<button class="cat-chip" data-cat="' + escHtml(name) + '" onclick="setCategory(\'' + escHtml(name) + '\')" style="' + style + '">'
       + '<span class="cat-emoji">' + cat.emoji + '</span>'
       + escHtml(name)
@@ -1104,6 +1116,21 @@ function showConn(cls, text) {
   var el = document.getElementById('conn-msg');
   el.className = 'conn-msg show ' + cls; el.textContent = text;
 }
+async function dbInsertReturning(sess) {
+  // Insert a session and return the auto-generated id (for break update)
+  if (!sb) { offlineQueue.push(sess); return null; }
+  var res = await sb.from('sessions').insert([sess]).select('id').single();
+  if (res.error) { offlineQueue.push(sess); return null; }
+  return res.data ? res.data.id : null;
+}
+
+async function dbUpdateBreak(id, breakData) {
+  // Patch break fields onto an existing session row
+  if (!sb || !id) return false;
+  var res = await sb.from('sessions').update(breakData).eq('id', id);
+  return !res.error;
+}
+
 async function dbSave(sess) {
   if (!sb) { offlineQueue.push(sess); return false; }
   var res = await sb.from('sessions').insert([sess]);
@@ -1388,6 +1415,7 @@ function resetTimer() {
 }
 
 function endSession() {
+  stopAlarm();   // always stop alarm first — covers flow target alarm and hard-stop alarm
   clearInterval(tickInterval); tickInterval = null;
   running = false; pomodoroCount++;
   document.getElementById('start-btn').textContent = 'START';
@@ -1429,41 +1457,44 @@ function endSession() {
   };
 
   sessionStart = null; pausedMs = 0; pauseStartMs = null; inOvertime = false;
+
+  // Always save the focus session immediately — break data appended via UPDATE later
+  var sessNow = {
+    session_date: pending.session_date,
+    start_time:   pending.start_time,
+    end_time:     pending.end_time,
+    span_min:     pending.span_min,
+    focus_sec:    pending.focus_sec,
+    focus_min:    pending.focus_min,
+    ratio:        pending.ratio,
+    project:      pending.project,
+    task:         pending.task,
+    task_type:    pending.task_type,
+    seq:          pending.seq,
+    energy:       pending.energy,
+    note:         pending.note,
+    // sleep_hrs and wake_time normalized to daily_checkins table
+    break_activities:   null,
+    break_note:         null,
+    break_duration_min: null,
+    overdue:            false,
+    returned:           null
+  };
+
+  dbInsertReturning(sessNow).then(function(savedId) {
+    lastSavedSessionId = savedId;
+    var hint = document.getElementById('flow-hint');
+    hint.textContent = savedId ? '✓ Saved — log break or start next session' : '✗ Save failed — check connection';
+    hint.className = savedId ? '' : 'overtime';
+    refreshMetrics();   // refresh AFTER save confirms
+  });
+
   if (settings.autoBreak) {
     showBreakOverlay(pomodoroCount % settings.interval === 0 ? 'long' : 'short');
   } else {
-    // Save session directly (no break overlay to save it)
-    var sessNow = {
-      session_date: pending.session_date,
-      start_time:   pending.start_time,
-      end_time:     pending.end_time,
-      span_min:     pending.span_min,
-      focus_sec:    pending.focus_sec,
-      focus_min:    pending.focus_min,
-      ratio:        pending.ratio,
-      project:      pending.project,
-      task:         pending.task,
-      task_type:    pending.task_type,
-      seq:          pending.seq,
-      energy:       pending.energy,
-      sleep_hrs:    pending.sleep_hrs,
-      wake_time:    pending.wake_time,
-      note:         pending.note,
-      break_activities:   null,
-      break_note:         null,
-      break_duration_min: null,
-      overdue:            false,
-      returned:           null
-    };
-    pending = null;
-    dbSave(sessNow).then(function(ok) {
-      var hint = document.getElementById('flow-hint');
-      hint.textContent = ok ? '✓ Saved — start break or next session' : '✗ Save failed — check connection';
-      hint.className = ok ? '' : 'overtime';
-    });
     setMode('pomodoro');
-    refreshMetrics();
   }
+  pending = null;
 }
 
 function wallElapsedSecs() {
@@ -1480,22 +1511,24 @@ function doTick() {
     setRing(remaining / totalSecs);
     renderClock(remaining, false);
   } else {
-    setRing(0);
     if (!inOvertime) {
       if (settings.flowMode) {
         inOvertime = true;
-        playAlarm();  // alarm at target — you're in flow, keep going
+        playAlarm();
         document.getElementById('overtime-badge').classList.add('show');
         document.getElementById('ring').style.stroke = 'var(--warn)';
         document.getElementById('timer-display').style.color = 'var(--warn)';
         document.getElementById('flow-hint').textContent = 'Target reached — keep going or end when ready';
         document.getElementById('flow-hint').className = 'overtime';
       } else {
-        playAlarm();  // alarm on hard stop
+        playAlarm();
         endSession(); return;
       }
     }
-    renderClock(elapsed - totalSecs, true);
+    // In overtime: fill ring back up in amber showing how long past target
+    var overtimeSecs = elapsed - totalSecs;
+    setRing(Math.min(1, overtimeSecs / totalSecs));
+    renderClock(overtimeSecs, true);
   }
 }
 
@@ -1515,9 +1548,10 @@ function setRing(r) {
 
 // ─── BREAK ────────────────────────────────────────────────────────────────────
 function showBreakOverlay(type) {
-  // Always clear any previous break interval before starting a new one
+  // Clear any previous break interval and stop any running alarm first
   clearInterval(breakTick);
   breakTick = null;
+  stopAlarm();
 
   document.getElementById('break-overlay').classList.add('show');
   document.getElementById('break-title').textContent = type === 'long' ? 'Long Break' : 'Short Break';
@@ -1583,26 +1617,12 @@ async function endBreak(returned) {
   var breakDurSec = breakStart ? Math.floor((breakEnd.getTime() - breakStart.getTime()) / 1000) : 0;
   var breakDurMin = Math.floor(breakDurSec / 60);
 
-  var sess = {
-    session_date:      pending.session_date,
-    start_time:        pending.start_time,
-    end_time:          pending.end_time,
-    span_min:          pending.span_min,
-    focus_min:         pending.focus_min,
-    ratio:             pending.ratio,
-    project:           pending.project,
-    task:              pending.task,
-    task_type:         pending.task_type,
-    seq:               pending.seq,
-    energy:            pending.energy,
-    sleep_hrs:         pending.sleep_hrs,
-    wake_time:         pending.wake_time,
-    note:              pending.note,
-    break_activities:  breakActs.length ? breakActs.join('; ') : null,
-    break_note:        document.getElementById('break-note').value.trim() || null,
+  var breakData = {
+    break_activities:   breakActs.length ? breakActs.join('; ') : null,
+    break_note:         document.getElementById('break-note').value.trim() || null,
     break_duration_min: breakDurMin,
-    overdue:           overdueShown,
-    returned:          returned
+    overdue:            overdueShown,
+    returned:           returned
   };
 
   var msg = document.getElementById('save-msg');
@@ -1734,6 +1754,15 @@ function fmtFocusSec(s) {
 async function loadLog() {
   document.getElementById('log-count').textContent = 'Loading...';
   var sessions = await fetchSessions();
+  // Enrich with daily_checkins data (keyed by date)
+  var checkinMap = {};
+  if (sb && sessions.length) {
+    var dates = [...new Set(sessions.map(function(s){return s.session_date;}))];
+    var cr = await sb.from('daily_checkins').select('date,sleep_hrs,wake_time,energy').in('date', dates);
+    if (!cr.error && cr.data) {
+      cr.data.forEach(function(c){ checkinMap[c.date] = c; });
+    }
+  }
   var tbody = document.getElementById('log-tbody');
   var empty = document.getElementById('log-empty');
   document.getElementById('log-count').textContent = sessions.length + ' sessions';
@@ -1764,8 +1793,8 @@ async function loadLog() {
       + '<td>' + catHtml + '</td>'
       + '<td class="dim">' + (s.seq!=null?s.seq:'—') + '</td>'
       + '<td>' + (eMap[s.energy]||'—') + '</td>'
-      + '<td class="dim">' + (s.sleep_hrs!=null?s.sleep_hrs:'—') + '</td>'
-      + '<td class="dim">' + (s.wake_time||'—') + '</td>'
+      + '<td class="dim">' + (checkinMap[s.session_date] ? (checkinMap[s.session_date].sleep_hrs || '—') : (s.sleep_hrs||'—')) + '</td>'
+      + '<td class="dim">' + (checkinMap[s.session_date] ? (checkinMap[s.session_date].wake_time || '—') : (s.wake_time||'—')) + '</td>'
       + '<td class="dim" style="max-width:130px;overflow:hidden;text-overflow:ellipsis;">' + (s.break_activities||'—') + '</td>'
       + '<td class="dim">' + (s.break_duration_min!=null?s.break_duration_min+'m':'—') + '</td>'
       + '<td class="dim">' + (s.overdue?'⚠':'no') + '</td>'
