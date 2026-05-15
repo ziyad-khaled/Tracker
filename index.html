@@ -651,20 +651,31 @@ FROM sessions WHERE focus_min > 25 ORDER BY overtime_min DESC LIMIT 20;</pre>
     <div class="full-col">
       <div class="settings-title">Table Setup — run once in Supabase SQL Editor</div>
       <div class="sql-block">
-<pre>CREATE TABLE IF NOT EXISTS sessions (
+<pre>-- Sessions table (sleep/wake moved to daily_checkins)
+CREATE TABLE IF NOT EXISTS sessions (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   created_at TIMESTAMPTZ DEFAULT now(),
   session_date DATE NOT NULL, start_time TIME NOT NULL, end_time TIME NOT NULL,
-  span_min INTEGER NOT NULL, focus_min INTEGER NOT NULL, ratio INTEGER,
-  project TEXT, task TEXT, task_type TEXT, seq INTEGER,
-  energy INTEGER, sleep_hrs NUMERIC(3,1), wake_time TIME,
+  span_min INTEGER NOT NULL, focus_sec INTEGER, focus_min INTEGER NOT NULL, ratio INTEGER,
+  project TEXT, task TEXT, task_type TEXT, seq INTEGER, energy INTEGER,
   break_duration_min INTEGER, break_activities TEXT,
   overdue BOOLEAN DEFAULT false, returned BOOLEAN,
   note TEXT, break_note TEXT
 );
 ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Enable insert for anon" ON sessions FOR INSERT WITH CHECK (true);
-CREATE POLICY "Enable select for anon" ON sessions FOR SELECT USING (true);</pre>
+CREATE POLICY "Enable select for anon" ON sessions FOR SELECT USING (true);
+CREATE POLICY "Enable update for anon" ON sessions FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "Enable delete for anon" ON sessions FOR DELETE USING (true);
+
+-- Daily check-ins (normalized — one row per day)
+CREATE TABLE IF NOT EXISTS daily_checkins (
+  date DATE PRIMARY KEY,
+  sleep_hrs NUMERIC(3,1), wake_time TIME, energy INTEGER,
+  created_at TIMESTAMPTZ DEFAULT now(), updated_at TIMESTAMPTZ DEFAULT now()
+);
+ALTER TABLE daily_checkins ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Enable all for anon" ON daily_checkins FOR ALL USING (true) WITH CHECK (true);</pre>
       </div>
       <div style="margin-top:1rem;"><button class="btn-danger" onclick="clearLocalCache()">Clear Local Cache</button></div>
     </div>
@@ -1434,9 +1445,6 @@ function endSession() {
   // Ratio calculated in seconds for full precision
   var ratio        = Math.round(focusSec / Math.max(spanSec, 1) * 100);
   var otMin        = Math.max(0, focusMin - settings.pomodoro);
-  var meta     = loadMeta();
-  var td       = meta[isoDate()] || {};
-
   pending = {
     session_date: isoDate(),
     start_time:   sessionStart ? fmt24(sessionStart) : fmt24(end),
@@ -1450,8 +1458,6 @@ function endSession() {
     task_type:    currentCat || null,
     seq:          seqToday,
     energy:       currentEnergy,
-    sleep_hrs:    td.sleep ? parseFloat(td.sleep) : null,
-    wake_time:    td.wake  || null,
     note:         document.getElementById('session-note').value.trim() || null,
     _otMin:       otMin
   };
@@ -1793,8 +1799,8 @@ async function loadLog() {
       + '<td>' + catHtml + '</td>'
       + '<td class="dim">' + (s.seq!=null?s.seq:'—') + '</td>'
       + '<td>' + (eMap[s.energy]||'—') + '</td>'
-      + '<td class="dim">' + (checkinMap[s.session_date] ? (checkinMap[s.session_date].sleep_hrs || '—') : (s.sleep_hrs||'—')) + '</td>'
-      + '<td class="dim">' + (checkinMap[s.session_date] ? (checkinMap[s.session_date].wake_time || '—') : (s.wake_time||'—')) + '</td>'
+      + '<td class="dim">' + (checkinMap[s.session_date] ? (checkinMap[s.session_date].sleep_hrs || '—') : '—') + '</td>'
+      + '<td class="dim">' + (checkinMap[s.session_date] ? (checkinMap[s.session_date].wake_time || '—') : '—') + '</td>'
       + '<td class="dim" style="max-width:130px;overflow:hidden;text-overflow:ellipsis;">' + (s.break_activities||'—') + '</td>'
       + '<td class="dim">' + (s.break_duration_min!=null?s.break_duration_min+'m':'—') + '</td>'
       + '<td class="dim">' + (s.overdue?'⚠':'no') + '</td>'
@@ -1807,11 +1813,11 @@ async function loadLog() {
 async function exportCSV() {
   var sessions = await fetchSessions(10000);
   if (!sessions.length) { alert('No sessions to export.'); return; }
-  var h = ['Date','Start','End','Span(min)','Focus(min)','Ratio(%)','Project','Task','Category','Seq#','Energy','Sleep(hrs)','Wake','Break Activities','Break Dur(min)','Overdue','Returned','Note'];
+  var h = ['Date','Start','End','Span(min)','Focus(min)','Ratio(%)','Project','Task','Category','Seq#','Energy','Break Activities','Break Dur(min)','Overdue','Returned','Note'];
   var rows = sessions.map(function(s) {
     return [
       s.session_date, s.start_time, s.end_time, s.span_min, s.focus_min, s.ratio,
-      s.project||'', s.task||'', s.task_type||'', s.seq, s.energy||'', s.sleep_hrs||'', s.wake_time||'',
+      s.project||'', s.task||'', s.task_type||'', s.seq, s.energy||'',
       s.break_activities||'', s.break_duration_min||0,
       s.overdue?'yes':'no', s.returned?'yes':'no',
       (s.note||s.break_note||'').replace(/,/g,';')
