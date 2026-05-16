@@ -651,31 +651,76 @@ FROM sessions WHERE focus_min > 25 ORDER BY overtime_min DESC LIMIT 20;</pre>
     <div class="full-col">
       <div class="settings-title">Table Setup — run once in Supabase SQL Editor</div>
       <div class="sql-block">
-<pre>-- Sessions table (sleep/wake moved to daily_checkins)
+<pre>-- ── FOCUS_SESSIONS + BREAKS (separate tables) ────────────────────────────────
+-- Two tables, clean schema, distinguished by task_type:
+--   Focus rows  → task_type = any user category (Learn, Build, etc.) or NULL
+--   Break rows  → task_type = '_break'
+--
+-- Focus-only fields: focus_sec, focus_min, ratio, project, task, seq, energy, note
+-- Break-only fields: break_duration_min, break_activities, overdue, returned, break_note
+-- Shared fields:     id, created_at, session_date, start_time, end_time, span_min, task_type
+
 CREATE TABLE IF NOT EXISTS sessions (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  session_date DATE NOT NULL, start_time TIME NOT NULL, end_time TIME NOT NULL,
-  span_min INTEGER NOT NULL, focus_sec INTEGER, focus_min INTEGER NOT NULL, ratio INTEGER,
-  project TEXT, task TEXT, task_type TEXT, seq INTEGER, energy INTEGER,
-  break_duration_min INTEGER, break_activities TEXT,
-  overdue BOOLEAN DEFAULT false, returned BOOLEAN,
-  note TEXT, break_note TEXT
+  id                  UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
+  created_at          TIMESTAMPTZ DEFAULT now(),
+
+  -- Shared
+  session_date        DATE        NOT NULL,
+  start_time          TIME        NOT NULL,
+  end_time            TIME        NOT NULL,
+  span_min            INTEGER     NOT NULL,
+  task_type           TEXT,       -- user category OR '_break' for break rows
+
+  -- Focus rows only
+  focus_sec           INTEGER,    -- raw seconds for precision display (M:SS)
+  focus_min           INTEGER,    -- floored minutes
+  ratio               INTEGER,    -- focus_sec / span_sec * 100
+  project             TEXT,
+  task                TEXT,
+  seq                 INTEGER,    -- session sequence number for the day
+  energy              INTEGER,    -- 1=Low 2=Med 3=High (overrideable per session)
+  note                TEXT,
+
+  -- Break rows only
+  break_duration_min  INTEGER,
+  break_activities    TEXT,       -- semicolon-separated (Phone; Walk; etc.)
+  overdue             BOOLEAN     DEFAULT false,
+  returned            BOOLEAN,
+  break_note          TEXT
 );
+
 ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Enable insert for anon" ON sessions FOR INSERT WITH CHECK (true);
 CREATE POLICY "Enable select for anon" ON sessions FOR SELECT USING (true);
 CREATE POLICY "Enable update for anon" ON sessions FOR UPDATE USING (true) WITH CHECK (true);
 CREATE POLICY "Enable delete for anon" ON sessions FOR DELETE USING (true);
 
--- Daily check-ins (normalized — one row per day)
+-- ── DAILY CHECK-INS ───────────────────────────────────────────────────────────
+-- Normalized — one row per calendar day, linked to sessions by date.
+-- Stores sleep, wake time, and starting energy (energy can be overridden per session).
+
 CREATE TABLE IF NOT EXISTS daily_checkins (
-  date DATE PRIMARY KEY,
-  sleep_hrs NUMERIC(3,1), wake_time TIME, energy INTEGER,
-  created_at TIMESTAMPTZ DEFAULT now(), updated_at TIMESTAMPTZ DEFAULT now()
+  date        DATE        PRIMARY KEY,
+  sleep_hrs   NUMERIC(3,1),
+  wake_time   TIME,
+  energy      INTEGER,    -- 1=Low 2=Med 3=High
+  created_at  TIMESTAMPTZ DEFAULT now(),
+  updated_at  TIMESTAMPTZ DEFAULT now()
 );
+
 ALTER TABLE daily_checkins ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Enable all for anon" ON daily_checkins FOR ALL USING (true) WITH CHECK (true);</pre>
+CREATE POLICY "Enable all for anon" ON daily_checkins FOR ALL USING (true) WITH CHECK (true);
+
+-- ── USEFUL QUERIES ─────────────────────────────────────────────────────────────
+-- Daily focus (excluding breaks):
+--   SELECT session_date, SUM(focus_min) FROM sessions
+--   WHERE task_type != '_break' GROUP BY session_date ORDER BY session_date DESC;
+--
+-- Break return rate by activity:
+--   SELECT break_activities, COUNT(*),
+--     ROUND(AVG(CASE WHEN returned THEN 1 ELSE 0 END)::NUMERIC*100,1) AS return_pct
+--   FROM sessions WHERE task_type = '_break' AND break_activities IS NOT NULL
+--   GROUP BY break_activities ORDER BY 2 DESC;</pre>
       </div>
       <div style="margin-top:1rem;"><button class="btn-danger" onclick="clearLocalCache()">Clear Local Cache</button></div>
     </div>
@@ -1098,7 +1143,7 @@ function initSupabase() {
 function connectSB(url, key, fb) {
   try {
     sb = supabase.createClient(url, key);
-    sb.from('sessions').select('id', { count:'exact', head:true }).then(function(res) {
+    sb.from('focus_sessions').select('id', { count:'exact', head:true }).then(function(res) {
       if (res.error) {
         sb = null; setPill('error','error');
         document.getElementById('setup-banner').classList.remove('hidden');
@@ -1130,36 +1175,61 @@ function showConn(cls, text) {
 async function dbInsertReturning(sess) {
   // Insert a session and return the auto-generated id (for break update)
   if (!sb) { offlineQueue.push(sess); return null; }
-  var res = await sb.from('sessions').insert([sess]).select('id').single();
+  var res = await sb.from('focus_sessions').insert([sess]).select('id').single();
   if (res.error) { offlineQueue.push(sess); return null; }
   return res.data ? res.data.id : null;
 }
 
-async function dbUpdateBreak(id, breakData) {
-  // Patch break fields onto an existing session row
-  if (!sb || !id) return false;
-  var res = await sb.from('sessions').update(breakData).eq('id', id);
-  return !res.error;
-}
-
 async function dbSave(sess) {
   if (!sb) { offlineQueue.push(sess); return false; }
-  var res = await sb.from('sessions').insert([sess]);
-  if (res.error) { offlineQueue.push(sess); return false; }
+  var table = sess.task_type === '_break' ? 'breaks' : 'focus_sessions';
+  // Strip fields that don't belong to the target table
+  var row = Object.assign({}, sess);
+  if (table === 'breaks') {
+    // breaks table columns only
+    ['focus_sec','focus_min','ratio','project','task','seq','energy','note'].forEach(function(k){ delete row[k]; });
+    // rename task_type out — breaks table has no task_type column
+    delete row['task_type'];
+    delete row['_otMin'];
+  } else {
+    // focus_sessions table — no break columns
+    ['break_duration_min','break_activities','overdue','returned','break_note'].forEach(function(k){ delete row[k]; });
+    delete row['_otMin'];
+  }
+  var res = await sb.from(table).insert([row]);
+  if (res.error) { console.error('dbSave error', table, res.error.message); offlineQueue.push(sess); return false; }
   return true;
 }
 async function flushQueue() {
   if (!sb || !offlineQueue.length) return;
   var q = offlineQueue.slice(); offlineQueue = [];
   for (var i = 0; i < q.length; i++) {
-    var res = await sb.from('sessions').insert([q[i]]);
+    var table = q[i].task_type === '_break' ? 'breaks' : 'focus_sessions';
+    var row = Object.assign({}, q[i]);
+    if (table === 'breaks') {
+      ['focus_sec','focus_min','ratio','project','task','seq','energy','note','task_type','_otMin'].forEach(function(k){ delete row[k]; });
+    } else {
+      ['break_duration_min','break_activities','overdue','returned','break_note','_otMin'].forEach(function(k){ delete row[k]; });
+    }
+    var res = await sb.from(table).insert([row]);
     if (res.error) offlineQueue.push(q[i]);
   }
 }
 async function fetchSessions(limit) {
   if (!sb) return [];
-  var res = await sb.from('sessions').select('*').order('created_at',{ascending:false}).limit(limit || 500);
-  return res.error ? [] : (res.data || []);
+  limit = limit || 500;
+  // Fetch focus sessions and breaks separately, merge and sort by created_at
+  var [fRes, bRes] = await Promise.all([
+    sb.from('focus_sessions').select('*').order('created_at',{ascending:false}).limit(limit),
+    sb.from('breaks').select('*').order('created_at',{ascending:false}).limit(Math.floor(limit/2))
+  ]);
+  var focusRows = fRes.error ? [] : (fRes.data || []);
+  var breakRows = (bRes.error ? [] : (bRes.data || [])).map(function(b) {
+    return Object.assign({ task_type: '_break', focus_min: 0, ratio: 0 }, b);
+  });
+  var all = focusRows.concat(breakRows);
+  all.sort(function(a,b){ return a.created_at < b.created_at ? 1 : -1; });
+  return all;
 }
 
 // ─── WEEKLY BOUNDS (Sat–Fri) ──────────────────────────────────────────────────
@@ -1235,7 +1305,7 @@ async function refreshMetrics() {
   var lastWeek = getWeekBounds(1);
 
   // Today
-  var todayRes = await sb.from('sessions').select('focus_min').eq('session_date', today);
+  var todayRes = await sb.from('focus_sessions').select('focus_min').eq('session_date', today);
   var todaySessions = todayRes.data || [];
   var todayMin = todaySessions.reduce(function(a,s) { return a + (s.focus_min||0); }, 0);
   seqToday = todaySessions.length;
@@ -1245,15 +1315,16 @@ async function refreshMetrics() {
 
   // This week — running average: divide by days elapsed so far (Sat=1, Sun=2 … Fri=7)
   var twElapsed = daysElapsedInWeek();
-  var twRes = await sb.from('sessions').select('focus_min, task_type').gte('session_date', thisWeek[0]).lte('session_date', thisWeek[1]);
-  var twTotal = (twRes.data||[]).reduce(function(a,s) { return (!excludedFromAvg[s.task_type]) ? a+(s.focus_min||0) : a; }, 0);
+  var twRes = await sb.from('focus_sessions').select('focus_min, task_type').gte('session_date', thisWeek[0]).lte('session_date', thisWeek[1]);
+  var twTotal = (twRes.data||[]).reduce(function(a,s) { return !excludedFromAvg[s.task_type] ? a+(s.focus_min||0) : a; }, 0);
   var twAvg   = Math.round(twTotal / twElapsed);
   document.getElementById('m-thisweek').textContent = twAvg ? twAvg + 'm' : '—';
   document.getElementById('m-thisweek-sub').textContent = 'day ' + twElapsed + ' of 7';
 
   // Last week — complete week, always ÷7, show active days
-  var lwRes = await sb.from('sessions').select('focus_min, session_date, task_type').gte('session_date', lastWeek[0]).lte('session_date', lastWeek[1]);
+  var lwRes = await sb.from('focus_sessions').select('focus_min, session_date, task_type').gte('session_date', lastWeek[0]).lte('session_date', lastWeek[1]);
   var lwData  = lwRes.data || [];
+  var lwData  = (lwRes.data || []).filter(function(s) { return s.task_type !== '_break'; });
   var lwTotal = lwData.reduce(function(a,s) { return (!excludedFromAvg[s.task_type]) ? a+(s.focus_min||0) : a; }, 0);
   var lwAvg   = Math.round(lwTotal / 7);
   var lwActiveDays = {};
@@ -1520,7 +1591,7 @@ function doTick() {
     if (!inOvertime) {
       if (settings.flowMode) {
         inOvertime = true;
-        playAlarm();
+        // No alarm in flow mode — visual only (amber ring + badge)
         document.getElementById('overtime-badge').classList.add('show');
         document.getElementById('ring').style.stroke = 'var(--warn)';
         document.getElementById('timer-display').style.color = 'var(--warn)';
@@ -1614,7 +1685,6 @@ function toggleBreakAct(el, act) {
 }
 
 async function endBreak(returned) {
-  // Stop alarm and break timer immediately
   stopAlarm();
   clearInterval(breakTick);
   breakTick = null;
@@ -1623,7 +1693,17 @@ async function endBreak(returned) {
   var breakDurSec = breakStart ? Math.floor((breakEnd.getTime() - breakStart.getTime()) / 1000) : 0;
   var breakDurMin = Math.floor(breakDurSec / 60);
 
-  var breakData = {
+  // Insert break as a SEPARATE row — type identified by task_type = '_break'
+  // Links to the focus session via session_date + seq
+  var breakRow = {
+    session_date:       lastSavedSessionId ? (pending ? pending.session_date : isoDate()) : isoDate(),
+    start_time:         breakStart ? fmt24(breakStart) : fmt24(new Date()),
+    end_time:           fmt24(breakEnd),
+    span_min:           breakDurMin,
+    focus_min:          0,
+    ratio:              0,
+    task_type:          '_break',   // sentinel value — filtered out of averages
+    seq:                lastSavedSessionId ? null : null,
     break_activities:   breakActs.length ? breakActs.join('; ') : null,
     break_note:         document.getElementById('break-note').value.trim() || null,
     break_duration_min: breakDurMin,
@@ -1632,29 +1712,27 @@ async function endBreak(returned) {
   };
 
   var msg = document.getElementById('save-msg');
-  msg.textContent = 'Saving...'; msg.className = 'save-msg saving';
+  msg.textContent = 'Saving break...'; msg.className = 'save-msg saving';
 
-  var ok = await dbSave(sess);
+  var ok = await dbSave(breakRow);
+  lastSavedSessionId = null;
 
   if (ok) {
-    msg.textContent = '✓ Saved'; msg.className = 'save-msg saved';
+    msg.textContent = '✓ Break logged'; msg.className = 'save-msg saved';
   } else {
     msg.textContent = navigator.onLine ? '✗ Failed — queued' : '✗ Offline — will sync';
     msg.className = 'save-msg failed';
   }
 
-  // Close overlay and reset timer after brief feedback pause
   setTimeout(function() {
     document.getElementById('break-overlay').classList.remove('show');
     pending = null;
-    // Hard reset the timer state before setMode
     running = false;
     sessionStart = null; pausedMs = 0; pauseStartMs = null;
     inOvertime = false;
     timeLeft = settings.pomodoro * 60;
     totalSecs = settings.pomodoro * 60;
     mode = 'pomodoro';
-    // Now safe to call setMode
     setMode('pomodoro');
     refreshMetrics();
     if (settings.autoPomo) {
@@ -1665,13 +1743,17 @@ async function endBreak(returned) {
 
 // ─── EDIT LOG MODAL ───────────────────────────────────────────────────────────
 var editingSessionId = null;
+var editingTable = 'focus_sessions';  // which table the row being edited belongs to
 
-function openEditModal(id) {
+function openEditModal(id, table) {
+  editingTable = table || 'focus_sessions';
   if (!sb) { alert('Connect Supabase first'); return; }
   editingSessionId = id;
   document.getElementById('edit-status').textContent = 'Loading...';
   document.getElementById('edit-modal').classList.add('show');
-  sb.from('sessions').select('*').eq('id', id).single().then(function(res) {
+  // Determine which table to query based on which list the id came from
+  var table = editingTable || 'focus_sessions';
+  sb.from(table).select('*').eq('id', id).single().then(function(res) {
     if (res.error || !res.data) {
       document.getElementById('edit-status').textContent = '✗ Could not load session';
       return;
@@ -1728,7 +1810,7 @@ async function saveEdit() {
     returned:         retVal === 'true' ? true : retVal === 'false' ? false : null,
   };
   document.getElementById('edit-status').textContent = 'Saving...';
-  var res = await sb.from('sessions').update(updates).eq('id', editingSessionId);
+  var res = await sb.from(editingTable || 'focus_sessions').update(updates).eq('id', editingSessionId);
   if (res.error) {
     document.getElementById('edit-status').textContent = '✗ ' + res.error.message;
   } else {
@@ -1740,7 +1822,7 @@ async function saveEdit() {
 async function deleteSession() {
   if (!sb || !editingSessionId) return;
   if (!confirm('Delete this session permanently?')) return;
-  var res = await sb.from('sessions').delete().eq('id', editingSessionId);
+  var res = await sb.from(editingTable || 'focus_sessions').delete().eq('id', editingSessionId);
   if (res.error) {
     document.getElementById('edit-status').textContent = '✗ ' + res.error.message;
   } else {
@@ -1776,17 +1858,19 @@ async function loadLog() {
   empty.style.display = 'none';
   var eMap = { 1:'↓', 2:'→', 3:'↑' };
   tbody.innerHTML = sessions.map(function(s) {
+    var isBreakRow = s.task_type === '_break';
+    var rowStyle = isBreakRow ? ' style="opacity:0.6;background:rgba(95,180,255,0.04);"' : '';
     var ratio = s.ratio != null ? s.ratio : (s.span_min > 0 ? Math.round(s.focus_min / s.span_min * 100) : 100);
-    var rCls  = ratio >= 85 ? 'badge-hi' : ratio >= 65 ? 'badge-mid' : 'badge-lo';
-    var cat   = s.task_type && CAT[s.task_type];
-    var catHtml = cat
-      ? '<span class="cat-tag" style="background:' + catRgba(cat.col, 0.1) + ';color:' + catRgba(cat.col, 1) + ';">' + cat.emoji + ' ' + s.task_type + '</span>'
-      : (s.task_type
-          ? '<span class="cat-tag cat-tag-default">' + s.task_type + '</span>'
-          : '<span class="cat-tag cat-tag-default">—</span>');
+    var rCls  = isBreakRow ? '' : (ratio >= 85 ? 'badge-hi' : ratio >= 65 ? 'badge-mid' : 'badge-lo');
+    var cat   = !isBreakRow && s.task_type && CAT[s.task_type];
+    var catHtml = isBreakRow
+      ? '<span class="cat-tag" style="background:rgba(95,180,255,0.1);color:var(--info);">⏸ break</span>'
+      : (cat
+          ? '<span class="cat-tag" style="background:' + catRgba(cat.col, 0.1) + ';color:' + catRgba(cat.col, 1) + ';">' + cat.emoji + ' ' + s.task_type + '</span>'
+          : (s.task_type ? '<span class="cat-tag cat-tag-default">' + s.task_type + '</span>' : '<span class="cat-tag cat-tag-default">—</span>'));
     var ret  = s.returned === true ? '✓' : s.returned === false ? '✗' : '—';
     var retC = s.returned ? 'var(--accent)' : 'var(--danger)';
-    return '<tr>'
+    return '<tr' + rowStyle + '>'
       + '<td><button class="edit-row-btn" onclick="openEditModal(\''+s.id+'\')" title="Edit">✏</button></td>'
       + '<td>' + (s.session_date||'—') + '</td>'
       + '<td class="dim">' + (s.start_time||'—') + '</td>'
