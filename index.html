@@ -1951,16 +1951,10 @@ async function exportCSV() {
     ].map(function(v){ return '"'+(v!=null?v:'')+'"'; }).join(',');
   });
 
-  var csv = '=== FOCUS SESSIONS ===
-'
-    + [fh.join(',')].concat(fRows).join('
-')
-    + '
-
-=== BREAKS ===
-'
-    + [bh.join(',')].concat(bRows).join('
-');
+  var csv = '=== FOCUS SESSIONS ===\n'
+    + [fh.join(',')].concat(fRows).join('\n')
+    + '\n\n=== BREAKS ===\n'
+    + [bh.join(',')].concat(bRows).join('\n');
 
   var blob = new Blob([csv], { type:'text/csv' });
   var a = document.createElement('a');
