@@ -204,6 +204,12 @@ td.dim{color:var(--muted);}
 .cat-tag-Network{background:rgba(255,170,68,.1);color:var(--warn);}
 .cat-tag-Apply{background:rgba(255,95,95,.1);color:var(--danger);}
 .cat-tag-default{background:var(--surface2);color:var(--muted);}
+
+.log-tabs{display:flex;gap:2px;margin-bottom:1.5rem;}
+.log-tab{font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:7px 20px;border-radius:var(--r);cursor:pointer;color:var(--muted);background:none;border:1px solid var(--border);transition:all .15s;}
+.log-tab:hover{color:var(--text);border-color:#444;}
+.log-tab.active{color:var(--accent);border-color:rgba(200,240,74,.4);background:var(--accent-dim);}
+.log-tab.break-tab.active{color:var(--info);border-color:rgba(95,180,255,.4);background:rgba(95,180,255,.08);}
 .empty-state{text-align:center;padding:4rem;color:var(--muted);font-family:var(--mono);font-size:12px;line-height:2;}
 /* EDIT MODAL */
 #edit-modal{display:none;position:fixed;inset:0;z-index:400;background:rgba(10,10,10,.97);align-items:center;justify-content:center;}
@@ -519,32 +525,52 @@ td.dim{color:var(--muted);}
   </div>
   <textarea class="input-field break-note-field" id="break-note" placeholder="Break note (optional)..." rows="2"></textarea>
   <div class="break-actions">
-    <button class="btn-return" onclick="endBreak(true)">Back to Work →</button>
-    <button class="btn-skip-break" onclick="endBreak(false)">Skip Break</button>
+    <button class="btn-return" onclick="endBreak(true)">✓ Back to Work</button>
+    <button class="btn-skip-break" onclick="endBreak(false)">✗ Didn't Return</button>
+    <button class="btn-skip-break" style="color:var(--warn);border-color:rgba(255,170,68,.4);" onclick="endBreak(null)">⚡ Urgent</button>
   </div>
   <div class="save-msg" id="save-msg"></div>
 </div>
 
 <!-- LOG PAGE -->
 <div class="page" id="page-log">
+  <div class="log-tabs">
+    <button class="log-tab active" id="tab-sessions" onclick="switchLogTab('sessions')">📚 Focus Sessions</button>
+    <button class="log-tab break-tab" id="tab-breaks" onclick="switchLogTab('breaks')">⏸ Breaks</button>
+  </div>
   <div class="log-toolbar">
     <button class="btn-primary" style="padding:8px 20px;font-size:11px;" onclick="exportCSV()">↓ CSV</button>
     <button class="btn-ghost" style="padding:8px 14px;" onclick="loadLog()">↻ Refresh</button>
     <span class="log-count" id="log-count">—</span>
   </div>
-  <div class="table-wrap">
+
+  <!-- SESSIONS TABLE -->
+  <div id="sessions-table-wrap" class="table-wrap">
     <table>
       <thead>
         <tr>
-          <th></th><th>Date</th><th>Start</th><th>End</th><th>Span</th><th>Focus</th>
-          <th>Ratio</th><th>Project</th><th>Task</th><th>Category</th><th>#</th>
-          <th>Energy</th><th>Sleep</th><th>Wake</th><th>Break acts</th>
-          <th>Break dur</th><th>Overdue</th><th>Returned</th><th>Note</th>
+          <th></th><th>Date</th><th>Start</th><th>End</th><th>Span</th>
+          <th>Focus</th><th>Ratio</th><th>Project</th><th>Task</th>
+          <th>Category</th><th>#</th><th>Energy</th><th>Sleep</th><th>Wake</th><th>Note</th>
         </tr>
       </thead>
-      <tbody id="log-tbody"></tbody>
+      <tbody id="sessions-tbody"></tbody>
     </table>
-    <div class="empty-state" id="log-empty" style="display:none;">No sessions yet.<br>Connect Supabase in Settings → start a session.</div>
+    <div class="empty-state" id="sessions-empty" style="display:none;">No focus sessions yet.</div>
+  </div>
+
+  <!-- BREAKS TABLE -->
+  <div id="breaks-table-wrap" class="table-wrap" style="display:none;">
+    <table>
+      <thead>
+        <tr>
+          <th></th><th>Date</th><th>Start</th><th>End</th><th>Duration</th>
+          <th>Activities</th><th>Overdue</th><th>Status</th><th>Note</th>
+        </tr>
+      </thead>
+      <tbody id="breaks-tbody"></tbody>
+    </table>
+    <div class="empty-state" id="breaks-empty" style="display:none;">No breaks logged yet.</div>
   </div>
 </div>
 
@@ -1220,8 +1246,8 @@ async function fetchSessions(limit) {
   limit = limit || 500;
   // Fetch focus sessions and breaks separately, merge and sort by created_at
   var [fRes, bRes] = await Promise.all([
-    sb.from('focus_sessions').select('*').order('created_at',{ascending:false}).limit(limit),
-    sb.from('breaks').select('*').order('created_at',{ascending:false}).limit(Math.floor(limit/2))
+    sb.from('focus_sessions').select('*').order('session_date',{ascending:false}).order('start_time',{ascending:false}).limit(limit),
+    sb.from('breaks').select('*').order('session_date',{ascending:false}).order('start_time',{ascending:false}).limit(Math.floor(limit/2))
   ]);
   var focusRows = fRes.error ? [] : (fRes.data || []);
   var breakRows = (bRes.error ? [] : (bRes.data || [])).map(function(b) {
@@ -1895,22 +1921,51 @@ async function loadLog() {
 }
 
 async function exportCSV() {
-  var sessions = await fetchSessions(10000);
-  if (!sessions.length) { alert('No sessions to export.'); return; }
-  var h = ['Date','Start','End','Span(min)','Focus(min)','Ratio(%)','Project','Task','Category','Seq#','Energy','Break Activities','Break Dur(min)','Overdue','Returned','Note'];
-  var rows = sessions.map(function(s) {
+  if (!sb) { alert('Connect Supabase first.'); return; }
+  var [fsRes, brRes] = await Promise.all([
+    sb.from('focus_sessions').select('*').order('session_date',{ascending:false}).order('start_time',{ascending:false}).limit(10000),
+    sb.from('breaks').select('*').order('session_date',{ascending:false}).order('start_time',{ascending:false}).limit(10000)
+  ]);
+  var focusSessions = fsRes.data || [];
+  var breakRows     = brRes.data || [];
+  if (!focusSessions.length && !breakRows.length) { alert('No data to export.'); return; }
+
+  var fh = ['Date','Start','End','Span(min)','Focus(M:SS)','Focus(min)','Ratio(%)','Project','Task','Category','Seq#','Energy','Note'];
+  var fRows = focusSessions.map(function(s) {
     return [
-      s.session_date, s.start_time, s.end_time, s.span_min, s.focus_min, s.ratio,
+      s.session_date, s.start_time, s.end_time, s.span_min,
+      s.focus_sec ? fmtFocusSec(s.focus_sec) : (s.focus_min+'m'),
+      s.focus_min, s.ratio,
       s.project||'', s.task||'', s.task_type||'', s.seq, s.energy||'',
-      s.break_activities||'', s.break_duration_min||0,
-      s.overdue?'yes':'no', s.returned?'yes':'no',
-      (s.note||s.break_note||'').replace(/,/g,';')
-    ].map(function(v) { return '"' + (v!=null?v:'') + '"'; }).join(',');
+      (s.note||'').replace(/,/g,';')
+    ].map(function(v){ return '"'+(v!=null?v:'')+'"'; }).join(',');
   });
-  var blob = new Blob([[h.join(',')].concat(rows).join('\n')], { type:'text/csv' });
+
+  var bh = ['Date','Start','End','Duration(min)','Activities','Overdue','Status','Note'];
+  var bRows = breakRows.map(function(b) {
+    var status = b.returned === true ? 'Returned' : b.returned === false ? 'Didnt return' : 'Urgent';
+    return [
+      b.session_date, b.start_time, b.end_time, b.break_duration_min||0,
+      b.break_activities||'', b.overdue?'yes':'no', status,
+      (b.break_note||'').replace(/,/g,';')
+    ].map(function(v){ return '"'+(v!=null?v:'')+'"'; }).join(',');
+  });
+
+  var csv = '=== FOCUS SESSIONS ===
+'
+    + [fh.join(',')].concat(fRows).join('
+')
+    + '
+
+=== BREAKS ===
+'
+    + [bh.join(',')].concat(bRows).join('
+');
+
+  var blob = new Blob([csv], { type:'text/csv' });
   var a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'focus-sessions-' + isoDate() + '.csv';
+  a.download = 'focus-tracker-' + isoDate() + '.csv';
   a.click();
 }
 
