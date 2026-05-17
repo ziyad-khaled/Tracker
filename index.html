@@ -1856,6 +1856,15 @@ async function deleteSession() {
   }
 }
 
+var currentLogTab = 'sessions';
+function switchLogTab(tab) {
+  currentLogTab = tab;
+  document.getElementById('tab-sessions').classList.toggle('active', tab === 'sessions');
+  document.getElementById('tab-breaks').classList.toggle('active', tab === 'breaks');
+  document.getElementById('sessions-table-wrap').style.display = tab === 'sessions' ? 'block' : 'none';
+  document.getElementById('breaks-table-wrap').style.display   = tab === 'breaks'   ? 'block' : 'none';
+}
+
 // ─── LOG ─────────────────────────────────────────────────────────────────────
 function fmtFocusSec(s) {
   // Format seconds to M:SS — used in log table
@@ -1867,57 +1876,89 @@ function fmtFocusSec(s) {
 
 async function loadLog() {
   document.getElementById('log-count').textContent = 'Loading...';
-  var sessions = await fetchSessions();
-  // Enrich with daily_checkins data (keyed by date)
+  if (!sb) return;
+
+  var [fsRes, brRes] = await Promise.all([
+    sb.from('focus_sessions').select('*').order('session_date',{ascending:false}).order('start_time',{ascending:false}).limit(500),
+    sb.from('breaks').select('*').order('session_date',{ascending:false}).order('start_time',{ascending:false}).limit(500)
+  ]);
+
+  var focusSessions = fsRes.error ? [] : (fsRes.data || []);
+  var breakRows     = brRes.error ? [] : (brRes.data || []);
+
+  document.getElementById('log-count').textContent =
+    focusSessions.length + ' sessions · ' + breakRows.length + ' breaks';
+
+  // Enrich with daily_checkins
   var checkinMap = {};
-  if (sb && sessions.length) {
-    var dates = [...new Set(sessions.map(function(s){return s.session_date;}))];
-    var cr = await sb.from('daily_checkins').select('date,sleep_hrs,wake_time,energy').in('date', dates);
-    if (!cr.error && cr.data) {
-      cr.data.forEach(function(c){ checkinMap[c.date] = c; });
-    }
+  var allDates = [...new Set(focusSessions.map(function(s){ return s.session_date; }))];
+  if (allDates.length) {
+    var cr = await sb.from('daily_checkins').select('date,sleep_hrs,wake_time').in('date', allDates);
+    if (!cr.error && cr.data) cr.data.forEach(function(c){ checkinMap[c.date] = c; });
   }
-  var tbody = document.getElementById('log-tbody');
-  var empty = document.getElementById('log-empty');
-  document.getElementById('log-count').textContent = sessions.length + ' sessions';
-  if (!sessions.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
-  empty.style.display = 'none';
+
   var eMap = { 1:'↓', 2:'→', 3:'↑' };
-  tbody.innerHTML = sessions.map(function(s) {
-    var isBreakRow = s.task_type === '_break';
-    var rowStyle = isBreakRow ? ' style="opacity:0.6;background:rgba(95,180,255,0.04);"' : '';
-    var ratio = s.ratio != null ? s.ratio : (s.span_min > 0 ? Math.round(s.focus_min / s.span_min * 100) : 100);
-    var rCls  = isBreakRow ? '' : (ratio >= 85 ? 'badge-hi' : ratio >= 65 ? 'badge-mid' : 'badge-lo');
-    var cat   = !isBreakRow && s.task_type && CAT[s.task_type];
-    var catHtml = isBreakRow
-      ? '<span class="cat-tag" style="background:rgba(95,180,255,0.1);color:var(--info);">⏸ break</span>'
-      : (cat
-          ? '<span class="cat-tag" style="background:' + catRgba(cat.col, 0.1) + ';color:' + catRgba(cat.col, 1) + ';">' + cat.emoji + ' ' + s.task_type + '</span>'
-          : (s.task_type ? '<span class="cat-tag cat-tag-default">' + s.task_type + '</span>' : '<span class="cat-tag cat-tag-default">—</span>'));
-    var ret  = s.returned === true ? '✓' : s.returned === false ? '✗' : '—';
-    var retC = s.returned ? 'var(--accent)' : 'var(--danger)';
-    return '<tr' + rowStyle + '>'
-      + '<td><button class="edit-row-btn" onclick="openEditModal(\''+s.id+'\')" title="Edit">✏</button></td>'
-      + '<td>' + (s.session_date||'—') + '</td>'
-      + '<td class="dim">' + (s.start_time||'—') + '</td>'
-      + '<td class="dim">' + (s.end_time||'—') + '</td>'
-      + '<td>' + (s.span_min!=null?s.span_min+'m':'—') + '</td>'
-      + '<td><b>' + (s.focus_sec!=null ? fmtFocusSec(s.focus_sec) : (s.focus_min!=null ? s.focus_min+'m' : '—')) + '</b></td>'
-      + '<td><span class="badge ' + rCls + '">' + ratio + '%</span></td>'
-      + '<td class="dim">' + (s.project||'—') + '</td>'
-      + '<td>' + (s.task||'—') + '</td>'
-      + '<td>' + catHtml + '</td>'
-      + '<td class="dim">' + (s.seq!=null?s.seq:'—') + '</td>'
-      + '<td>' + (eMap[s.energy]||'—') + '</td>'
-      + '<td class="dim">' + (checkinMap[s.session_date] ? (checkinMap[s.session_date].sleep_hrs || '—') : '—') + '</td>'
-      + '<td class="dim">' + (checkinMap[s.session_date] ? (checkinMap[s.session_date].wake_time || '—') : '—') + '</td>'
-      + '<td class="dim" style="max-width:130px;overflow:hidden;text-overflow:ellipsis;">' + (s.break_activities||'—') + '</td>'
-      + '<td class="dim">' + (s.break_duration_min!=null?s.break_duration_min+'m':'—') + '</td>'
-      + '<td class="dim">' + (s.overdue?'⚠':'no') + '</td>'
-      + '<td style="color:' + retC + '">' + ret + '</td>'
-      + '<td class="dim" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;">' + (s.note||s.break_note||'—') + '</td>'
-      + '</tr>';
-  }).join('');
+
+  // ── SESSIONS TABLE ────────────────────────────────────────────────────────
+  var stbody = document.getElementById('sessions-tbody');
+  var sempty = document.getElementById('sessions-empty');
+  if (!focusSessions.length) {
+    stbody.innerHTML = ''; sempty.style.display = 'block';
+  } else {
+    sempty.style.display = 'none';
+    stbody.innerHTML = focusSessions.map(function(s) {
+      var ratio  = s.ratio != null ? s.ratio : (s.span_min > 0 ? Math.round(s.focus_min / s.span_min * 100) : 100);
+      var rCls   = ratio >= 85 ? 'badge-hi' : ratio >= 65 ? 'badge-mid' : 'badge-lo';
+      var cat    = s.task_type && CAT[s.task_type];
+      var catHtml = cat
+        ? '<span class="cat-tag" style="background:' + catRgba(cat.col,0.1) + ';color:' + catRgba(cat.col,1) + ';">' + cat.emoji + ' ' + s.task_type + '</span>'
+        : (s.task_type ? '<span class="cat-tag cat-tag-default">' + s.task_type + '</span>' : '<span class="cat-tag cat-tag-default">—</span>');
+      var ci = checkinMap[s.session_date] || {};
+      return '<tr>'
+        + '<td><button class="edit-row-btn" onclick="openEditModal(\'' + s.id + '\',\'focus_sessions\')" title="Edit">✏</button></td>'
+        + '<td>' + (s.session_date||'—') + '</td>'
+        + '<td class="dim">' + (s.start_time ? s.start_time.slice(0,5) : '—') + '</td>'
+        + '<td class="dim">' + (s.end_time   ? s.end_time.slice(0,5)   : '—') + '</td>'
+        + '<td>' + (s.span_min!=null ? s.span_min+'m' : '—') + '</td>'
+        + '<td><b>' + (s.focus_sec!=null ? fmtFocusSec(s.focus_sec) : (s.focus_min!=null ? s.focus_min+'m' : '—')) + '</b></td>'
+        + '<td><span class="badge ' + rCls + '">' + ratio + '%</span></td>'
+        + '<td class="dim">' + (s.project||'—') + '</td>'
+        + '<td>' + (s.task||'—') + '</td>'
+        + '<td>' + catHtml + '</td>'
+        + '<td class="dim">' + (s.seq!=null?s.seq:'—') + '</td>'
+        + '<td>' + (eMap[s.energy]||'—') + '</td>'
+        + '<td class="dim">' + (ci.sleep_hrs||'—') + '</td>'
+        + '<td class="dim">' + (ci.wake_time ? ci.wake_time.slice(0,5) : '—') + '</td>'
+        + '<td class="dim" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;">' + (s.note||'—') + '</td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  // ── BREAKS TABLE ──────────────────────────────────────────────────────────
+  var btbody = document.getElementById('breaks-tbody');
+  var bempty = document.getElementById('breaks-empty');
+  if (!breakRows.length) {
+    btbody.innerHTML = ''; bempty.style.display = 'block';
+  } else {
+    bempty.style.display = 'none';
+    btbody.innerHTML = breakRows.map(function(b) {
+      var status, statusCol;
+      if (b.returned === true)       { status = '✓ Returned';       statusCol = 'var(--accent)'; }
+      else if (b.returned === false) { status = '✗ Didn\'t return'; statusCol = 'var(--danger)'; }
+      else                           { status = '⚡ Urgent';         statusCol = 'var(--warn)'; }
+      return '<tr style="background:rgba(95,180,255,0.03);">'
+        + '<td><button class="edit-row-btn" onclick="openEditModal(\'' + b.id + '\',\'breaks\')" title="Edit">✏</button></td>'
+        + '<td>' + (b.session_date||'—') + '</td>'
+        + '<td class="dim">' + (b.start_time ? b.start_time.slice(0,5) : '—') + '</td>'
+        + '<td class="dim">' + (b.end_time   ? b.end_time.slice(0,5)   : '—') + '</td>'
+        + '<td>' + (b.break_duration_min!=null ? b.break_duration_min+'m' : '—') + '</td>'
+        + '<td class="dim" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;">' + (b.break_activities||'—') + '</td>'
+        + '<td class="dim">' + (b.overdue ? '⚠ yes' : 'no') + '</td>'
+        + '<td style="color:'+statusCol+';font-family:var(--mono);font-size:11px;">' + status + '</td>'
+        + '<td class="dim" style="max-width:130px;overflow:hidden;text-overflow:ellipsis;">' + (b.break_note||'—') + '</td>'
+        + '</tr>';
+    }).join('');
+  }
 }
 
 async function exportCSV() {
