@@ -19,8 +19,6 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;display:flex;flex-direction:column;align-items:center;-webkit-font-smoothing:antialiased;}
-
-/* NAV */
 nav{width:100%;max-width:960px;display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,10,10,.94);backdrop-filter:blur(12px);z-index:50;}
 .logo{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.1em;display:flex;align-items:center;gap:8px;}
 .nav-right{display:flex;align-items:center;gap:16px;}
@@ -32,8 +30,6 @@ nav{width:100%;max-width:960px;display:flex;align-items:center;justify-content:s
 .db-pill.connected{border-color:rgba(200,240,74,.4);color:var(--accent);}
 .db-pill.error{border-color:rgba(255,95,95,.4);color:var(--danger);}
 .db-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
-
-/* BANNERS */
 #install-banner{width:100%;max-width:960px;margin:1rem 1.5rem 0;background:var(--surface);border:1px solid rgba(200,240,74,.3);border-radius:var(--r);padding:.75rem 1.25rem;display:none;align-items:center;justify-content:space-between;gap:1rem;}
 #install-banner.show{display:flex;}
 #install-banner p{font-family:var(--mono);font-size:11px;color:var(--accent);}
@@ -44,8 +40,6 @@ nav{width:100%;max-width:960px;display:flex;align-items:center;justify-content:s
 .setup-banner p{font-family:var(--mono);font-size:11px;color:var(--warn);}
 #offline-bar{display:none;width:100%;background:var(--danger);font-family:var(--mono);font-size:11px;color:#fff;text-align:center;padding:6px;}
 #offline-bar.show{display:block;}
-
-/* CHECK-IN MODAL */
 #checkin-modal{display:none;position:fixed;inset:0;z-index:300;background:rgba(10,10,10,.96);backdrop-filter:blur(8px);align-items:center;justify-content:center;}
 #checkin-modal.show{display:flex;animation:fadeIn .2s ease;}
 .checkin-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:2rem;width:360px;max-width:90vw;}
@@ -65,12 +59,8 @@ nav{width:100%;max-width:960px;display:flex;align-items:center;justify-content:s
 .btn-checkin-save{width:100%;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:12px;border-radius:var(--r);cursor:pointer;background:var(--accent);color:#0a0a0a;border:none;font-weight:700;margin-top:.5rem;transition:filter .15s;}
 .btn-checkin-save:hover{filter:brightness(1.08);}
 .btn-checkin-skip{display:block;width:100%;margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;padding:6px;}
-
-/* PAGES */
 .page{display:none;width:100%;max-width:960px;padding:2rem 1.5rem;}
 .page.active{display:block;}
-
-/* TIMER */
 .timer-layout{display:grid;grid-template-columns:1fr 292px;gap:2.5rem;align-items:start;}
 .mode-tabs{display:flex;gap:6px;margin-bottom:2rem;}
 .mode-btn{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:7px 18px;border-radius:var(--r);cursor:pointer;border:1px solid var(--border);color:var(--muted);background:none;transition:all .15s;}
@@ -90,11 +80,6 @@ nav{width:100%;max-width:960px;display:flex;align-items:center;justify-content:s
 .task-display{text-align:center;margin-bottom:1.25rem;min-height:48px;}
 .task-name-shown{font-size:15px;font-weight:500;}
 .task-cat-pill{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;margin-top:6px;padding:3px 12px;border-radius:20px;border:1px solid var(--border);color:var(--muted);transition:all .2s;}
-.task-cat-pill.Learn{border-color:rgba(95,180,255,.5);color:var(--info);background:rgba(95,180,255,.08);}
-.task-cat-pill.Build{border-color:rgba(200,240,74,.5);color:var(--accent);background:var(--accent-dim);}
-.task-cat-pill.Refine{border-color:rgba(181,123,255,.5);color:var(--purple);background:rgba(181,123,255,.08);}
-.task-cat-pill.Network{border-color:rgba(255,170,68,.5);color:var(--warn);background:rgba(255,170,68,.08);}
-.task-cat-pill.Apply{border-color:rgba(255,95,95,.5);color:var(--danger);background:rgba(255,95,95,.08);}
 .timer-controls{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:1.25rem;}
 .controls-row{display:flex;gap:8px;align-items:center;}
 .btn-primary{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:12px 36px;border-radius:var(--r);cursor:pointer;background:var(--accent);color:#0a0a0a;border:none;font-weight:700;transition:filter .15s;}
@@ -106,27 +91,19 @@ nav{width:100%;max-width:960px;display:flex;align-items:center;justify-content:s
 .btn-ghost:hover{color:var(--text);border-color:#444;}
 #flow-hint{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.04em;text-align:center;margin-bottom:.75rem;min-height:16px;transition:color .3s;}
 #flow-hint.overtime{color:var(--warn);}
-
-/* METRICS ROW */
 .metrics-row{display:flex;gap:0;justify-content:center;margin-bottom:.5rem;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
 .metric-cell{flex:1;text-align:center;padding:10px 12px;border-right:1px solid var(--border);}
 .metric-cell:last-child{border-right:none;}
 .metric-cell-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:4px;}
 .metric-cell-val{font-family:var(--mono);font-size:16px;font-weight:400;color:var(--accent);}
 .metric-cell-sub{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px;}
-.metric-up{color:var(--accent);}
-.metric-down{color:var(--danger);}
-.metric-same{color:var(--muted);}
-
-/* SIDEBAR */
+.metric-up{color:var(--accent);}.metric-down{color:var(--danger);}.metric-same{color:var(--muted);}
 .sb-section{margin-bottom:1.4rem;}
 .sb-label{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
 .input-field{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--mono);font-size:12px;padding:8px 10px;width:100%;outline:none;transition:border-color .15s;}
 .input-field:focus{border-color:rgba(200,240,74,.5);}
 .input-field::placeholder{color:var(--muted);}
 textarea.input-field{resize:vertical;}
-
-/* PROJECTS */
 .proj-list{display:flex;flex-direction:column;gap:4px;margin-bottom:8px;}
 .proj-item{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:var(--r);cursor:pointer;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:11px;background:none;transition:all .12s;text-align:left;width:100%;}
 .proj-item:hover{border-color:#444;color:var(--text);}
@@ -143,27 +120,17 @@ textarea.input-field{resize:vertical;}
 .task-del:hover{color:var(--danger);}
 .add-row{display:flex;gap:6px;}
 .add-row .input-field{font-size:11px;padding:6px 8px;}
-.btn-add{font-family:var(--mono);font-size:11px;padding:6px 12px;border-radius:var(--r);cursor:pointer;background:var(--surface2);color:var(--muted);border:1px solid var(--border);transition:all .12px;white-space:nowrap;flex-shrink:0;}
+.btn-add{font-family:var(--mono);font-size:11px;padding:6px 12px;border-radius:var(--r);cursor:pointer;background:var(--surface2);color:var(--muted);border:1px solid var(--border);transition:all .12s;white-space:nowrap;flex-shrink:0;}
 .btn-add:hover{color:var(--text);border-color:#444;}
-
-/* CATEGORY CHIPS */
 .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
 .cat-chip{font-family:var(--mono);font-size:10px;padding:8px 10px;border-radius:var(--r);cursor:pointer;border:1px solid var(--border);color:var(--muted);background:none;transition:all .15s;text-align:left;display:flex;align-items:center;gap:7px;}
 .cat-chip:hover{border-color:#444;color:var(--text);}
-.cat-chip.Learn{border-color:rgba(95,180,255,.5);color:var(--info);background:rgba(95,180,255,.08);}
-.cat-chip.Build{border-color:rgba(200,240,74,.5);color:var(--accent);background:var(--accent-dim);}
-.cat-chip.Refine{border-color:rgba(181,123,255,.5);color:var(--purple);background:rgba(181,123,255,.08);}
-.cat-chip.Network{border-color:rgba(255,170,68,.5);color:var(--warn);background:rgba(255,170,68,.08);}
-.cat-chip.Apply{border-color:rgba(255,95,95,.5);color:var(--danger);background:rgba(255,95,95,.08);}
 .cat-emoji{font-size:14px;line-height:1;flex-shrink:0;}
-
-/* BREAK OVERLAY */
 #break-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(10,10,10,.97);backdrop-filter:blur(6px);flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;}
 #break-overlay.show{display:flex;animation:fadeIn .2s ease;}
 .break-title{font-size:30px;font-weight:800;color:var(--info);margin-bottom:4px;}
 .break-sub{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:2rem;}
-.break-sub b{color:var(--accent);}
-.break-sub .ot{color:var(--warn);}
+.break-sub b{color:var(--accent);}.break-sub .ot{color:var(--warn);}
 .break-clock{font-family:var(--mono);font-size:52px;font-weight:300;color:var(--info);margin-bottom:2rem;}
 .break-clock.ended{color:var(--warn);}
 .overdue-warn{font-family:var(--mono);font-size:11px;color:var(--danger);margin-bottom:1rem;opacity:0;transition:opacity .4s;}
@@ -173,15 +140,11 @@ textarea.input-field{resize:vertical;}
 .break-chip{font-family:var(--mono);font-size:11px;padding:9px 18px;border-radius:var(--r);cursor:pointer;border:1px solid var(--border);color:var(--muted);background:none;transition:all .12s;}
 .break-chip.active{border-color:var(--info);color:var(--info);background:rgba(95,180,255,.1);}
 .break-note-field{width:380px;max-width:100%;margin-bottom:1.5rem;}
-.break-actions{display:flex;gap:10px;}
+.break-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
 .btn-return{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:12px 32px;border-radius:var(--r);cursor:pointer;background:var(--info);color:#0a0a0a;border:none;font-weight:700;}
 .btn-skip-break{font-family:var(--mono);font-size:11px;padding:12px 20px;border-radius:var(--r);cursor:pointer;background:none;color:var(--muted);border:1px solid var(--border);}
 .save-msg{font-family:var(--mono);font-size:10px;margin-top:1rem;min-height:16px;color:var(--muted);}
-.save-msg.saving{color:var(--warn);}
-.save-msg.saved{color:var(--accent);}
-.save-msg.failed{color:var(--danger);}
-
-/* LOG */
+.save-msg.saving{color:var(--warn);}.save-msg.saved{color:var(--accent);}.save-msg.failed{color:var(--danger);}
 .log-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;}
 .log-count{font-family:var(--mono);font-size:11px;color:var(--muted);margin-left:auto;}
 .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--r);}
@@ -197,20 +160,13 @@ td.dim{color:var(--muted);}
 .badge-mid{background:rgba(255,170,68,.12);color:var(--warn);}
 .badge-lo{background:rgba(255,95,95,.12);color:var(--danger);}
 .cat-tag{padding:3px 9px;border-radius:20px;font-size:10px;display:inline-flex;align-items:center;gap:4px;}
-.cat-tag-Learn{background:rgba(95,180,255,.1);color:var(--info);}
-.cat-tag-Build{background:var(--accent-dim);color:var(--accent);}
-.cat-tag-Refine{background:rgba(181,123,255,.1);color:var(--purple);}
-.cat-tag-Network{background:rgba(255,170,68,.1);color:var(--warn);}
-.cat-tag-Apply{background:rgba(255,95,95,.1);color:var(--danger);}
 .cat-tag-default{background:var(--surface2);color:var(--muted);}
-
 .log-tabs{display:flex;gap:2px;margin-bottom:1.5rem;}
 .log-tab{font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:7px 20px;border-radius:var(--r);cursor:pointer;color:var(--muted);background:none;border:1px solid var(--border);transition:all .15s;}
 .log-tab:hover{color:var(--text);border-color:#444;}
 .log-tab.active{color:var(--accent);border-color:rgba(200,240,74,.4);background:var(--accent-dim);}
 .log-tab.break-tab.active{color:var(--info);border-color:rgba(95,180,255,.4);background:rgba(95,180,255,.08);}
 .empty-state{text-align:center;padding:4rem;color:var(--muted);font-family:var(--mono);font-size:12px;line-height:2;}
-/* EDIT MODAL */
 #edit-modal{display:none;position:fixed;inset:0;z-index:400;background:rgba(10,10,10,.97);align-items:center;justify-content:center;}
 #edit-modal.show{display:flex;animation:fadeIn .2s ease;}
 .edit-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:2rem;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;}
@@ -226,8 +182,6 @@ td.dim{color:var(--muted);}
 .edit-status{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:6px;min-height:14px;}
 .edit-row-btn{font-size:12px;background:none;border:none;color:var(--muted);cursor:pointer;padding:2px 6px;border-radius:2px;}
 .edit-row-btn:hover{color:var(--accent);}
-
-/* ANALYTICS */
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:2rem;}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;}
 .stat-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:6px;}
@@ -250,14 +204,11 @@ td.dim{color:var(--muted);}
 .break-card-val{font-family:var(--mono);font-size:20px;font-weight:400;color:var(--info);}
 .sql-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;}
 .sql-block pre{font-family:var(--mono);font-size:11px;color:var(--info);white-space:pre-wrap;line-height:1.8;overflow-x:auto;}
-
-/* SETTINGS */
 .settings-cols{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;}
 .full-col{grid-column:1/-1;}
 .settings-title{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:1rem;padding-bottom:8px;border-bottom:1px solid var(--border);}
 .setting-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:1rem;}
-.setting-name{font-size:13px;}
-.setting-sub{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;}
+.setting-name{font-size:13px;}.setting-sub{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;}
 .w70{width:70px;}
 .toggle{width:40px;height:22px;border-radius:11px;background:var(--surface2);border:1px solid var(--border);cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;margin-top:2px;}
 .toggle.on{background:var(--accent);border-color:var(--accent);}
@@ -274,24 +225,15 @@ td.dim{color:var(--muted);}
 </style>
 </head>
 <body>
-
 <div id="offline-bar">You are offline — sessions will sync when connection is restored</div>
 
-<!-- CHECK-IN MODAL -->
 <div id="checkin-modal">
   <div class="checkin-box">
     <div class="checkin-heading">Good day 👋</div>
     <div class="checkin-sub" id="checkin-date-sub">Today's check-in</div>
-    <div class="checkin-field">
-      <label>Sleep last night (hours)</label>
-      <input type="number" class="input-field" id="ci-sleep" placeholder="7.5" min="0" max="24" step="0.5">
-    </div>
-    <div class="checkin-field">
-      <label>Wake time</label>
-      <input type="time" class="input-field" id="ci-wake">
-    </div>
-    <div class="checkin-field">
-      <label>Energy level</label>
+    <div class="checkin-field"><label>Sleep last night (hours)</label><input type="number" class="input-field" id="ci-sleep" placeholder="7.5" min="0" max="24" step="0.5"></div>
+    <div class="checkin-field"><label>Wake time</label><input type="time" class="input-field" id="ci-wake"></div>
+    <div class="checkin-field"><label>Energy level</label>
       <div class="ci-energy-row">
         <button class="ci-energy-btn" data-e="1" onclick="setModalEnergy(1)">↓ Low</button>
         <button class="ci-energy-btn" data-e="2" onclick="setModalEnergy(2)">→ Med</button>
@@ -368,8 +310,6 @@ td.dim{color:var(--muted);}
           </div>
         </div>
         <div id="flow-hint">Start a session to begin tracking</div>
-
-        <!-- Manual break activity panel — shown only during manual break -->
         <div id="manual-break-panel" style="display:none;margin-top:10px;width:100%;max-width:360px;text-align:center;">
           <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Break Activity</div>
           <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:8px;">
@@ -404,8 +344,6 @@ td.dim{color:var(--muted);}
         </div>
       </div>
     </div>
-
-    <!-- SIDEBAR -->
     <div>
       <div class="sb-section">
         <div class="sb-label">Project</div>
@@ -415,7 +353,6 @@ td.dim{color:var(--muted);}
           <button class="btn-add" onclick="addProject()">+ Add</button>
         </div>
       </div>
-
       <div class="sb-section" id="task-section" style="display:none;">
         <div class="sb-label">Task <span id="proj-name-lbl" style="color:var(--accent);"></span></div>
         <div class="task-list" id="task-list"></div>
@@ -424,32 +361,26 @@ td.dim{color:var(--muted);}
           <button class="btn-add" onclick="addTask()">+ Add</button>
         </div>
       </div>
-
       <div class="sb-section">
         <div class="sb-label">Category</div>
         <div class="cat-grid" id="cat-grid-dynamic"></div>
       </div>
-
       <div class="sb-section">
         <div class="sb-label">Energy this session</div>
         <div style="display:flex;gap:6px;">
-          <button class="energy-btn" data-e="1" onclick="setSidebarEnergy(1)" title="Low" style="flex:1;">↓ Low</button>
-          <button class="energy-btn" data-e="2" onclick="setSidebarEnergy(2)" title="Medium" style="flex:1;">→ Med</button>
-          <button class="energy-btn" data-e="3" onclick="setSidebarEnergy(3)" title="High" style="flex:1;">↑ High</button>
+          <button class="energy-btn" data-e="1" onclick="setSidebarEnergy(1)" style="flex:1;">↓ Low</button>
+          <button class="energy-btn" data-e="2" onclick="setSidebarEnergy(2)" style="flex:1;">→ Med</button>
+          <button class="energy-btn" data-e="3" onclick="setSidebarEnergy(3)" style="flex:1;">↑ High</button>
         </div>
       </div>
-
       <div class="sb-section">
         <div class="sb-label">Session Note</div>
         <textarea class="input-field" id="session-note" placeholder="Optional..." rows="3"></textarea>
       </div>
-
       <div class="sb-section" id="checkin-summary" style="display:none;">
         <div class="sb-label">Today's Check-in</div>
         <div style="font-family:var(--mono);font-size:11px;color:var(--muted);line-height:1.9;">
-          <span id="cs-sleep"></span><br>
-          <span id="cs-wake"></span><br>
-          <span id="cs-energy"></span>
+          <span id="cs-sleep"></span><br><span id="cs-wake"></span><br><span id="cs-energy"></span>
         </div>
         <button onclick="document.getElementById('checkin-modal').classList.add('show')" style="margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;">Edit check-in</button>
       </div>
@@ -457,8 +388,7 @@ td.dim{color:var(--muted);}
   </div>
 </div>
 
-
-<!-- EDIT LOG MODAL -->
+<!-- EDIT MODAL -->
 <div id="edit-modal">
   <div class="edit-box">
     <h3>Edit Session</h3>
@@ -472,21 +402,16 @@ td.dim{color:var(--muted);}
       <div class="edit-field"><label>Focus (min)</label><input type="number" class="input-field" id="edit-focus" min="0"></div>
       <div class="edit-field"><label>Project</label><input type="text" class="input-field" id="edit-project"></div>
       <div class="edit-field"><label>Task</label><input type="text" class="input-field" id="edit-task"></div>
-      <div class="edit-field"><label>Category</label>
-        <select class="input-field" id="edit-cat"></select>
-      </div>
+      <div class="edit-field"><label>Category</label><select class="input-field" id="edit-cat"></select></div>
       <div class="edit-field"><label>Energy</label>
         <select class="input-field" id="edit-energy">
-          <option value="">—</option>
-          <option value="1">↓ Low</option>
-          <option value="2">→ Medium</option>
-          <option value="3">↑ High</option>
+          <option value="">—</option><option value="1">↓ Low</option>
+          <option value="2">→ Medium</option><option value="3">↑ High</option>
         </select>
       </div>
       <div class="edit-field"><label>Returned?</label>
         <select class="input-field" id="edit-returned">
-          <option value="">—</option>
-          <option value="true">Yes ✓</option>
+          <option value="">—</option><option value="true">Yes ✓</option>
           <option value="false">No ✗</option>
         </select>
       </div>
@@ -540,31 +465,23 @@ td.dim{color:var(--muted);}
     <button class="btn-ghost" style="padding:8px 14px;" onclick="loadLog()">↻ Refresh</button>
     <span class="log-count" id="log-count">—</span>
   </div>
-
-  <!-- SESSIONS TABLE -->
   <div id="sessions-table-wrap" class="table-wrap">
     <table>
-      <thead>
-        <tr>
-          <th></th><th>Date</th><th>Start</th><th>End</th><th>Span</th>
-          <th>Focus</th><th>Ratio</th><th>Project</th><th>Task</th>
-          <th>Category</th><th>#</th><th>Energy</th><th>Sleep</th><th>Wake</th><th>Note</th>
-        </tr>
-      </thead>
+      <thead><tr>
+        <th></th><th>Date</th><th>Start</th><th>End</th><th>Span</th>
+        <th>Focus</th><th>Ratio</th><th>Project</th><th>Task</th>
+        <th>Category</th><th>#</th><th>Energy</th><th>Sleep</th><th>Wake</th><th>Note</th>
+      </tr></thead>
       <tbody id="sessions-tbody"></tbody>
     </table>
     <div class="empty-state" id="sessions-empty" style="display:none;">No focus sessions yet.</div>
   </div>
-
-  <!-- BREAKS TABLE -->
   <div id="breaks-table-wrap" class="table-wrap" style="display:none;">
     <table>
-      <thead>
-        <tr>
-          <th></th><th>Date</th><th>Start</th><th>End</th><th>Duration</th>
-          <th>Activities</th><th>Overdue</th><th>Status</th><th>Note</th>
-        </tr>
-      </thead>
+      <thead><tr>
+        <th></th><th>Date</th><th>Start</th><th>End</th><th>Duration</th>
+        <th>Activities</th><th>Overdue</th><th>Status</th><th>Note</th>
+      </tr></thead>
       <tbody id="breaks-tbody"></tbody>
     </table>
     <div class="empty-state" id="breaks-empty" style="display:none;">No breaks logged yet.</div>
@@ -593,32 +510,23 @@ td.dim{color:var(--muted);}
   </div>
   <div class="chart-section">
     <div class="chart-lbl">SQL Playground</div>
-    <div class="sql-block">
-<pre>-- Weekly avg per day (÷7, Sat–Fri)
-SELECT
-  date_trunc('week', session_date + interval '2 days') - interval '2 days' AS week_sat,
-  ROUND((SUM(focus_min) / 7.0)::NUMERIC, 1) AS avg_per_day_min
+    <div class="sql-block"><pre>-- Weekly avg (Sat-Fri, div 7)
+SELECT date_trunc('week', session_date + interval '2 days') - interval '2 days' AS week_sat,
+  ROUND((SUM(focus_min)/7.0)::NUMERIC,1) AS avg_per_day_min
 FROM focus_sessions GROUP BY week_sat ORDER BY week_sat DESC LIMIT 4;
 
--- Break activity vs return rate
-SELECT break_activities, COUNT(*) AS sessions,
-  ROUND(AVG(CASE WHEN returned THEN 1 ELSE 0 END)::NUMERIC*100,1) AS return_pct,
-  ROUND(AVG(break_duration_min)::NUMERIC,1) AS avg_break_min
+-- Break return rate by activity
+SELECT break_activities, COUNT(*) AS n,
+  ROUND(AVG(CASE WHEN returned THEN 1 ELSE 0 END)::NUMERIC*100,1) AS return_pct
 FROM breaks WHERE break_activities IS NOT NULL
-GROUP BY break_activities ORDER BY sessions DESC;
+GROUP BY break_activities ORDER BY n DESC;
 
--- Sleep vs performance
-SELECT ROUND(sleep_hrs::NUMERIC,0) AS sleep_hrs, COUNT(*) AS sessions,
-  ROUND(AVG(focus_min)::NUMERIC,1) AS avg_focus
+-- Sleep vs focus (join tables)
+SELECT ROUND(dc.sleep_hrs::NUMERIC,0) AS sleep_hrs,
+  COUNT(*) AS sessions, ROUND(AVG(fs.focus_min)::NUMERIC,1) AS avg_focus
 FROM focus_sessions fs
 JOIN daily_checkins dc ON dc.date = fs.session_date
-WHERE dc.sleep_hrs IS NOT NULL
-GROUP BY sleep_hrs ORDER BY sleep_hrs;
-
--- Flow sessions (overtime used)
-SELECT session_date, task, focus_min, focus_min - 25 AS overtime_min
-FROM focus_sessions WHERE focus_min > 25 ORDER BY overtime_min DESC LIMIT 20;</pre>
-    </div>
+WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div>
   </div>
 </div>
 
@@ -651,15 +559,15 @@ FROM focus_sessions WHERE focus_min > 25 ORDER BY overtime_min DESC LIMIT 20;</p
       <div class="setting-row"><span class="setting-name">Long Break every N</span><input type="number" class="input-field w70" id="set-interval" value="4" min="2" max="10" onchange="saveSettings()"></div>
       <div class="setting-row"><span class="setting-name">Overdue warn (extra min)</span><input type="number" class="input-field w70" id="set-overdue" value="3" min="0" max="20" onchange="saveSettings()"></div>
       <div class="setting-row">
-        <div><div class="setting-name">Flow mode</div><div class="setting-sub">Timer counts past target; you end manually</div></div>
+        <div><div class="setting-name">Flow mode</div><div class="setting-sub">Timer counts past target; end manually</div></div>
         <div class="toggle on" id="tog-flowMode" onclick="toggleSetting('flowMode')"></div>
       </div>
       <div class="setting-row">
-        <div><div class="setting-name">Auto-start breaks</div><div class="setting-sub">Break overlay opens automatically after session</div></div>
+        <div><div class="setting-name">Auto-start breaks</div><div class="setting-sub">Break overlay opens after session</div></div>
         <div class="toggle" id="tog-autoBreak" onclick="toggleSetting('autoBreak')"></div>
       </div>
       <div class="setting-row">
-        <div><div class="setting-name">Auto-start Pomodoro</div><div class="setting-sub">Timer starts automatically after break ends</div></div>
+        <div><div class="setting-name">Auto-start Pomodoro</div><div class="setting-sub">Timer starts after break ends</div></div>
         <div class="toggle" id="tog-autoPomo" onclick="toggleSetting('autoPomo')"></div>
       </div>
     </div>
@@ -671,66 +579,17 @@ FROM focus_sessions WHERE focus_min > 25 ORDER BY overtime_min DESC LIMIT 20;</p
         <input type="text" class="input-field" id="new-cat-name" placeholder="Category name..." onkeydown="if(event.key==='Enter')addCategory()">
         <button class="btn-add" onclick="addCategory()">+ Add</button>
       </div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:8px;">Changes apply immediately. Category names already saved in Supabase are preserved as-is.</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:8px;">Changes apply immediately.</div>
     </div>
     <div class="full-col">
-      <div class="settings-title">Table Setup — run once in Supabase SQL Editor</div>
-      <div class="sql-block">
-<pre>-- Two separate tables: focus_sessions and breaks
-
-CREATE TABLE IF NOT EXISTS focus_sessions (
-  id           UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
-  created_at   TIMESTAMPTZ DEFAULT now(),
-  session_date DATE        NOT NULL,
-  start_time   TIME        NOT NULL,
-  end_time     TIME        NOT NULL,
-  span_min     INTEGER     NOT NULL,
-  task_type    TEXT,
-  focus_sec    INTEGER,
-  focus_min    INTEGER,
-  ratio        INTEGER,
-  project      TEXT,
-  task         TEXT,
-  seq          INTEGER,
-  energy       INTEGER,
-  note         TEXT
-);
-
-ALTER TABLE focus_sessions ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Enable insert for anon" ON focus_sessions FOR INSERT WITH CHECK (true);
-CREATE POLICY "Enable select for anon" ON focus_sessions FOR SELECT USING (true);
-CREATE POLICY "Enable update for anon" ON focus_sessions FOR UPDATE USING (true) WITH CHECK (true);
-CREATE POLICY "Enable delete for anon" ON focus_sessions FOR DELETE USING (true);
-
-CREATE TABLE IF NOT EXISTS breaks (
-  id                  UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
-  created_at          TIMESTAMPTZ DEFAULT now(),
-  session_date        DATE        NOT NULL,
-  start_time          TIME        NOT NULL,
-  end_time            TIME        NOT NULL,
-  span_min            INTEGER     NOT NULL,
-  break_duration_min  INTEGER,
-  break_activities    TEXT,
-  overdue             BOOLEAN     DEFAULT false,
-  returned            BOOLEAN,
-  break_note          TEXT
-);
-
-ALTER TABLE breaks ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Enable all for anon" ON breaks FOR ALL USING (true) WITH CHECK (true);
-
-CREATE TABLE IF NOT EXISTS daily_checkins (
-  date        DATE        PRIMARY KEY,
-  sleep_hrs   NUMERIC(3,1),
-  wake_time   TIME,
-  energy      INTEGER,
-  created_at  TIMESTAMPTZ DEFAULT now(),
-  updated_at  TIMESTAMPTZ DEFAULT now()
-);
-
-ALTER TABLE daily_checkins ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Enable all for anon" ON daily_checkins FOR ALL USING (true) WITH CHECK (true);</pre>
-      </div>
+      <div class="settings-title">Average Calculation — Excluded Categories</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:10px;">Crossed-out categories excluded from weekly averages.</div>
+      <div id="cat-exclude-chips" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+    </div>
+    <div class="full-col">
+      <div class="settings-title">Table Setup — Supabase SQL Editor</div>
+      <div class="sql-block"><pre>-- focus_sessions, breaks, daily_checkins
+-- See README for full setup SQL</pre></div>
       <div style="margin-top:1rem;"><button class="btn-danger" onclick="clearLocalCache()">Clear Local Cache</button></div>
     </div>
   </div>
@@ -740,1360 +599,711 @@ CREATE POLICY "Enable all for anon" ON daily_checkins FOR ALL USING (true) WITH 
 <script>
 'use strict';
 
-// ─── ALARM ────────────────────────────────────────────────────────────────────
 var alarmAudio = null;
 function buildAlarm() {
-  try {
-    alarmAudio = new Audio('./alarm.mp3');
-    alarmAudio.volume = 0.8;
-    alarmAudio.loop = true;
-    alarmAudio.load();
-  } catch(e) { alarmAudio = null; }
+  try { alarmAudio = new Audio('./alarm.mp3'); alarmAudio.volume = 0.8; alarmAudio.loop = true; alarmAudio.load(); }
+  catch(e) { alarmAudio = null; }
 }
-function playAlarm() {
-  if (!alarmAudio) return;
-  if (alarmAudio.paused) {
-    alarmAudio.currentTime = 0;
-    alarmAudio.play().catch(function() {});
-  }
-}
-function stopAlarm() {
-  if (!alarmAudio) return;
-  alarmAudio.pause();
-  alarmAudio.currentTime = 0;
-}
+function playAlarm() { if (!alarmAudio) return; if (alarmAudio.paused) { alarmAudio.currentTime = 0; alarmAudio.play().catch(function(){}); } }
+function stopAlarm() { if (!alarmAudio) return; alarmAudio.pause(); alarmAudio.currentTime = 0; }
 
-// ─── CONSTANTS ────────────────────────────────────────────────────────────────
 var CIRC = 2 * Math.PI * 120;
-
 var DEFAULT_CATS = [
-  { name: 'Learn',   emoji: '📚', col: 'var(--info)'   },
-  { name: 'Build',   emoji: '🔨', col: 'var(--accent)' },
-  { name: 'Refine',  emoji: '✨', col: 'var(--purple)'  },
-  { name: 'Network', emoji: '🤝', col: 'var(--warn)'   },
-  { name: 'Apply',   emoji: '📨', col: 'var(--danger)'  }
+  { name:'Learn',   emoji:'📚', col:'var(--info)'   },
+  { name:'Build',   emoji:'🔨', col:'var(--accent)' },
+  { name:'Refine',  emoji:'✨', col:'var(--purple)'  },
+  { name:'Network', emoji:'🤝', col:'var(--warn)'   },
+  { name:'Apply',   emoji:'📨', col:'var(--danger)'  }
 ];
 var CAT = {};
 
-// ─── STATE ────────────────────────────────────────────────────────────────────
-var sb = null;
-var offlineQueue = [];
-var deferredInstall = null;
+var sb = null, offlineQueue = [], deferredInstall = null;
 var settings = { pomodoro:25, short:5, long:15, interval:4, overdue:3, flowMode:true, autoBreak:false, autoPomo:false };
 var excludedFromAvg = {};
-
-var mode = 'pomodoro';
-var timeLeft = 25 * 60;
-var totalSecs = 25 * 60;
-var running = false;
-var tickInterval = null;
-var sessionStart = null;
-var pausedMs = 0;
-var pauseStartMs = null;
-var inOvertime = false;
-var pomodoroCount = 0;
-var seqToday = 0;
-
-var currentEnergy = null;
-var currentCat = null;
-var currentProject = null;
-var currentTask = null;
+var mode = 'pomodoro', timeLeft = 25*60, totalSecs = 25*60;
+var running = false, tickInterval = null, sessionStart = null;
+var pausedMs = 0, pauseStartMs = null, inOvertime = false;
+var pomodoroCount = 0, seqToday = 0;
+var currentEnergy = null, currentCat = null, currentProject = null, currentTask = null;
 var projects = {};
+var pending = null, breakActs = [], breakStart = null, breakTick = null;
+var manualBreakTick = null, overdueShown = false, breakAlarmFired = false;
+var lastSavedSessionId = null, manualBreakActs = [], modalEnergy = null;
 
-var pending = null;
-var breakActs = [];
-var breakStart = null;
-var breakTick = null;
-var manualBreakTick = null;
-var overdueShown = false;
-var breakAlarmFired = false;
-var lastSavedSessionId = null;
-var manualBreakActs = [];
+if ('serviceWorker' in navigator)
+  window.addEventListener('load', function(){ navigator.serviceWorker.register('./service-worker.js').catch(function(){}); });
 
-var modalEnergy = null;
-
-// ─── PWA ─────────────────────────────────────────────────────────────────────
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('./service-worker.js').catch(function() {});
-  });
-}
-window.addEventListener('beforeinstallprompt', function(e) {
+window.addEventListener('beforeinstallprompt', function(e){
   e.preventDefault(); deferredInstall = e;
   document.getElementById('install-banner').classList.add('show');
 });
-document.getElementById('install-btn').addEventListener('click', async function() {
+document.getElementById('install-btn').addEventListener('click', async function(){
   if (!deferredInstall) return;
   deferredInstall.prompt();
-  var result = await deferredInstall.userChoice;
-  if (result.outcome === 'accepted') document.getElementById('install-banner').classList.remove('show');
+  var r = await deferredInstall.userChoice;
+  if (r.outcome === 'accepted') document.getElementById('install-banner').classList.remove('show');
   deferredInstall = null;
 });
-document.getElementById('dismiss-install').addEventListener('click', function() {
+document.getElementById('dismiss-install').addEventListener('click', function(){
   document.getElementById('install-banner').classList.remove('show');
 });
-window.addEventListener('online',  function() { document.getElementById('offline-bar').classList.remove('show'); flushQueue(); });
-window.addEventListener('offline', function() { document.getElementById('offline-bar').classList.add('show'); });
+window.addEventListener('online',  function(){ document.getElementById('offline-bar').classList.remove('show'); flushQueue(); });
+window.addEventListener('offline', function(){ document.getElementById('offline-bar').classList.add('show'); });
 
-// ─── CHECK-IN MODAL ───────────────────────────────────────────────────────────
-function showCheckinModal() {
+function showCheckinModal(){
   document.getElementById('checkin-date-sub').textContent = formatDisplayDate(isoDate());
-  document.getElementById('ci-wake').value = new Date().toTimeString().slice(0, 5);
+  document.getElementById('ci-wake').value = new Date().toTimeString().slice(0,5);
   document.getElementById('checkin-modal').classList.add('show');
 }
-function setModalEnergy(e) {
+function setModalEnergy(e){
   modalEnergy = e;
-  document.querySelectorAll('.ci-energy-btn').forEach(function(b) {
-    b.classList.toggle('active', parseInt(b.dataset.e) === e);
-  });
+  document.querySelectorAll('.ci-energy-btn').forEach(function(b){ b.classList.toggle('active', parseInt(b.dataset.e)===e); });
 }
-function saveCheckin() {
+function saveCheckin(){
   var sleep = document.getElementById('ci-sleep').value;
   var wake  = document.getElementById('ci-wake').value;
   var meta  = loadMeta();
-  meta[isoDate()] = { sleep: sleep, wake: wake, energy: modalEnergy, done: true };
+  meta[isoDate()] = { sleep:sleep, wake:wake, energy:modalEnergy, done:true };
   saveMeta(meta);
   currentEnergy = modalEnergy;
   document.getElementById('checkin-modal').classList.remove('show');
   updateCheckinSummary(meta[isoDate()]);
   if (sb) {
-    sb.from('daily_checkins').upsert([{
-      date:      isoDate(),
-      sleep_hrs: sleep ? parseFloat(sleep) : null,
-      wake_time: wake  || null,
-      energy:    modalEnergy || null
-    }], { onConflict: 'date' }).then(function(res) {
-      if (res.error) console.warn('daily_checkins upsert:', res.error.message);
-    });
+    sb.from('daily_checkins').upsert([{ date:isoDate(), sleep_hrs:sleep?parseFloat(sleep):null, wake_time:wake||null, energy:modalEnergy||null }], { onConflict:'date' })
+      .then(function(res){ if (res.error) console.warn('checkin upsert:', res.error.message); });
   }
 }
-function skipCheckin() {
-  var meta = loadMeta();
-  if (!meta[isoDate()]) meta[isoDate()] = {};
-  meta[isoDate()].done = true;
-  saveMeta(meta);
+function skipCheckin(){
+  var meta = loadMeta(); if (!meta[isoDate()]) meta[isoDate()] = {};
+  meta[isoDate()].done = true; saveMeta(meta);
   document.getElementById('checkin-modal').classList.remove('show');
 }
-function updateCheckinSummary(data) {
+function updateCheckinSummary(data){
   if (!data) return;
-  var eLabels = { 1:'↓ Low', 2:'→ Medium', 3:'↑ High' };
-  document.getElementById('cs-sleep').textContent  = data.sleep  ? 'Sleep: ' + data.sleep + 'h' : 'Sleep: —';
-  document.getElementById('cs-wake').textContent   = data.wake   ? 'Wake: '  + data.wake        : 'Wake: —';
-  document.getElementById('cs-energy').textContent = data.energy ? 'Energy: ' + eLabels[data.energy] : 'Energy: —';
+  var el = { 1:'↓ Low', 2:'→ Medium', 3:'↑ High' };
+  document.getElementById('cs-sleep').textContent  = data.sleep  ? 'Sleep: '+data.sleep+'h' : 'Sleep: —';
+  document.getElementById('cs-wake').textContent   = data.wake   ? 'Wake: '+data.wake       : 'Wake: —';
+  document.getElementById('cs-energy').textContent = data.energy ? 'Energy: '+el[data.energy] : 'Energy: —';
   document.getElementById('checkin-summary').style.display = 'block';
 }
-function checkDailyCheckin() {
-  var meta = loadMeta();
-  var td   = meta[isoDate()];
-  if (td && td.done) {
-    currentEnergy = td.energy || null;
-    updateCheckinSummary(td);
-  } else {
-    setTimeout(showCheckinModal, 500);
-  }
+function checkDailyCheckin(){
+  var meta = loadMeta(), td = meta[isoDate()];
+  if (td && td.done){ currentEnergy = td.energy||null; updateCheckinSummary(td); }
+  else setTimeout(showCheckinModal, 500);
 }
-function loadMeta() {
-  try { return JSON.parse(localStorage.getItem('ft_daymeta') || '{}'); } catch(e) { return {}; }
-}
-function saveMeta(m) { localStorage.setItem('ft_daymeta', JSON.stringify(m)); }
+function loadMeta(){ try{ return JSON.parse(localStorage.getItem('ft_daymeta')||'{}'); }catch(e){ return {}; } }
+function saveMeta(m){ localStorage.setItem('ft_daymeta', JSON.stringify(m)); }
 
-// ─── PROJECTS / TASKS ─────────────────────────────────────────────────────────
-function loadProjects() {
-  try { projects = JSON.parse(localStorage.getItem('ft_projects') || '{}'); } catch(e) { projects = {}; }
-  renderProjects();
+function loadProjects(){ try{ projects=JSON.parse(localStorage.getItem('ft_projects')||'{}'); }catch(e){ projects={}; } renderProjects(); }
+function saveProjects(){ localStorage.setItem('ft_projects', JSON.stringify(projects)); }
+function addProject(){
+  var inp=document.getElementById('new-proj-input'), name=inp.value.trim(); if (!name) return;
+  var id='p_'+Date.now(); projects[id]={name:name,tasks:{}}; saveProjects(); renderProjects(); inp.value=''; selectProject(id);
 }
-function saveProjects() { localStorage.setItem('ft_projects', JSON.stringify(projects)); }
-
-function addProject() {
-  var inp = document.getElementById('new-proj-input');
-  var name = inp.value.trim();
-  if (!name) return;
-  var id = 'p_' + Date.now();
-  projects[id] = { name: name, tasks: {} };
-  saveProjects();
-  renderProjects();
-  inp.value = '';
-  selectProject(id);
-}
-function deleteProject(id) {
+function deleteProject(id){
   delete projects[id];
-  if (currentProject === id) {
-    currentProject = null; currentTask = null;
-    document.getElementById('task-section').style.display = 'none';
-    updateTaskDisplay();
-  }
-  saveProjects();
-  renderProjects();
+  if (currentProject===id){ currentProject=null; currentTask=null; document.getElementById('task-section').style.display='none'; updateTaskDisplay(); }
+  saveProjects(); renderProjects();
 }
-function selectProject(id) {
-  currentProject = id;
-  currentTask = null;
-  renderProjects();
-  renderTasks();
-  document.getElementById('proj-name-lbl').textContent = projects[id] ? projects[id].name : '';
-  document.getElementById('task-section').style.display = 'block';
-  updateTaskDisplay();
+function selectProject(id){
+  currentProject=id; currentTask=null; renderProjects(); renderTasks();
+  document.getElementById('proj-name-lbl').textContent = projects[id]?projects[id].name:'';
+  document.getElementById('task-section').style.display='block'; updateTaskDisplay();
 }
-function addTask() {
-  if (!currentProject || !projects[currentProject]) return;
-  var inp = document.getElementById('new-task-input');
-  var name = inp.value.trim();
-  if (!name) return;
-  var id = 't_' + Date.now();
-  projects[currentProject].tasks[id] = name;
-  saveProjects();
-  renderTasks();
-  inp.value = '';
-  selectTask(id, name);
+function addTask(){
+  if (!currentProject||!projects[currentProject]) return;
+  var inp=document.getElementById('new-task-input'), name=inp.value.trim(); if (!name) return;
+  var id='t_'+Date.now(); projects[currentProject].tasks[id]=name; saveProjects(); renderTasks(); inp.value=''; selectTask(id,name);
 }
-function deleteTask(id) {
-  if (!currentProject || !projects[currentProject]) return;
+function deleteTask(id){
+  if (!currentProject||!projects[currentProject]) return;
   delete projects[currentProject].tasks[id];
-  if (currentTask === id) { currentTask = null; updateTaskDisplay(); }
-  saveProjects();
-  renderTasks();
+  if (currentTask===id){ currentTask=null; updateTaskDisplay(); }
+  saveProjects(); renderTasks();
 }
-function selectTask(id, name) {
-  currentTask = id;
-  renderTasks();
-  updateTaskDisplay();
-}
-function renderProjects() {
-  var list = document.getElementById('proj-list');
-  var keys = Object.keys(projects);
-  if (!keys.length) { list.innerHTML = '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);padding:4px 0;">No projects yet</div>'; return; }
-  list.innerHTML = keys.map(function(id) {
-    var p = projects[id];
-    var isActive = id === currentProject;
-    return '<div style="display:flex;gap:4px;align-items:center;">'
-      + '<button class="proj-item' + (isActive ? ' active' : '') + '" onclick="selectProject(\'' + id + '\')">'
-      + '<span class="proj-name">' + escHtml(p.name) + '</span>'
-      + '<span style="font-family:var(--mono);font-size:9px;color:var(--muted);">' + Object.keys(p.tasks).length + ' tasks</span>'
-      + '</button>'
-      + '<button class="proj-del" onclick="deleteProject(\'' + id + '\')">✕</button>'
-      + '</div>';
+function selectTask(id){ currentTask=id; renderTasks(); updateTaskDisplay(); }
+function renderProjects(){
+  var list=document.getElementById('proj-list'), keys=Object.keys(projects);
+  if (!keys.length){ list.innerHTML='<div style="font-family:var(--mono);font-size:10px;color:var(--muted);padding:4px 0;">No projects yet</div>'; return; }
+  list.innerHTML=keys.map(function(id){
+    var p=projects[id], isA=id===currentProject;
+    return '<div style="display:flex;gap:4px;align-items:center;"><button class="proj-item'+(isA?' active':'')+'" onclick="selectProject(\''+id+'\')"><span class="proj-name">'+escHtml(p.name)+'</span><span style="font-family:var(--mono);font-size:9px;color:var(--muted);">'+Object.keys(p.tasks).length+' tasks</span></button><button class="proj-del" onclick="deleteProject(\''+id+'\')">✕</button></div>';
   }).join('');
 }
-function renderTasks() {
-  var list = document.getElementById('task-list');
-  if (!currentProject || !projects[currentProject]) { list.innerHTML = ''; return; }
-  var tasks = projects[currentProject].tasks;
-  var keys = Object.keys(tasks);
-  if (!keys.length) { list.innerHTML = '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);padding:4px 0;">No tasks yet</div>'; return; }
-  list.innerHTML = keys.map(function(id) {
-    var isActive = id === currentTask;
-    return '<div style="display:flex;gap:4px;align-items:center;">'
-      + '<button class="task-item' + (isActive ? ' active' : '') + '" onclick="selectTask(\'' + id + '\',\'' + escHtml(tasks[id]) + '\')">'
-      + '<span class="task-name-text">' + escHtml(tasks[id]) + '</span>'
-      + '</button>'
-      + '<button class="task-del" onclick="deleteTask(\'' + id + '\')">✕</button>'
-      + '</div>';
+function renderTasks(){
+  var list=document.getElementById('task-list');
+  if (!currentProject||!projects[currentProject]){ list.innerHTML=''; return; }
+  var tasks=projects[currentProject].tasks, keys=Object.keys(tasks);
+  if (!keys.length){ list.innerHTML='<div style="font-family:var(--mono);font-size:10px;color:var(--muted);padding:4px 0;">No tasks yet</div>'; return; }
+  list.innerHTML=keys.map(function(id){
+    var isA=id===currentTask;
+    return '<div style="display:flex;gap:4px;align-items:center;"><button class="task-item'+(isA?' active':'')+'" onclick="selectTask(\''+id+'\')"><span class="task-name-text">'+escHtml(tasks[id])+'</span></button><button class="task-del" onclick="deleteTask(\''+id+'\')">✕</button></div>';
   }).join('');
 }
-function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
-// ─── CATEGORIES ──────────────────────────────────────────────────────────────
-var CAT_COLORS = ['var(--info)', 'var(--accent)', 'var(--purple)', 'var(--warn)', 'var(--danger)', 'var(--text)'];
-var CAT_COLOR_LABELS = ['Blue', 'Green', 'Purple', 'Orange', 'Red', 'White'];
-
-function loadCategories() {
-  var stored = null;
-  try { stored = JSON.parse(localStorage.getItem('ft_categories')); } catch(e) {}
-  var arr = (stored && stored.length) ? stored : DEFAULT_CATS;
-  rebuildCatMap(arr);
-  renderCategoryChips();
-  renderCategorySettings();
+var CAT_COLORS = ['var(--info)','var(--accent)','var(--purple)','var(--warn)','var(--danger)','var(--text)'];
+var CAT_COLOR_LABELS = ['Blue','Green','Purple','Orange','Red','White'];
+function loadCategories(){
+  var stored=null; try{ stored=JSON.parse(localStorage.getItem('ft_categories')); }catch(e){}
+  rebuildCatMap((stored&&stored.length)?stored:DEFAULT_CATS);
+  renderCategoryChips(); renderCategorySettings();
 }
-function rebuildCatMap(arr) {
-  CAT = {};
-  arr.forEach(function(c) { CAT[c.name] = { emoji: c.emoji, col: c.col }; });
+function rebuildCatMap(arr){ CAT={}; arr.forEach(function(c){ CAT[c.name]={emoji:c.emoji,col:c.col}; }); }
+function saveCategories(){
+  var arr=Object.entries(CAT).map(function(e){ return {name:e[0],emoji:e[1].emoji,col:e[1].col}; });
+  localStorage.setItem('ft_categories',JSON.stringify(arr));
 }
-function saveCategories() {
-  var arr = Object.entries(CAT).map(function(e) {
-    return { name: e[0], emoji: e[1].emoji, col: e[1].col };
-  });
-  localStorage.setItem('ft_categories', JSON.stringify(arr));
+function catRgba(col,alpha){
+  var map={'var(--info)':'95,180,255','var(--accent)':'200,240,74','var(--purple)':'181,123,255','var(--warn)':'255,170,68','var(--danger)':'255,95,95','var(--text)':'232,232,226','var(--muted)':'85,85,85'};
+  var rgb=map[col]; return rgb?'rgba('+rgb+','+alpha+')':col;
 }
-function catRgba(col, alpha) {
-  var map = {
-    'var(--info)'  : '95,180,255',
-    'var(--accent)': '200,240,74',
-    'var(--purple)': '181,123,255',
-    'var(--warn)'  : '255,170,68',
-    'var(--danger)': '255,95,95',
-    'var(--text)'  : '232,232,226',
-    'var(--muted)' : '85,85,85'
-  };
-  var rgb = map[col];
-  return rgb ? 'rgba(' + rgb + ',' + alpha + ')' : col;
-}
-function renderCategoryChips() {
-  var grid = document.getElementById('cat-grid-dynamic');
-  if (!grid) return;
-  grid.innerHTML = Object.entries(CAT).map(function(e) {
-    var name = e[0], cat = e[1];
-    var isActive = name === currentCat;
-    var style = isActive
-      ? 'border-color:' + catRgba(cat.col, 0.7) + ';color:' + catRgba(cat.col, 1) + ';background:' + catRgba(cat.col, 0.12) + ';'
-      : 'border-color:' + catRgba(cat.col, 0.25) + ';color:' + catRgba(cat.col, 0.55) + ';';
-    return '<button class="cat-chip" data-cat="' + escHtml(name) + '" onclick="setCategory(\'' + escHtml(name) + '\')" style="' + style + '">'
-      + '<span class="cat-emoji">' + cat.emoji + '</span>'
-      + escHtml(name)
-      + '</button>';
+function renderCategoryChips(){
+  var grid=document.getElementById('cat-grid-dynamic'); if (!grid) return;
+  grid.innerHTML=Object.entries(CAT).map(function(e){
+    var name=e[0],cat=e[1],isA=name===currentCat;
+    var style=isA?'border-color:'+catRgba(cat.col,0.7)+';color:'+catRgba(cat.col,1)+';background:'+catRgba(cat.col,0.12)+';':'border-color:'+catRgba(cat.col,0.25)+';color:'+catRgba(cat.col,0.55)+';';
+    return '<button class="cat-chip" data-cat="'+escHtml(name)+'" onclick="setCategory(\''+escHtml(name)+'\')" style="'+style+'"><span class="cat-emoji">'+cat.emoji+'</span>'+escHtml(name)+'</button>';
   }).join('');
 }
-function renderCategorySettings() {
-  var list = document.getElementById('cat-settings-list');
-  if (!list) return;
-  list.innerHTML = Object.entries(CAT).map(function(e) {
-    var name = e[0], cat = e[1];
-    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'
-      + '<input type="text" class="input-field" value="' + escHtml(cat.emoji) + '" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;" onchange="updateCatEmoji(\'' + escHtml(name) + '\',this.value)">'
-      + '<input type="text" class="input-field" value="' + escHtml(name) + '" style="flex:1;" onchange="renameCat(\'' + escHtml(name) + '\',this.value)">'
-      + '<select class="input-field" style="width:90px;" onchange="updateCatColor(\'' + escHtml(name) + '\',this.value)">'
-      + CAT_COLORS.map(function(col, i) {
-          return '<option value="' + col + '"' + (cat.col === col ? ' selected' : '') + '>' + CAT_COLOR_LABELS[i] + '</option>';
-        }).join('')
-      + '</select>'
-      + '<button class="proj-del" style="font-size:13px;" onclick="deleteCategory(\'' + escHtml(name) + '\')">✕</button>'
-      + '</div>';
+function renderCategorySettings(){
+  var list=document.getElementById('cat-settings-list'); if (!list) return;
+  list.innerHTML=Object.entries(CAT).map(function(e){
+    var name=e[0],cat=e[1];
+    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><input type="text" class="input-field" value="'+escHtml(cat.emoji)+'" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;" onchange="updateCatEmoji(\''+escHtml(name)+'\',this.value)"><input type="text" class="input-field" value="'+escHtml(name)+'" style="flex:1;" onchange="renameCat(\''+escHtml(name)+'\',this.value)"><select class="input-field" style="width:90px;" onchange="updateCatColor(\''+escHtml(name)+'\',this.value)">'+CAT_COLORS.map(function(col,i){ return '<option value="'+col+'"'+(cat.col===col?' selected':'')+'>'+CAT_COLOR_LABELS[i]+'</option>'; }).join('')+'</select><button class="proj-del" style="font-size:13px;" onclick="deleteCategory(\''+escHtml(name)+'\')">✕</button></div>';
   }).join('');
 }
-function addCategory() {
-  var inp = document.getElementById('new-cat-name');
-  var emojiInp = document.getElementById('new-cat-emoji');
-  var name  = inp.value.trim();
-  var emoji = emojiInp.value.trim() || '📌';
-  if (!name || CAT[name]) return;
-  CAT[name] = { emoji: emoji, col: 'var(--muted)' };
-  saveCategories();
-  renderCategoryChips();
-  renderCategorySettings();
-  inp.value = ''; emojiInp.value = '';
+function addCategory(){
+  var inp=document.getElementById('new-cat-name'), ei=document.getElementById('new-cat-emoji');
+  var name=inp.value.trim(), emoji=ei.value.trim()||'📌';
+  if (!name||CAT[name]) return;
+  CAT[name]={emoji:emoji,col:'var(--muted)'}; saveCategories(); renderCategoryChips(); renderCategorySettings(); inp.value=''; ei.value='';
 }
-function deleteCategory(name) {
-  if (Object.keys(CAT).length <= 1) return;
-  delete CAT[name];
-  if (currentCat === name) { currentCat = null; updateTaskDisplay(); }
-  saveCategories();
-  renderCategoryChips();
-  renderCategorySettings();
+function deleteCategory(name){
+  if (Object.keys(CAT).length<=1) return; delete CAT[name];
+  if (currentCat===name){ currentCat=null; updateTaskDisplay(); }
+  saveCategories(); renderCategoryChips(); renderCategorySettings();
 }
-function renameCat(oldName, newName) {
-  newName = newName.trim();
-  if (!newName || newName === oldName || CAT[newName]) return;
-  var val = CAT[oldName];
-  delete CAT[oldName];
-  CAT[newName] = val;
-  if (currentCat === oldName) currentCat = newName;
-  saveCategories();
-  renderCategoryChips();
-  renderCategorySettings();
+function renameCat(oldName,newName){
+  newName=newName.trim(); if (!newName||newName===oldName||CAT[newName]) return;
+  var val=CAT[oldName]; delete CAT[oldName]; CAT[newName]=val;
+  if (currentCat===oldName) currentCat=newName;
+  saveCategories(); renderCategoryChips(); renderCategorySettings();
 }
-function updateCatEmoji(name, emoji) {
-  if (!CAT[name]) return;
-  CAT[name].emoji = emoji.trim() || '📌';
-  saveCategories();
-  renderCategoryChips();
-}
-function updateCatColor(name, col) {
-  if (!CAT[name]) return;
-  CAT[name].col = col;
-  saveCategories();
-  renderCategoryChips();
-}
+function updateCatEmoji(name,emoji){ if (!CAT[name]) return; CAT[name].emoji=emoji.trim()||'📌'; saveCategories(); renderCategoryChips(); }
+function updateCatColor(name,col){ if (!CAT[name]) return; CAT[name].col=col; saveCategories(); renderCategoryChips(); }
 
-// ─── SUPABASE ─────────────────────────────────────────────────────────────────
-function initSupabase() {
-  var url = localStorage.getItem('sb_url') || '';
-  var key = localStorage.getItem('sb_key') || '';
-  if (url && key) {
-    document.getElementById('sb-url').value = url;
-    document.getElementById('sb-key').value = key;
-    connectSB(url, key, false);
-  } else {
-    document.getElementById('setup-banner').classList.remove('hidden');
-  }
+function initSupabase(){
+  var url=localStorage.getItem('sb_url')||'', key=localStorage.getItem('sb_key')||'';
+  if (url&&key){ document.getElementById('sb-url').value=url; document.getElementById('sb-key').value=key; connectSB(url,key,false); }
+  else document.getElementById('setup-banner').classList.remove('hidden');
 }
-function connectSB(url, key, fb) {
-  try {
-    sb = supabase.createClient(url, key);
-    sb.from('focus_sessions').select('id', { count:'exact', head:true }).then(function(res) {
-      if (res.error) {
-        sb = null; setPill('error','error');
-        document.getElementById('setup-banner').classList.remove('hidden');
-        if (fb) showConn('fail','✗ ' + res.error.message);
-      } else {
-        setPill('connected','connected');
-        document.getElementById('setup-banner').classList.add('hidden');
-        localStorage.setItem('sb_url', url); localStorage.setItem('sb_key', key);
-        if (fb) showConn('ok','✓ Connected — ' + res.count + ' sessions');
-        refreshMetrics(); flushQueue();
-      }
+function connectSB(url,key,fb){
+  try{
+    sb=supabase.createClient(url,key);
+    sb.from('focus_sessions').select('id',{count:'exact',head:true}).then(function(res){
+      if (res.error){ sb=null; setPill('error','error'); document.getElementById('setup-banner').classList.remove('hidden'); if(fb)showConn('fail','✗ '+res.error.message); }
+      else{ setPill('connected','connected'); document.getElementById('setup-banner').classList.add('hidden'); localStorage.setItem('sb_url',url); localStorage.setItem('sb_key',key); if(fb)showConn('ok','✓ Connected — '+res.count+' sessions'); refreshMetrics(); flushQueue(); }
     });
-  } catch(e) { sb = null; if (fb) showConn('fail','✗ Invalid credentials'); }
+  }catch(e){ sb=null; if(fb)showConn('fail','✗ Invalid credentials'); }
 }
-function testConnection() {
-  var url = document.getElementById('sb-url').value.trim();
-  var key = document.getElementById('sb-key').value.trim();
-  if (!url || !key) { showConn('fail','Enter both URL and key'); return; }
-  showConn('idle','Testing...'); connectSB(url, key, true);
+function testConnection(){
+  var url=document.getElementById('sb-url').value.trim(), key=document.getElementById('sb-key').value.trim();
+  if (!url||!key){ showConn('fail','Enter both URL and key'); return; }
+  showConn('idle','Testing...'); connectSB(url,key,true);
 }
-function setPill(cls, label) {
-  document.getElementById('db-pill').className = 'db-pill ' + cls;
-  document.getElementById('db-label').textContent = label;
-}
-function showConn(cls, text) {
-  var el = document.getElementById('conn-msg');
-  el.className = 'conn-msg show ' + cls; el.textContent = text;
-}
+function setPill(cls,label){ document.getElementById('db-pill').className='db-pill '+cls; document.getElementById('db-label').textContent=label; }
+function showConn(cls,text){ var el=document.getElementById('conn-msg'); el.className='conn-msg show '+cls; el.textContent=text; }
 
-// ─── FIX: dbInsertReturning strips break-only fields before inserting ─────────
-async function dbInsertReturning(sess) {
-  if (!sb) { offlineQueue.push(sess); return null; }
-  // Build a clean focus_sessions row — exclude break-only columns and scratch fields
-  var row = {
-    session_date: sess.session_date,
-    start_time:   sess.start_time,
-    end_time:     sess.end_time,
-    span_min:     sess.span_min,
-    task_type:    sess.task_type,
-    focus_sec:    sess.focus_sec,
-    focus_min:    sess.focus_min,
-    ratio:        sess.ratio,
-    project:      sess.project,
-    task:         sess.task,
-    seq:          sess.seq,
-    energy:       sess.energy,
-    note:         sess.note
+async function dbInsertReturning(sess){
+  if (!sb){ offlineQueue.push(sess); return null; }
+  var row={
+    session_date:sess.session_date, start_time:sess.start_time, end_time:sess.end_time,
+    span_min:sess.span_min, task_type:sess.task_type, focus_sec:sess.focus_sec,
+    focus_min:sess.focus_min, ratio:sess.ratio, project:sess.project, task:sess.task,
+    seq:sess.seq, energy:sess.energy, note:sess.note
   };
-  var res = await sb.from('focus_sessions').insert([row]).select('id').single();
-  if (res.error) {
-    console.error('dbInsertReturning error:', res.error.message);
-    offlineQueue.push(row);
-    return null;
-  }
-  return res.data ? res.data.id : null;
+  var res=await sb.from('focus_sessions').insert([row]).select('id').single();
+  if (res.error){ console.error('insert error:',res.error.message); offlineQueue.push(sess); return null; }
+  return res.data?res.data.id:null;
 }
 
-async function dbSave(sess) {
-  if (!sb) { offlineQueue.push(sess); return false; }
-  var row = Object.assign({}, sess);
-  // breaks table — strip focus-only fields
-  ['focus_sec','focus_min','ratio','project','task','seq','energy','note','task_type','_otMin'].forEach(function(k){ delete row[k]; });
-  var res = await sb.from('breaks').insert([row]);
-  if (res.error) { console.error('dbSave breaks error', res.error.message); offlineQueue.push(sess); return false; }
+// ── FIXED: explicitly list only breaks table columns, no extras ──────────────
+async function dbSave(sess){
+  if (!sb){ offlineQueue.push(Object.assign({_isBreak:true},sess)); return false; }
+  var row={
+    session_date:       sess.session_date,
+    start_time:         sess.start_time,
+    end_time:           sess.end_time,
+    span_min:           sess.span_min || 0,
+    break_duration_min: sess.break_duration_min || null,
+    break_activities:   sess.break_activities   || null,
+    overdue:            sess.overdue             || false,
+    returned:           sess.returned,
+    break_note:         sess.break_note          || null
+  };
+  var res=await sb.from('breaks').insert([row]);
+  if (res.error){ console.error('breaks insert error:',res.error.message); offlineQueue.push(Object.assign({_isBreak:true},sess)); return false; }
   return true;
 }
 
-async function flushQueue() {
-  if (!sb || !offlineQueue.length) return;
-  var q = offlineQueue.slice(); offlineQueue = [];
-  for (var i = 0; i < q.length; i++) {
-    var isBreak = q[i]._isBreak === true;
-    var row = Object.assign({}, q[i]);
-    if (isBreak) {
-      ['focus_sec','focus_min','ratio','project','task','seq','energy','note','task_type','_otMin','_isBreak'].forEach(function(k){ delete row[k]; });
-      var res = await sb.from('breaks').insert([row]);
-      if (res.error) offlineQueue.push(q[i]);
-    } else {
-      ['_otMin','_isBreak'].forEach(function(k){ delete row[k]; });
-      var res2 = await sb.from('focus_sessions').insert([row]);
-      if (res2.error) offlineQueue.push(q[i]);
+async function flushQueue(){
+  if (!sb||!offlineQueue.length) return;
+  var q=offlineQueue.slice(); offlineQueue=[];
+  for (var i=0;i<q.length;i++){
+    var item=q[i];
+    if (item._isBreak){
+      var brow={session_date:item.session_date,start_time:item.start_time,end_time:item.end_time,span_min:item.span_min||0,break_duration_min:item.break_duration_min,break_activities:item.break_activities,overdue:item.overdue||false,returned:item.returned,break_note:item.break_note||null};
+      var res=await sb.from('breaks').insert([brow]); if(res.error) offlineQueue.push(item);
+    }else{
+      var frow=Object.assign({},item); ['_otMin','_isBreak'].forEach(function(k){delete frow[k];});
+      var res2=await sb.from('focus_sessions').insert([frow]); if(res2.error) offlineQueue.push(item);
     }
   }
 }
 
-async function fetchSessions(limit) {
+async function fetchSessions(limit){
   if (!sb) return [];
-  limit = limit || 500;
-  var [fRes, bRes] = await Promise.all([
+  limit=limit||500;
+  var [fRes,bRes]=await Promise.all([
     sb.from('focus_sessions').select('*').order('session_date',{ascending:false}).order('start_time',{ascending:false}).limit(limit),
     sb.from('breaks').select('*').order('session_date',{ascending:false}).order('start_time',{ascending:false}).limit(Math.floor(limit/2))
   ]);
-  var focusRows = fRes.error ? [] : (fRes.data || []);
-  var breakRows = (bRes.error ? [] : (bRes.data || [])).map(function(b) {
-    return Object.assign({ task_type: '_break', focus_min: 0, ratio: 0 }, b);
-  });
-  var all = focusRows.concat(breakRows);
-  all.sort(function(a,b){ return a.created_at < b.created_at ? 1 : -1; });
+  var fRows=fRes.error?[]:(fRes.data||[]);
+  var bRows=(bRes.error?[]:(bRes.data||[])).map(function(b){ return Object.assign({task_type:'_break',focus_min:0,ratio:0},b); });
+  var all=fRows.concat(bRows);
+  all.sort(function(a,b){ return a.created_at<b.created_at?1:-1; });
   return all;
 }
 
-// ─── WEEKLY BOUNDS (Sat–Fri) ──────────────────────────────────────────────────
-function getWeekBounds(offsetWeeks) {
-  var date = new Date();
-  date.setDate(date.getDate() - (offsetWeeks * 7));
-  var day = date.getDay();
-  var diff = (day + 1) % 7;
-  var startOfWeek = new Date(date);
-  startOfWeek.setDate(date.getDate() - diff);
-  startOfWeek.setHours(0, 0, 0, 0);
-  var endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(startOfWeek.getDate() + 6);
-  endOfWeek.setHours(23, 59, 59, 999);
-  return [startOfWeek.toISOString().slice(0,10), endOfWeek.toISOString().slice(0,10)];
+function getWeekBounds(offsetWeeks){
+  var date=new Date(); date.setDate(date.getDate()-(offsetWeeks*7));
+  var day=date.getDay(), diff=(day+1)%7;
+  var start=new Date(date); start.setDate(date.getDate()-diff); start.setHours(0,0,0,0);
+  var end=new Date(start); end.setDate(start.getDate()+6); end.setHours(23,59,59,999);
+  return [start.toISOString().slice(0,10), end.toISOString().slice(0,10)];
 }
-function daysElapsedInWeek() {
-  var day = new Date().getDay();
-  return (day + 1) % 7 + 1;
-}
-function weekTotal(sessions, bounds, exclude) {
-  var total = 0;
-  sessions.forEach(function(s) {
-    if (s.session_date >= bounds[0] && s.session_date <= bounds[1]) {
-      if (!exclude || !exclude[s.task_type]) total += (s.focus_min || 0);
-    }
-  });
+function daysElapsedInWeek(){ var day=new Date().getDay(); return (day+1)%7+1; }
+function weekTotal(sessions,bounds,exclude){
+  var total=0;
+  sessions.forEach(function(s){ if(s.session_date>=bounds[0]&&s.session_date<=bounds[1]){ if(!exclude||!exclude[s.task_type]) total+=(s.focus_min||0); } });
   return total;
 }
 
-// ─── CATEGORY FILTER ─────────────────────────────────────────────────────────
-function loadExcluded() {
-  try { excludedFromAvg = JSON.parse(localStorage.getItem('ft_excluded') || '{}'); } catch(e) { excludedFromAvg = {}; }
-  renderExcludeUI();
-}
-function saveExcluded() { localStorage.setItem('ft_excluded', JSON.stringify(excludedFromAvg)); }
-function toggleExcluded(cat) {
-  if (excludedFromAvg[cat]) { delete excludedFromAvg[cat]; } else { excludedFromAvg[cat] = true; }
-  saveExcluded(); renderExcludeUI(); refreshMetrics();
-}
-function renderExcludeUI() {
-  var el = document.getElementById('cat-exclude-chips');
-  if (!el) return;
-  el.innerHTML = Object.keys(CAT).map(function(k) {
-    var excluded = excludedFromAvg[k];
-    var col = catRgba(CAT[k].col, excluded ? 0.3 : 1);
-    var bg  = excluded ? 'none' : catRgba(CAT[k].col, 0.12);
-    var textDeco = excluded ? 'line-through' : 'none';
-    return '<button onclick="toggleExcluded(\''+k+'\')" style="font-family:var(--mono);font-size:10px;padding:5px 10px;border-radius:var(--r);cursor:pointer;border:1px solid '+col+';color:'+col+';background:'+bg+';text-decoration:'+textDeco+';transition:all .15s;">'+CAT[k].emoji+' '+k+'</button>';
+function loadExcluded(){ try{ excludedFromAvg=JSON.parse(localStorage.getItem('ft_excluded')||'{}'); }catch(e){ excludedFromAvg={}; } renderExcludeUI(); }
+function saveExcluded(){ localStorage.setItem('ft_excluded',JSON.stringify(excludedFromAvg)); }
+function toggleExcluded(cat){ if(excludedFromAvg[cat]){delete excludedFromAvg[cat];}else{excludedFromAvg[cat]=true;} saveExcluded(); renderExcludeUI(); refreshMetrics(); }
+function renderExcludeUI(){
+  var el=document.getElementById('cat-exclude-chips'); if (!el) return;
+  el.innerHTML=Object.keys(CAT).map(function(k){
+    var excl=excludedFromAvg[k], col=catRgba(CAT[k].col,excl?0.3:1), bg=excl?'none':catRgba(CAT[k].col,0.12), td=excl?'line-through':'none';
+    return '<button onclick="toggleExcluded(\''+k+'\')" style="font-family:var(--mono);font-size:10px;padding:5px 10px;border-radius:var(--r);cursor:pointer;border:1px solid '+col+';color:'+col+';background:'+bg+';text-decoration:'+td+';transition:all .15s;">'+CAT[k].emoji+' '+k+'</button>';
   }).join('');
 }
 
-// ─── METRICS ─────────────────────────────────────────────────────────────────
-async function refreshMetrics() {
+async function refreshMetrics(){
   if (!sb) return;
-  var today    = isoDate();
-  var thisWeek = getWeekBounds(0);
-  var lastWeek = getWeekBounds(1);
-
-  var todayRes = await sb.from('focus_sessions').select('focus_min').eq('session_date', today);
-  var todaySessions = todayRes.data || [];
-  var todayMin = todaySessions.reduce(function(a,s) { return a + (s.focus_min||0); }, 0);
-  seqToday = todaySessions.length;
-  document.getElementById('m-today').textContent     = todayMin + 'm';
-  document.getElementById('m-today-sub').textContent = seqToday + ' session' + (seqToday !== 1 ? 's' : '');
-
-  var twElapsed = daysElapsedInWeek();
-  var twRes = await sb.from('focus_sessions').select('focus_min, task_type').gte('session_date', thisWeek[0]).lte('session_date', thisWeek[1]);
-  var twTotal = (twRes.data||[]).reduce(function(a,s) { return !excludedFromAvg[s.task_type] ? a+(s.focus_min||0) : a; }, 0);
-  var twAvg   = Math.round(twTotal / twElapsed);
-  document.getElementById('m-thisweek').textContent = twAvg ? twAvg + 'm' : '—';
-  document.getElementById('m-thisweek-sub').textContent = 'day ' + twElapsed + ' of 7';
-
-  var lwRes = await sb.from('focus_sessions').select('focus_min, session_date, task_type').gte('session_date', lastWeek[0]).lte('session_date', lastWeek[1]);
-  var lwData  = lwRes.data || [];
-  var lwTotal = lwData.reduce(function(a,s) { return (!excludedFromAvg[s.task_type]) ? a+(s.focus_min||0) : a; }, 0);
-  var lwAvg   = Math.round(lwTotal / 7);
-  var lwActiveDays = {};
-  lwData.forEach(function(s) { lwActiveDays[s.session_date] = 1; });
-  var lwActiveCount = Object.keys(lwActiveDays).length;
-  document.getElementById('m-lastweek').textContent     = lwAvg ? lwAvg + 'm' : '—';
-  document.getElementById('m-lastweek-sub').textContent = lwActiveCount + ' active day' + (lwActiveCount !== 1 ? 's' : '') + ' / 7';
-
-  var deltaEl = document.getElementById('m-week-delta');
-  if (twAvg && lwAvg) {
-    var diff = twAvg - lwAvg;
-    if (diff > 0)      { deltaEl.textContent = '▲ ' + diff + 'm vs last week'; deltaEl.className = 'metric-cell-sub metric-up'; }
-    else if (diff < 0) { deltaEl.textContent = '▼ ' + Math.abs(diff) + 'm vs last week'; deltaEl.className = 'metric-cell-sub metric-down'; }
-    else               { deltaEl.textContent = '= same as last week'; deltaEl.className = 'metric-cell-sub metric-same'; }
-  } else {
-    deltaEl.textContent = 'vs last week'; deltaEl.className = 'metric-cell-sub';
-  }
+  var today=isoDate(), thisWeek=getWeekBounds(0), lastWeek=getWeekBounds(1);
+  var todayRes=await sb.from('focus_sessions').select('focus_min').eq('session_date',today);
+  var todaySess=todayRes.data||[], todayMin=todaySess.reduce(function(a,s){return a+(s.focus_min||0);},0);
+  seqToday=todaySess.length;
+  document.getElementById('m-today').textContent=todayMin+'m';
+  document.getElementById('m-today-sub').textContent=seqToday+' session'+(seqToday!==1?'s':'');
+  var twEl=daysElapsedInWeek();
+  var twRes=await sb.from('focus_sessions').select('focus_min,task_type').gte('session_date',thisWeek[0]).lte('session_date',thisWeek[1]);
+  var twTotal=(twRes.data||[]).reduce(function(a,s){return !excludedFromAvg[s.task_type]?a+(s.focus_min||0):a;},0);
+  var twAvg=Math.round(twTotal/twEl);
+  document.getElementById('m-thisweek').textContent=twAvg?twAvg+'m':'—';
+  document.getElementById('m-thisweek-sub').textContent='day '+twEl+' of 7';
+  var lwRes=await sb.from('focus_sessions').select('focus_min,session_date,task_type').gte('session_date',lastWeek[0]).lte('session_date',lastWeek[1]);
+  var lwData=lwRes.data||[];
+  var lwTotal=lwData.reduce(function(a,s){return !excludedFromAvg[s.task_type]?a+(s.focus_min||0):a;},0);
+  var lwAvg=Math.round(lwTotal/7);
+  var lwDays={}; lwData.forEach(function(s){lwDays[s.session_date]=1;});
+  var lwCount=Object.keys(lwDays).length;
+  document.getElementById('m-lastweek').textContent=lwAvg?lwAvg+'m':'—';
+  document.getElementById('m-lastweek-sub').textContent=lwCount+' active day'+(lwCount!==1?'s':'')+' / 7';
+  var dEl=document.getElementById('m-week-delta');
+  if (twAvg&&lwAvg){ var diff=twAvg-lwAvg; if(diff>0){dEl.textContent='▲ '+diff+'m vs last week';dEl.className='metric-cell-sub metric-up';}else if(diff<0){dEl.textContent='▼ '+Math.abs(diff)+'m vs last week';dEl.className='metric-cell-sub metric-down';}else{dEl.textContent='= same as last week';dEl.className='metric-cell-sub metric-same';} }
+  else{ dEl.textContent='vs last week'; dEl.className='metric-cell-sub'; }
 }
 
-// ─── TIMER ────────────────────────────────────────────────────────────────────
-function setMode(m) {
+function setMode(m){
   if (running) return;
-  stopAlarm();
-  mode = m; inOvertime = false; pausedMs = 0; pauseStartMs = null;
-  clearInterval(tickInterval); tickInterval = null;
-  clearInterval(manualBreakTick); manualBreakTick = null;
-  running = false;
-  document.getElementById('manual-break-panel').style.display = 'none';
-  manualBreakActs = [];
-  document.getElementById('start-btn').textContent = 'START';
+  stopAlarm(); mode=m; inOvertime=false; pausedMs=0; pauseStartMs=null;
+  clearInterval(tickInterval); tickInterval=null;
+  clearInterval(manualBreakTick); manualBreakTick=null;
+  running=false;
+  document.getElementById('manual-break-panel').style.display='none'; manualBreakActs=[];
+  document.getElementById('start-btn').textContent='START';
   document.getElementById('end-btn').classList.remove('show');
   document.getElementById('overtime-badge').classList.remove('show');
-  document.getElementById('timer-display').style.color = '';
-  document.getElementById('ring').style.stroke = m === 'pomodoro' ? 'var(--accent)' : 'var(--info)';
-  document.getElementById('flow-hint').textContent = 'Start a session to begin tracking';
-  document.getElementById('flow-hint').className = '';
-  var mins = m === 'pomodoro' ? settings.pomodoro : m === 'short' ? settings.short : settings.long;
-  timeLeft = totalSecs = mins * 60;
-  renderClock(timeLeft, false); setRing(1);
-  var labels = { pomodoro:'POMODORO', short:'SHORT BREAK', long:'LONG BREAK' };
-  document.getElementById('timer-label').textContent = labels[m];
-  document.querySelectorAll('.mode-btn').forEach(function(b, i) {
-    b.classList.toggle('active', ['pomodoro','short','long'][i] === m);
-  });
+  document.getElementById('timer-display').style.color='';
+  document.getElementById('ring').style.stroke=m==='pomodoro'?'var(--accent)':'var(--info)';
+  document.getElementById('flow-hint').textContent='Start a session to begin tracking';
+  document.getElementById('flow-hint').className='';
+  var mins=m==='pomodoro'?settings.pomodoro:m==='short'?settings.short:settings.long;
+  timeLeft=totalSecs=mins*60; renderClock(timeLeft,false); setRing(1);
+  var labels={pomodoro:'POMODORO',short:'SHORT BREAK',long:'LONG BREAK'};
+  document.getElementById('timer-label').textContent=labels[m];
+  document.querySelectorAll('.mode-btn').forEach(function(b,i){ b.classList.toggle('active',['pomodoro','short','long'][i]===m); });
 }
-
-function setBreakMode(type) {
+function setBreakMode(type){
   if (running) return;
-  clearInterval(manualBreakTick); manualBreakTick = null;
-  stopAlarm();
-  document.querySelectorAll('.mode-btn').forEach(function(b, i) {
-    b.classList.toggle('active', ['pomodoro','short','long'][i] === type);
-  });
-  var breakSecs = (type === 'long' ? settings.long : settings.short) * 60;
-  var mm = String(Math.floor(breakSecs / 60)).padStart(2,'0');
-  var ss = String(breakSecs % 60).padStart(2,'0');
-  document.getElementById('timer-display').textContent = mm + ':' + ss;
-  document.getElementById('timer-display').style.color = '';
-  document.getElementById('timer-label').textContent = type === 'long' ? 'LONG BREAK' : 'SHORT BREAK';
-  document.getElementById('ring').style.stroke = 'var(--info)';
-  setRing(1);
-  document.getElementById('flow-hint').textContent = 'Press START BREAK to begin';
-  document.getElementById('start-btn').textContent = 'START BREAK';
+  clearInterval(manualBreakTick); manualBreakTick=null; stopAlarm();
+  document.querySelectorAll('.mode-btn').forEach(function(b,i){ b.classList.toggle('active',['pomodoro','short','long'][i]===type); });
+  var breakSecs=(type==='long'?settings.long:settings.short)*60;
+  var mm=String(Math.floor(breakSecs/60)).padStart(2,'0'), ss=String(breakSecs%60).padStart(2,'0');
+  document.getElementById('timer-display').textContent=mm+':'+ss;
+  document.getElementById('timer-display').style.color='';
+  document.getElementById('timer-label').textContent=type==='long'?'LONG BREAK':'SHORT BREAK';
+  document.getElementById('ring').style.stroke='var(--info)'; setRing(1);
+  document.getElementById('flow-hint').textContent='Press START BREAK to begin';
+  document.getElementById('start-btn').textContent='START BREAK';
   document.getElementById('end-btn').classList.remove('show');
   document.getElementById('overtime-badge').classList.remove('show');
-  document.getElementById('start-btn').dataset.breakType = type;
-  mode = type;
+  document.getElementById('start-btn').dataset.breakType=type; mode=type;
 }
-
-function toggleManualBreakAct(el, act) {
-  var idx = manualBreakActs.indexOf(act);
-  if (idx >= 0) { manualBreakActs.splice(idx, 1); } else { manualBreakActs.push(act); }
-  el.classList.toggle('active', manualBreakActs.includes(act));
+function toggleManualBreakAct(el,act){
+  var idx=manualBreakActs.indexOf(act); if(idx>=0){manualBreakActs.splice(idx,1);}else{manualBreakActs.push(act);}
+  el.classList.toggle('active',manualBreakActs.includes(act));
 }
-
-function _runManualBreak(type) {
-  manualBreakActs = [];
-  document.querySelectorAll('#manual-break-panel .break-chip').forEach(function(c){ c.classList.remove('active'); });
-  document.getElementById('manual-break-panel').style.display = 'block';
+function _runManualBreak(type){
+  manualBreakActs=[]; document.querySelectorAll('#manual-break-panel .break-chip').forEach(function(c){c.classList.remove('active');});
+  document.getElementById('manual-break-panel').style.display='block';
   if (running) pauseTimer();
-  clearInterval(tickInterval); tickInterval = null;
-  clearInterval(manualBreakTick); manualBreakTick = null;
-  stopAlarm();
-  document.querySelectorAll('.mode-btn').forEach(function(b, i) {
-    b.classList.toggle('active', ['pomodoro','short','long'][i] === type);
-  });
-  var breakTotalSecs2 = (type === 'long' ? settings.long : settings.short) * 60;
-  var breakStart2 = new Date();
-  var breakAlarm2 = false; var breakOverdue2 = false;
-  document.getElementById('timer-label').textContent = type === 'long' ? 'LONG BREAK' : 'SHORT BREAK';
-  document.getElementById('ring').style.stroke = 'var(--info)';
-  document.getElementById('timer-display').style.color = '';
-  document.getElementById('flow-hint').textContent = 'Break running — click Pomodoro to cancel';
-  document.getElementById('start-btn').textContent = 'STOP BREAK';
-  function tickManualBreak() {
-    var elapsedB2 = Math.floor((Date.now() - breakStart2.getTime()) / 1000);
-    var left2 = breakTotalSecs2 - elapsedB2;
-    var abs2 = Math.abs(left2);
-    var mm2 = String(Math.floor(abs2 / 60)).padStart(2, '0');
-    var ss2 = String(abs2 % 60).padStart(2, '0');
-    document.getElementById('timer-display').textContent = (left2 < 0 ? '+' : '') + mm2 + ':' + ss2;
-    document.title = (left2 < 0 ? '+' : '') + mm2 + ':' + ss2 + ' · Break';
-    setRing(Math.max(0, left2 / breakTotalSecs2));
-    if (left2 <= 0 && !breakAlarm2) {
-      breakAlarm2 = true; playAlarm();
-      document.getElementById('flow-hint').textContent = 'Break over! Click Pomodoro to start next session';
-    }
-    if (left2 <= -(settings.overdue * 60) && !breakOverdue2) { breakOverdue2 = true; playAlarm(); }
+  clearInterval(tickInterval); tickInterval=null;
+  clearInterval(manualBreakTick); manualBreakTick=null; stopAlarm();
+  document.querySelectorAll('.mode-btn').forEach(function(b,i){ b.classList.toggle('active',['pomodoro','short','long'][i]===type); });
+  var bTotalSecs=(type==='long'?settings.long:settings.short)*60, bStart=new Date(), bAlarm=false, bOver=false;
+  document.getElementById('timer-label').textContent=type==='long'?'LONG BREAK':'SHORT BREAK';
+  document.getElementById('ring').style.stroke='var(--info)'; document.getElementById('timer-display').style.color='';
+  document.getElementById('flow-hint').textContent='Break running — click Pomodoro to cancel';
+  document.getElementById('start-btn').textContent='STOP BREAK';
+  function tick(){
+    var el=Math.floor((Date.now()-bStart.getTime())/1000), left=bTotalSecs-el;
+    var abs=Math.abs(left), mm=String(Math.floor(abs/60)).padStart(2,'0'), ss=String(abs%60).padStart(2,'0');
+    document.getElementById('timer-display').textContent=(left<0?'+':'')+mm+':'+ss;
+    document.title=(left<0?'+':'')+mm+':'+ss+' · Break';
+    setRing(Math.max(0,left/bTotalSecs));
+    if (left<=0&&!bAlarm){ bAlarm=true; playAlarm(); document.getElementById('flow-hint').textContent='Break over! Click Pomodoro to start next session'; }
+    if (left<=-(settings.overdue*60)&&!bOver){ bOver=true; playAlarm(); }
   }
-  tickManualBreak();
-  manualBreakTick = setInterval(tickManualBreak, 500);
+  tick(); manualBreakTick=setInterval(tick,500);
 }
-
-function toggleTimer() {
-  if (mode === 'short' || mode === 'long') {
-    if (manualBreakTick) {
-      clearInterval(manualBreakTick); manualBreakTick = null;
-      stopAlarm();
-      document.getElementById('start-btn').textContent = 'START BREAK';
-      document.getElementById('flow-hint').textContent = 'Break paused — press START BREAK to continue';
-    } else {
-      _runManualBreak(mode);
-    }
+function toggleTimer(){
+  if (mode==='short'||mode==='long'){
+    if (manualBreakTick){ clearInterval(manualBreakTick); manualBreakTick=null; stopAlarm(); document.getElementById('start-btn').textContent='START BREAK'; document.getElementById('flow-hint').textContent='Break paused'; }
+    else { _runManualBreak(mode); }
     return;
   }
-  if (running) { pauseTimer(); } else { startTimer(); }
+  if (running){ pauseTimer(); }else{ startTimer(); }
 }
-
-function startTimer() {
-  if (mode !== 'pomodoro') { setMode('pomodoro'); setTimeout(startTimer, 50); return; }
-  if (!sessionStart) {
-    sessionStart = new Date();
-    pausedMs = 0;
-    pauseStartMs = null;
-    seqToday++;
-  } else if (pauseStartMs !== null) {
-    pausedMs += Date.now() - pauseStartMs;
-    pauseStartMs = null;
-  }
-  running = true;
-  document.getElementById('start-btn').textContent = 'PAUSE';
+function startTimer(){
+  if (mode!=='pomodoro'){ setMode('pomodoro'); setTimeout(startTimer,50); return; }
+  if (!sessionStart){ sessionStart=new Date(); pausedMs=0; pauseStartMs=null; seqToday++; }
+  else if (pauseStartMs!==null){ pausedMs+=Date.now()-pauseStartMs; pauseStartMs=null; }
+  running=true;
+  document.getElementById('start-btn').textContent='PAUSE';
   document.getElementById('end-btn').classList.add('show');
-  document.getElementById('flow-hint').textContent = 'Running — hit "End Session" when ready';
-  tickInterval = setInterval(doTick, 500);
+  document.getElementById('flow-hint').textContent='Running — hit "End Session" when ready';
+  tickInterval=setInterval(doTick,500);
 }
-
-function pauseTimer() {
-  running = false;
-  clearInterval(tickInterval); tickInterval = null;
-  pauseStartMs = Date.now();
-  document.getElementById('start-btn').textContent = 'RESUME';
-  document.getElementById('flow-hint').textContent = 'Paused — resume or end the session';
-}
-
-function resetTimer() {
-  clearInterval(tickInterval); tickInterval = null;
-  running = false; sessionStart = null; pausedMs = 0; pauseStartMs = null; inOvertime = false;
-  pomodoroCount = Math.max(0, pomodoroCount - 1);
-  setMode('pomodoro');
-}
-
-function endSession() {
-  stopAlarm();
-  clearInterval(tickInterval); tickInterval = null;
-  running = false; pomodoroCount++;
-  document.getElementById('start-btn').textContent = 'START';
+function pauseTimer(){ running=false; clearInterval(tickInterval); tickInterval=null; pauseStartMs=Date.now(); document.getElementById('start-btn').textContent='RESUME'; document.getElementById('flow-hint').textContent='Paused — resume or end the session'; }
+function resetTimer(){ clearInterval(tickInterval); tickInterval=null; running=false; sessionStart=null; pausedMs=0; pauseStartMs=null; inOvertime=false; pomodoroCount=Math.max(0,pomodoroCount-1); setMode('pomodoro'); }
+function endSession(){
+  stopAlarm(); clearInterval(tickInterval); tickInterval=null;
+  running=false; pomodoroCount++;
+  document.getElementById('start-btn').textContent='START';
   document.getElementById('end-btn').classList.remove('show');
   document.getElementById('overtime-badge').classList.remove('show');
-  document.getElementById('timer-display').style.color = '';
-
-  var end      = new Date();
-  var focusSec = sessionStart ? wallElapsedSecs() : settings.pomodoro * 60;
-  var spanSec  = sessionStart ? Math.floor((end.getTime() - sessionStart.getTime()) / 1000) : focusSec;
-  var focusMin = Math.max(1, Math.floor(focusSec / 60));
-  var spanMin  = Math.max(focusMin, Math.floor(spanSec / 60));
-  var ratio    = Math.round(focusSec / Math.max(spanSec, 1) * 100);
-  var otMin    = Math.max(0, focusMin - settings.pomodoro);
-
-  // ── FIX: only include focus_sessions columns — no break fields ──────────────
-  var sessNow = {
-    session_date: isoDate(),
-    start_time:   sessionStart ? fmt24(sessionStart) : fmt24(end),
-    end_time:     fmt24(end),
-    span_min:     spanMin,
-    task_type:    currentCat || null,
-    focus_sec:    focusSec,
-    focus_min:    focusMin,
-    ratio:        ratio,
-    project:      currentProject && projects[currentProject] ? projects[currentProject].name : null,
-    task:         currentTask && currentProject && projects[currentProject] ? projects[currentProject].tasks[currentTask] : null,
-    seq:          seqToday,
-    energy:       currentEnergy,
-    note:         document.getElementById('session-note').value.trim() || null,
-    _otMin:       otMin   // scratch field — stripped by dbInsertReturning
+  document.getElementById('timer-display').style.color='';
+  var end=new Date();
+  var focusSec=sessionStart?wallElapsedSecs():settings.pomodoro*60;
+  var spanSec=sessionStart?Math.floor((end.getTime()-sessionStart.getTime())/1000):focusSec;
+  var focusMin=Math.max(1,Math.floor(focusSec/60)), spanMin=Math.max(focusMin,Math.floor(spanSec/60));
+  var ratio=Math.round(focusSec/Math.max(spanSec,1)*100), otMin=Math.max(0,focusMin-settings.pomodoro);
+  var sessNow={
+    session_date:isoDate(), start_time:sessionStart?fmt24(sessionStart):fmt24(end), end_time:fmt24(end),
+    span_min:spanMin, task_type:currentCat||null, focus_sec:focusSec, focus_min:focusMin, ratio:ratio,
+    project:currentProject&&projects[currentProject]?projects[currentProject].name:null,
+    task:currentTask&&currentProject&&projects[currentProject]?projects[currentProject].tasks[currentTask]:null,
+    seq:seqToday, energy:currentEnergy, note:document.getElementById('session-note').value.trim()||null, _otMin:otMin
   };
-  // ────────────────────────────────────────────────────────────────────────────
-
-  pending = Object.assign({}, sessNow);
-  sessionStart = null; pausedMs = 0; pauseStartMs = null; inOvertime = false;
-
-  dbInsertReturning(sessNow).then(function(savedId) {
-    lastSavedSessionId = savedId;
-    var hint = document.getElementById('flow-hint');
-    hint.textContent = savedId ? '✓ Saved — log break or start next session' : '✗ Save failed — check connection';
-    hint.className = savedId ? '' : 'overtime';
+  pending=Object.assign({},sessNow);
+  sessionStart=null; pausedMs=0; pauseStartMs=null; inOvertime=false;
+  dbInsertReturning(sessNow).then(function(savedId){
+    lastSavedSessionId=savedId;
+    var hint=document.getElementById('flow-hint');
+    hint.textContent=savedId?'✓ Saved — log break or start next session':'✗ Save failed — check connection';
+    hint.className=savedId?'':'overtime';
     refreshMetrics();
   });
-
-  if (settings.autoBreak) {
-    showBreakOverlay(pomodoroCount % settings.interval === 0 ? 'long' : 'short');
-  } else {
-    setMode('pomodoro');
-  }
+  if (settings.autoBreak){ showBreakOverlay(pomodoroCount%settings.interval===0?'long':'short'); }
+  else{ setMode('pomodoro'); }
 }
-
-function wallElapsedSecs() {
-  if (!sessionStart) return 0;
-  var focusMs = (Date.now() - sessionStart.getTime()) - pausedMs;
-  return Math.floor(focusMs / 1000);
-}
-
-function doTick() {
-  var elapsed = wallElapsedSecs();
-  var remaining = totalSecs - elapsed;
-  if (remaining > 0) {
-    setRing(remaining / totalSecs);
-    renderClock(remaining, false);
-  } else {
-    if (!inOvertime) {
-      if (settings.flowMode) {
-        inOvertime = true;
-        document.getElementById('overtime-badge').classList.add('show');
-        document.getElementById('ring').style.stroke = 'var(--warn)';
-        document.getElementById('timer-display').style.color = 'var(--warn)';
-        document.getElementById('flow-hint').textContent = 'Target reached — keep going or end when ready';
-        document.getElementById('flow-hint').className = 'overtime';
-      } else {
-        playAlarm();
-        endSession(); return;
-      }
+function wallElapsedSecs(){ if (!sessionStart) return 0; return Math.floor(((Date.now()-sessionStart.getTime())-pausedMs)/1000); }
+function doTick(){
+  var elapsed=wallElapsedSecs(), remaining=totalSecs-elapsed;
+  if (remaining>0){ setRing(remaining/totalSecs); renderClock(remaining,false); }
+  else{
+    if (!inOvertime){
+      if (settings.flowMode){ inOvertime=true; document.getElementById('overtime-badge').classList.add('show'); document.getElementById('ring').style.stroke='var(--warn)'; document.getElementById('timer-display').style.color='var(--warn)'; document.getElementById('flow-hint').textContent='Target reached — keep going or end when ready'; document.getElementById('flow-hint').className='overtime'; }
+      else{ playAlarm(); endSession(); return; }
     }
-    var overtimeSecs = elapsed - totalSecs;
-    setRing(Math.min(1, overtimeSecs / totalSecs));
-    renderClock(overtimeSecs, true);
+    var ot=elapsed-totalSecs; setRing(Math.min(1,ot/totalSecs)); renderClock(ot,true);
   }
 }
+function renderClock(secs,isOt){ var abs=Math.abs(secs), m=String(Math.floor(abs/60)).padStart(2,'0'), s=String(abs%60).padStart(2,'0'); document.getElementById('timer-display').textContent=(isOt?'+':'')+m+':'+s; document.title=(isOt?'+':'')+m+':'+s+' · Focus'; }
+function setRing(r){ var ring=document.getElementById('ring'); ring.style.strokeDasharray=CIRC; ring.style.strokeDashoffset=CIRC*(1-Math.max(0,Math.min(1,r))); }
 
-function renderClock(secs, isOt) {
-  var abs = Math.abs(secs);
-  var m = String(Math.floor(abs / 60)).padStart(2, '0');
-  var s = String(abs % 60).padStart(2, '0');
-  document.getElementById('timer-display').textContent = (isOt ? '+' : '') + m + ':' + s;
-  document.title = (isOt ? '+' : '') + m + ':' + s + ' · Focus';
-}
-
-function setRing(r) {
-  var ring = document.getElementById('ring');
-  ring.style.strokeDasharray  = CIRC;
-  ring.style.strokeDashoffset = CIRC * (1 - Math.max(0, Math.min(1, r)));
-}
-
-// ─── BREAK ────────────────────────────────────────────────────────────────────
-function showBreakOverlay(type) {
-  clearInterval(breakTick);
-  breakTick = null;
-  stopAlarm();
-
+function showBreakOverlay(type){
+  clearInterval(breakTick); breakTick=null; stopAlarm();
   document.getElementById('break-overlay').classList.add('show');
-  document.getElementById('break-title').textContent = type === 'long' ? 'Long Break' : 'Short Break';
-
-  var otMin = pending ? (pending._otMin || 0) : 0;
-  var focMin = pending ? (pending.focus_min || 0) : 0;
-  var seq    = pending ? (pending.seq || 0) : 0;
-  var sub = 'Session #' + seq + ' · <b>' + focMin + '</b> min focused';
-  if (otMin > 0) sub += ' <span class="ot">(+' + otMin + 'm flow)</span>';
-  document.getElementById('break-sub').innerHTML = sub;
-
-  document.getElementById('break-note').value = '';
-  document.getElementById('save-msg').textContent = '';
-  document.getElementById('save-msg').className = 'save-msg';
-  document.querySelectorAll('.break-chip').forEach(function(c) { c.classList.remove('active'); });
-  breakActs = [];
-  overdueShown = false;
-  breakAlarmFired = false;
+  document.getElementById('break-title').textContent=type==='long'?'Long Break':'Short Break';
+  var otMin=pending?(pending._otMin||0):0, focMin=pending?(pending.focus_min||0):0, seq=pending?(pending.seq||0):0;
+  var sub='Session #'+seq+' · <b>'+focMin+'</b> min focused';
+  if (otMin>0) sub+=' <span class="ot">(+'+otMin+'m flow)</span>';
+  document.getElementById('break-sub').innerHTML=sub;
+  document.getElementById('break-note').value=''; document.getElementById('save-msg').textContent=''; document.getElementById('save-msg').className='save-msg';
+  document.querySelectorAll('.break-chip').forEach(function(c){c.classList.remove('active');});
+  breakActs=[]; overdueShown=false; breakAlarmFired=false;
   document.getElementById('overdue-warn').classList.remove('show');
-  document.getElementById('break-clock').className = 'break-clock';
-
-  var breakTotalSecs = (type === 'long' ? settings.long : settings.short) * 60;
-  breakStart = new Date();
-
-  function tickBreak() {
-    var elapsedB = Math.floor((Date.now() - breakStart.getTime()) / 1000);
-    var left = breakTotalSecs - elapsedB;
-    var abs = Math.abs(left);
-    var mm  = String(Math.floor(abs / 60)).padStart(2, '0');
-    var ss  = String(abs % 60).padStart(2, '0');
-    document.getElementById('break-clock').textContent = (left < 0 ? '+' : '') + mm + ':' + ss;
-    if (left <= 0 && !breakAlarmFired) {
-      breakAlarmFired = true;
-      playAlarm();
-      document.getElementById('break-clock').className = 'break-clock ended';
-    }
-    if (left <= -(settings.overdue * 60) && !overdueShown) {
-      overdueShown = true;
-      document.getElementById('overdue-warn').classList.add('show');
-      playAlarm();
-    }
+  document.getElementById('break-clock').className='break-clock';
+  var bTotalSecs=(type==='long'?settings.long:settings.short)*60; breakStart=new Date();
+  function tickBreak(){
+    var el=Math.floor((Date.now()-breakStart.getTime())/1000), left=bTotalSecs-el;
+    var abs=Math.abs(left), mm=String(Math.floor(abs/60)).padStart(2,'0'), ss=String(abs%60).padStart(2,'0');
+    document.getElementById('break-clock').textContent=(left<0?'+':'')+mm+':'+ss;
+    if (left<=0&&!breakAlarmFired){ breakAlarmFired=true; playAlarm(); document.getElementById('break-clock').className='break-clock ended'; }
+    if (left<=-(settings.overdue*60)&&!overdueShown){ overdueShown=true; document.getElementById('overdue-warn').classList.add('show'); playAlarm(); }
   }
-
-  tickBreak();
-  breakTick = setInterval(tickBreak, 500);
+  tickBreak(); breakTick=setInterval(tickBreak,500);
 }
-
-function toggleBreakAct(el, act) {
-  var idx = breakActs.indexOf(act);
-  if (idx >= 0) { breakActs.splice(idx, 1); } else { breakActs.push(act); }
-  el.classList.toggle('active', breakActs.includes(act));
-}
-
-async function endBreak(returned) {
-  stopAlarm();
-  clearInterval(breakTick);
-  breakTick = null;
-
-  var breakEnd    = new Date();
-  var breakDurSec = breakStart ? Math.floor((breakEnd.getTime() - breakStart.getTime()) / 1000) : 0;
-  var breakDurMin = Math.floor(breakDurSec / 60);
-
-  // ── FIX: only break table columns — no focus_sessions columns ───────────────
-  var breakRow = {
-    session_date:       isoDate(),
-    start_time:         breakStart ? fmt24(breakStart) : fmt24(new Date()),
-    end_time:           fmt24(breakEnd),
-    span_min:           breakDurMin,
-    break_activities:   breakActs.length ? breakActs.join('; ') : null,
-    break_note:         document.getElementById('break-note').value.trim() || null,
-    break_duration_min: breakDurMin,
-    overdue:            overdueShown,
-    returned:           returned,
-    _isBreak:           true   // marker for flushQueue — stripped before insert
+function toggleBreakAct(el,act){ var idx=breakActs.indexOf(act); if(idx>=0){breakActs.splice(idx,1);}else{breakActs.push(act);} el.classList.toggle('active',breakActs.includes(act)); }
+async function endBreak(returned){
+  stopAlarm(); clearInterval(breakTick); breakTick=null;
+  var breakEnd=new Date(), bDurSec=breakStart?Math.floor((breakEnd.getTime()-breakStart.getTime())/1000):0, bDurMin=Math.floor(bDurSec/60);
+  var breakRow={
+    session_date:isoDate(), start_time:breakStart?fmt24(breakStart):fmt24(new Date()), end_time:fmt24(breakEnd),
+    span_min:bDurMin, break_activities:breakActs.length?breakActs.join('; '):null,
+    break_note:document.getElementById('break-note').value.trim()||null,
+    break_duration_min:bDurMin, overdue:overdueShown, returned:returned
   };
-  // ────────────────────────────────────────────────────────────────────────────
-
-  var msg = document.getElementById('save-msg');
-  msg.textContent = 'Saving break...'; msg.className = 'save-msg saving';
-
-  var ok = await dbSave(breakRow);
-  lastSavedSessionId = null;
-
-  if (ok) {
-    msg.textContent = '✓ Break logged'; msg.className = 'save-msg saved';
-  } else {
-    msg.textContent = navigator.onLine ? '✗ Failed — queued' : '✗ Offline — will sync';
-    msg.className = 'save-msg failed';
-  }
-
-  setTimeout(function() {
+  var msg=document.getElementById('save-msg'); msg.textContent='Saving break...'; msg.className='save-msg saving';
+  var ok=await dbSave(breakRow); lastSavedSessionId=null;
+  if (ok){ msg.textContent='✓ Break logged'; msg.className='save-msg saved'; }
+  else{ msg.textContent=navigator.onLine?'✗ Failed — queued':'✗ Offline — will sync'; msg.className='save-msg failed'; }
+  setTimeout(function(){
     document.getElementById('break-overlay').classList.remove('show');
-    pending = null;
-    running = false;
-    sessionStart = null; pausedMs = 0; pauseStartMs = null;
-    inOvertime = false;
-    timeLeft = settings.pomodoro * 60;
-    totalSecs = settings.pomodoro * 60;
-    mode = 'pomodoro';
-    setMode('pomodoro');
-    refreshMetrics();
-    if (settings.autoPomo) {
-      setTimeout(startTimer, 300);
-    }
+    pending=null; running=false; sessionStart=null; pausedMs=0; pauseStartMs=null; inOvertime=false;
+    timeLeft=settings.pomodoro*60; totalSecs=settings.pomodoro*60; mode='pomodoro';
+    setMode('pomodoro'); refreshMetrics();
+    if (settings.autoPomo) setTimeout(startTimer,300);
   }, 800);
 }
 
-// ─── EDIT LOG MODAL ───────────────────────────────────────────────────────────
-var editingSessionId = null;
-var editingTable = 'focus_sessions';
-
-function openEditModal(id, table) {
-  editingTable = table || 'focus_sessions';
-  if (!sb) { alert('Connect Supabase first'); return; }
-  editingSessionId = id;
-  document.getElementById('edit-status').textContent = 'Loading...';
-  document.getElementById('edit-modal').classList.add('show');
-  sb.from(editingTable).select('*').eq('id', id).single().then(function(res) {
-    if (res.error || !res.data) {
-      document.getElementById('edit-status').textContent = '✗ Could not load session';
-      return;
-    }
-    var s = res.data;
-    document.getElementById('edit-id').value       = s.id;
-    document.getElementById('edit-date').value     = s.session_date || '';
-    document.getElementById('edit-seq').value      = s.seq != null ? s.seq : '';
-    document.getElementById('edit-start').value    = s.start_time ? s.start_time.slice(0,8) : '';
-    document.getElementById('edit-end').value      = s.end_time   ? s.end_time.slice(0,8)   : '';
-    document.getElementById('edit-span').value     = s.span_min   != null ? s.span_min : '';
-    document.getElementById('edit-focus').value    = s.focus_min  != null ? s.focus_min : '';
-    document.getElementById('edit-project').value  = s.project    || '';
-    document.getElementById('edit-task').value     = s.task       || '';
-    document.getElementById('edit-energy').value   = s.energy     != null ? s.energy : '';
-    document.getElementById('edit-note').value     = s.note       || s.break_note || '';
-    document.getElementById('edit-break-acts').value = s.break_activities || '';
-    document.getElementById('edit-returned').value = s.returned === true ? 'true' : s.returned === false ? 'false' : '';
-    var catSel = document.getElementById('edit-cat');
-    catSel.innerHTML = '<option value="">—</option>' +
-      Object.keys(CAT).map(function(k) {
-        return '<option value="'+k+'"'+(s.task_type===k?' selected':'')+'>'+CAT[k].emoji+' '+k+'</option>';
-      }).join('');
-    document.getElementById('edit-status').textContent = '';
+var editingSessionId=null, editingTable='focus_sessions';
+function openEditModal(id,table){
+  editingTable=table||'focus_sessions'; if (!sb){ alert('Connect Supabase first'); return; }
+  editingSessionId=id; document.getElementById('edit-status').textContent='Loading...'; document.getElementById('edit-modal').classList.add('show');
+  sb.from(editingTable).select('*').eq('id',id).single().then(function(res){
+    if (res.error||!res.data){ document.getElementById('edit-status').textContent='✗ Could not load'; return; }
+    var s=res.data;
+    document.getElementById('edit-id').value=s.id; document.getElementById('edit-date').value=s.session_date||'';
+    document.getElementById('edit-seq').value=s.seq!=null?s.seq:''; document.getElementById('edit-start').value=s.start_time?s.start_time.slice(0,8):'';
+    document.getElementById('edit-end').value=s.end_time?s.end_time.slice(0,8):''; document.getElementById('edit-span').value=s.span_min!=null?s.span_min:'';
+    document.getElementById('edit-focus').value=s.focus_min!=null?s.focus_min:''; document.getElementById('edit-project').value=s.project||'';
+    document.getElementById('edit-task').value=s.task||''; document.getElementById('edit-energy').value=s.energy!=null?s.energy:'';
+    document.getElementById('edit-note').value=s.note||s.break_note||''; document.getElementById('edit-break-acts').value=s.break_activities||'';
+    document.getElementById('edit-returned').value=s.returned===true?'true':s.returned===false?'false':'';
+    var catSel=document.getElementById('edit-cat');
+    catSel.innerHTML='<option value="">—</option>'+Object.keys(CAT).map(function(k){ return '<option value="'+k+'"'+(s.task_type===k?' selected':'')+'>'+CAT[k].emoji+' '+k+'</option>'; }).join('');
+    document.getElementById('edit-status').textContent='';
   });
 }
-
-function closeEditModal() {
-  document.getElementById('edit-modal').classList.remove('show');
-  editingSessionId = null;
-}
-
-async function saveEdit() {
-  if (!sb || !editingSessionId) return;
-  var focusMin  = parseInt(document.getElementById('edit-focus').value) || null;
-  var spanMin   = parseInt(document.getElementById('edit-span').value)  || null;
-  var ratio     = (focusMin && spanMin) ? Math.round(focusMin / spanMin * 100) : null;
-  var retVal    = document.getElementById('edit-returned').value;
-
-  var updates = {
-    session_date: document.getElementById('edit-date').value    || null,
-    start_time:   document.getElementById('edit-start').value   || null,
-    end_time:     document.getElementById('edit-end').value     || null,
-    span_min:     spanMin,
-  };
-  if (editingTable === 'focus_sessions') {
-    Object.assign(updates, {
-      seq:      parseInt(document.getElementById('edit-seq').value) || null,
-      focus_min: focusMin,
-      ratio:    ratio,
-      project:  document.getElementById('edit-project').value.trim() || null,
-      task:     document.getElementById('edit-task').value.trim()    || null,
-      task_type:document.getElementById('edit-cat').value            || null,
-      energy:   parseInt(document.getElementById('edit-energy').value) || null,
-      note:     document.getElementById('edit-note').value.trim()    || null,
-    });
-  } else {
-    Object.assign(updates, {
-      break_activities: document.getElementById('edit-break-acts').value.trim() || null,
-      returned: retVal === 'true' ? true : retVal === 'false' ? false : null,
-      break_note: document.getElementById('edit-note').value.trim() || null,
-    });
+function closeEditModal(){ document.getElementById('edit-modal').classList.remove('show'); editingSessionId=null; }
+async function saveEdit(){
+  if (!sb||!editingSessionId) return;
+  var focusMin=parseInt(document.getElementById('edit-focus').value)||null;
+  var spanMin=parseInt(document.getElementById('edit-span').value)||null;
+  var ratio=(focusMin&&spanMin)?Math.round(focusMin/spanMin*100):null;
+  var retVal=document.getElementById('edit-returned').value;
+  var updates={ session_date:document.getElementById('edit-date').value||null, start_time:document.getElementById('edit-start').value||null, end_time:document.getElementById('edit-end').value||null, span_min:spanMin };
+  if (editingTable==='focus_sessions'){
+    Object.assign(updates,{ seq:parseInt(document.getElementById('edit-seq').value)||null, focus_min:focusMin, ratio:ratio, project:document.getElementById('edit-project').value.trim()||null, task:document.getElementById('edit-task').value.trim()||null, task_type:document.getElementById('edit-cat').value||null, energy:parseInt(document.getElementById('edit-energy').value)||null, note:document.getElementById('edit-note').value.trim()||null });
+  }else{
+    Object.assign(updates,{ break_activities:document.getElementById('edit-break-acts').value.trim()||null, returned:retVal==='true'?true:retVal==='false'?false:null, break_note:document.getElementById('edit-note').value.trim()||null });
   }
-
-  document.getElementById('edit-status').textContent = 'Saving...';
-  var res = await sb.from(editingTable).update(updates).eq('id', editingSessionId);
-  if (res.error) {
-    document.getElementById('edit-status').textContent = '✗ ' + res.error.message;
-  } else {
-    document.getElementById('edit-status').textContent = '✓ Saved';
-    setTimeout(function() { closeEditModal(); loadLog(); refreshMetrics(); }, 600);
-  }
+  document.getElementById('edit-status').textContent='Saving...';
+  var res=await sb.from(editingTable).update(updates).eq('id',editingSessionId);
+  if (res.error){ document.getElementById('edit-status').textContent='✗ '+res.error.message; }
+  else{ document.getElementById('edit-status').textContent='✓ Saved'; setTimeout(function(){ closeEditModal(); loadLog(); refreshMetrics(); },600); }
+}
+async function deleteSession(){
+  if (!sb||!editingSessionId) return;
+  if (!confirm('Delete permanently?')) return;
+  var res=await sb.from(editingTable).delete().eq('id',editingSessionId);
+  if (res.error){ document.getElementById('edit-status').textContent='✗ '+res.error.message; }
+  else{ closeEditModal(); loadLog(); refreshMetrics(); }
 }
 
-async function deleteSession() {
-  if (!sb || !editingSessionId) return;
-  if (!confirm('Delete this session permanently?')) return;
-  var res = await sb.from(editingTable).delete().eq('id', editingSessionId);
-  if (res.error) {
-    document.getElementById('edit-status').textContent = '✗ ' + res.error.message;
-  } else {
-    closeEditModal(); loadLog(); refreshMetrics();
-  }
+var currentLogTab='sessions';
+function switchLogTab(tab){
+  currentLogTab=tab;
+  document.getElementById('tab-sessions').classList.toggle('active',tab==='sessions');
+  document.getElementById('tab-breaks').classList.toggle('active',tab==='breaks');
+  document.getElementById('sessions-table-wrap').style.display=tab==='sessions'?'block':'none';
+  document.getElementById('breaks-table-wrap').style.display=tab==='breaks'?'block':'none';
 }
 
-var currentLogTab = 'sessions';
-function switchLogTab(tab) {
-  currentLogTab = tab;
-  document.getElementById('tab-sessions').classList.toggle('active', tab === 'sessions');
-  document.getElementById('tab-breaks').classList.toggle('active', tab === 'breaks');
-  document.getElementById('sessions-table-wrap').style.display = tab === 'sessions' ? 'block' : 'none';
-  document.getElementById('breaks-table-wrap').style.display   = tab === 'breaks'   ? 'block' : 'none';
-}
+function fmtFocusSec(s){ if (s==null) return '—'; var m=Math.floor(s/60), sec=s%60; return m+':'+String(sec).padStart(2,'0'); }
 
-// ─── LOG ─────────────────────────────────────────────────────────────────────
-function fmtFocusSec(s) {
-  if (s == null) return '—';
-  var m = Math.floor(s / 60);
-  var sec = s % 60;
-  return m + ':' + String(sec).padStart(2,'0');
-}
-
-async function loadLog() {
-  document.getElementById('log-count').textContent = 'Loading...';
-  if (!sb) return;
-
-  var [fsRes, brRes] = await Promise.all([
+async function loadLog(){
+  document.getElementById('log-count').textContent='Loading...'; if (!sb) return;
+  var [fsRes,brRes]=await Promise.all([
     sb.from('focus_sessions').select('*').order('session_date',{ascending:false}).order('start_time',{ascending:false}).limit(500),
     sb.from('breaks').select('*').order('session_date',{ascending:false}).order('start_time',{ascending:false}).limit(500)
   ]);
-
-  var focusSessions = fsRes.error ? [] : (fsRes.data || []);
-  var breakRows     = brRes.error ? [] : (brRes.data || []);
-
-  document.getElementById('log-count').textContent =
-    focusSessions.length + ' sessions · ' + breakRows.length + ' breaks';
-
-  var checkinMap = {};
-  var allDates = [...new Set(focusSessions.map(function(s){ return s.session_date; }))];
-  if (allDates.length) {
-    var cr = await sb.from('daily_checkins').select('date,sleep_hrs,wake_time').in('date', allDates);
-    if (!cr.error && cr.data) cr.data.forEach(function(c){ checkinMap[c.date] = c; });
-  }
-
-  var eMap = { 1:'↓', 2:'→', 3:'↑' };
-
-  var stbody = document.getElementById('sessions-tbody');
-  var sempty = document.getElementById('sessions-empty');
-  if (!focusSessions.length) {
-    stbody.innerHTML = ''; sempty.style.display = 'block';
-  } else {
-    sempty.style.display = 'none';
-    stbody.innerHTML = focusSessions.map(function(s) {
-      var ratio  = s.ratio != null ? s.ratio : (s.span_min > 0 ? Math.round(s.focus_min / s.span_min * 100) : 100);
-      var rCls   = ratio >= 85 ? 'badge-hi' : ratio >= 65 ? 'badge-mid' : 'badge-lo';
-      var cat    = s.task_type && CAT[s.task_type];
-      var catHtml = cat
-        ? '<span class="cat-tag" style="background:' + catRgba(cat.col,0.1) + ';color:' + catRgba(cat.col,1) + ';">' + cat.emoji + ' ' + s.task_type + '</span>'
-        : (s.task_type ? '<span class="cat-tag cat-tag-default">' + s.task_type + '</span>' : '<span class="cat-tag cat-tag-default">—</span>');
-      var ci = checkinMap[s.session_date] || {};
-      return '<tr>'
-        + '<td><button class="edit-row-btn" onclick="openEditModal(\'' + s.id + '\',\'focus_sessions\')" title="Edit">✏</button></td>'
-        + '<td>' + (s.session_date||'—') + '</td>'
-        + '<td class="dim">' + (s.start_time ? s.start_time.slice(0,5) : '—') + '</td>'
-        + '<td class="dim">' + (s.end_time   ? s.end_time.slice(0,5)   : '—') + '</td>'
-        + '<td>' + (s.span_min!=null ? s.span_min+'m' : '—') + '</td>'
-        + '<td><b>' + (s.focus_sec!=null ? fmtFocusSec(s.focus_sec) : (s.focus_min!=null ? s.focus_min+'m' : '—')) + '</b></td>'
-        + '<td><span class="badge ' + rCls + '">' + ratio + '%</span></td>'
-        + '<td class="dim">' + (s.project||'—') + '</td>'
-        + '<td>' + (s.task||'—') + '</td>'
-        + '<td>' + catHtml + '</td>'
-        + '<td class="dim">' + (s.seq!=null?s.seq:'—') + '</td>'
-        + '<td>' + (eMap[s.energy]||'—') + '</td>'
-        + '<td class="dim">' + (ci.sleep_hrs||'—') + '</td>'
-        + '<td class="dim">' + (ci.wake_time ? ci.wake_time.slice(0,5) : '—') + '</td>'
-        + '<td class="dim" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;">' + (s.note||'—') + '</td>'
-        + '</tr>';
+  var fSess=fsRes.error?[]:(fsRes.data||[]), bRows=brRes.error?[]:(brRes.data||[]);
+  document.getElementById('log-count').textContent=fSess.length+' sessions · '+bRows.length+' breaks';
+  var checkinMap={}, allDates=[...new Set(fSess.map(function(s){return s.session_date;}))];
+  if (allDates.length){ var cr=await sb.from('daily_checkins').select('date,sleep_hrs,wake_time').in('date',allDates); if(!cr.error&&cr.data) cr.data.forEach(function(c){checkinMap[c.date]=c;}); }
+  var eMap={1:'↓',2:'→',3:'↑'};
+  var stbody=document.getElementById('sessions-tbody'), sempty=document.getElementById('sessions-empty');
+  if (!fSess.length){ stbody.innerHTML=''; sempty.style.display='block'; }
+  else{
+    sempty.style.display='none';
+    stbody.innerHTML=fSess.map(function(s){
+      var ratio=s.ratio!=null?s.ratio:(s.span_min>0?Math.round(s.focus_min/s.span_min*100):100);
+      var rCls=ratio>=85?'badge-hi':ratio>=65?'badge-mid':'badge-lo';
+      var cat=s.task_type&&CAT[s.task_type];
+      var catHtml=cat?'<span class="cat-tag" style="background:'+catRgba(cat.col,0.1)+';color:'+catRgba(cat.col,1)+';">'+cat.emoji+' '+s.task_type+'</span>':'<span class="cat-tag cat-tag-default">'+(s.task_type||'—')+'</span>';
+      var ci=checkinMap[s.session_date]||{};
+      return '<tr><td><button class="edit-row-btn" onclick="openEditModal(\''+s.id+'\',\'focus_sessions\')" title="Edit">✏</button></td><td>'+(s.session_date||'—')+'</td><td class="dim">'+(s.start_time?s.start_time.slice(0,5):'—')+'</td><td class="dim">'+(s.end_time?s.end_time.slice(0,5):'—')+'</td><td>'+(s.span_min!=null?s.span_min+'m':'—')+'</td><td><b>'+(s.focus_sec!=null?fmtFocusSec(s.focus_sec):(s.focus_min!=null?s.focus_min+'m':'—'))+'</b></td><td><span class="badge '+rCls+'">'+ratio+'%</span></td><td class="dim">'+(s.project||'—')+'</td><td>'+(s.task||'—')+'</td><td>'+catHtml+'</td><td class="dim">'+(s.seq!=null?s.seq:'—')+'</td><td>'+(eMap[s.energy]||'—')+'</td><td class="dim">'+(ci.sleep_hrs||'—')+'</td><td class="dim">'+(ci.wake_time?ci.wake_time.slice(0,5):'—')+'</td><td class="dim" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;">'+(s.note||'—')+'</td></tr>';
     }).join('');
   }
-
-  var btbody = document.getElementById('breaks-tbody');
-  var bempty = document.getElementById('breaks-empty');
-  if (!breakRows.length) {
-    btbody.innerHTML = ''; bempty.style.display = 'block';
-  } else {
-    bempty.style.display = 'none';
-    btbody.innerHTML = breakRows.map(function(b) {
-      var status, statusCol;
-      if (b.returned === true)       { status = '✓ Returned';       statusCol = 'var(--accent)'; }
-      else if (b.returned === false) { status = '✗ Didn\'t return'; statusCol = 'var(--danger)'; }
-      else                           { status = '⚡ Urgent';         statusCol = 'var(--warn)'; }
-      return '<tr style="background:rgba(95,180,255,0.03);">'
-        + '<td><button class="edit-row-btn" onclick="openEditModal(\'' + b.id + '\',\'breaks\')" title="Edit">✏</button></td>'
-        + '<td>' + (b.session_date||'—') + '</td>'
-        + '<td class="dim">' + (b.start_time ? b.start_time.slice(0,5) : '—') + '</td>'
-        + '<td class="dim">' + (b.end_time   ? b.end_time.slice(0,5)   : '—') + '</td>'
-        + '<td>' + (b.break_duration_min!=null ? b.break_duration_min+'m' : '—') + '</td>'
-        + '<td class="dim" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;">' + (b.break_activities||'—') + '</td>'
-        + '<td class="dim">' + (b.overdue ? '⚠ yes' : 'no') + '</td>'
-        + '<td style="color:'+statusCol+';font-family:var(--mono);font-size:11px;">' + status + '</td>'
-        + '<td class="dim" style="max-width:130px;overflow:hidden;text-overflow:ellipsis;">' + (b.break_note||'—') + '</td>'
-        + '</tr>';
+  var btbody=document.getElementById('breaks-tbody'), bempty=document.getElementById('breaks-empty');
+  if (!bRows.length){ btbody.innerHTML=''; bempty.style.display='block'; }
+  else{
+    bempty.style.display='none';
+    btbody.innerHTML=bRows.map(function(b){
+      var status,statusCol;
+      if (b.returned===true){status='✓ Returned';statusCol='var(--accent)';}
+      else if (b.returned===false){status='✗ Didn\'t return';statusCol='var(--danger)';}
+      else{status='⚡ Urgent';statusCol='var(--warn)';}
+      return '<tr style="background:rgba(95,180,255,0.03);"><td><button class="edit-row-btn" onclick="openEditModal(\''+b.id+'\',\'breaks\')" title="Edit">✏</button></td><td>'+(b.session_date||'—')+'</td><td class="dim">'+(b.start_time?b.start_time.slice(0,5):'—')+'</td><td class="dim">'+(b.end_time?b.end_time.slice(0,5):'—')+'</td><td>'+(b.break_duration_min!=null?b.break_duration_min+'m':'—')+'</td><td class="dim" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;">'+(b.break_activities||'—')+'</td><td class="dim">'+(b.overdue?'⚠ yes':'no')+'</td><td style="color:'+statusCol+';font-family:var(--mono);font-size:11px;">'+status+'</td><td class="dim" style="max-width:130px;overflow:hidden;text-overflow:ellipsis;">'+(b.break_note||'—')+'</td></tr>';
     }).join('');
   }
 }
 
-async function exportCSV() {
-  if (!sb) { alert('Connect Supabase first.'); return; }
-  var [fsRes, brRes] = await Promise.all([
+async function exportCSV(){
+  if (!sb){ alert('Connect Supabase first.'); return; }
+  var [fsRes,brRes]=await Promise.all([
     sb.from('focus_sessions').select('*').order('session_date',{ascending:false}).limit(10000),
     sb.from('breaks').select('*').order('session_date',{ascending:false}).limit(10000)
   ]);
-  var focusSessions = fsRes.data || [];
-  var breakRows     = brRes.data || [];
-  if (!focusSessions.length && !breakRows.length) { alert('No data to export.'); return; }
-
-  var fh = ['Date','Start','End','Span(min)','Focus(M:SS)','Focus(min)','Ratio(%)','Project','Task','Category','Seq#','Energy','Note'];
-  var fRows = focusSessions.map(function(s) {
-    return [
-      s.session_date, s.start_time, s.end_time, s.span_min,
-      s.focus_sec ? fmtFocusSec(s.focus_sec) : (s.focus_min+'m'),
-      s.focus_min, s.ratio,
-      s.project||'', s.task||'', s.task_type||'', s.seq, s.energy||'',
-      (s.note||'').replace(/,/g,';')
-    ].map(function(v){ return '"'+(v!=null?v:'')+'"'; }).join(',');
-  });
-
-  var bh = ['Date','Start','End','Duration(min)','Activities','Overdue','Status','Note'];
-  var bRows = breakRows.map(function(b) {
-    var status = b.returned === true ? 'Returned' : b.returned === false ? 'Didnt return' : 'Urgent';
-    return [
-      b.session_date, b.start_time, b.end_time, b.break_duration_min||0,
-      b.break_activities||'', b.overdue?'yes':'no', status,
-      (b.break_note||'').replace(/,/g,';')
-    ].map(function(v){ return '"'+(v!=null?v:'')+'"'; }).join(',');
-  });
-
-  var csv = '=== FOCUS SESSIONS ===\n'
-    + [fh.join(',')].concat(fRows).join('\n')
-    + '\n\n=== BREAKS ===\n'
-    + [bh.join(',')].concat(bRows).join('\n');
-
-  var blob = new Blob([csv], { type:'text/csv' });
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'focus-tracker-' + isoDate() + '.csv';
-  a.click();
+  var fSess=fsRes.data||[], bRows=brRes.data||[];
+  if (!fSess.length&&!bRows.length){ alert('No data to export.'); return; }
+  var fh=['Date','Start','End','Span(min)','Focus(M:SS)','Focus(min)','Ratio(%)','Project','Task','Category','Seq#','Energy','Note'];
+  var fRows=fSess.map(function(s){ return [s.session_date,s.start_time,s.end_time,s.span_min,s.focus_sec?fmtFocusSec(s.focus_sec):(s.focus_min+'m'),s.focus_min,s.ratio,s.project||'',s.task||'',s.task_type||'',s.seq,s.energy||'',(s.note||'').replace(/,/g,';')].map(function(v){return '"'+(v!=null?v:'')+'"';}).join(','); });
+  var bh=['Date','Start','End','Duration(min)','Activities','Overdue','Status','Note'];
+  var bRows2=bRows.map(function(b){ var st=b.returned===true?'Returned':b.returned===false?'Didnt return':'Urgent'; return [b.session_date,b.start_time,b.end_time,b.break_duration_min||0,b.break_activities||'',b.overdue?'yes':'no',st,(b.break_note||'').replace(/,/g,';')].map(function(v){return '"'+(v!=null?v:'')+'"';}).join(','); });
+  var csv='=== FOCUS SESSIONS ===\n'+[fh.join(',')].concat(fRows).join('\n')+'\n\n=== BREAKS ===\n'+[bh.join(',')].concat(bRows2).join('\n');
+  var blob=new Blob([csv],{type:'text/csv'}), a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='focus-tracker-'+isoDate()+'.csv'; a.click();
 }
 
-// ─── ANALYTICS ───────────────────────────────────────────────────────────────
-async function loadAnalytics() {
+async function loadAnalytics(){
   if (!sb) return;
-  var sessions = await fetchSessions(10000);
-  if (!sessions.length) return;
-
-  var totalFocus = sessions.reduce(function(a,s) { return a+(s.focus_min||0); }, 0);
-  document.getElementById('an-sessions').textContent = sessions.length;
-  document.getElementById('an-focus').textContent = totalFocus>=60
-    ? Math.floor(totalFocus/60)+'h '+(totalFocus%60)+'m' : totalFocus+'m';
-
-  var thisWeek = getWeekBounds(0);
-  var lastWeek = getWeekBounds(1);
-  var twTotal  = weekTotal(sessions, thisWeek);
-  var lwTotal  = weekTotal(sessions, lastWeek);
-  var twElapsed = daysElapsedInWeek();
-  var twAvg    = Math.round(twTotal / twElapsed);
-  var lwAvg    = Math.round(lwTotal / 7);
-
-  var twDays = {};
-  sessions.forEach(function(s) { if (s.session_date >= thisWeek[0] && s.session_date <= thisWeek[1]) twDays[s.session_date] = 1; });
-  var lwDays = {};
-  sessions.forEach(function(s) { if (s.session_date >= lastWeek[0] && s.session_date <= lastWeek[1]) lwDays[s.session_date] = 1; });
-
-  document.getElementById('an-thisweek').textContent    = twAvg ? twAvg + 'm' : '—';
-  document.getElementById('an-thisweek-sub').textContent = 'day ' + twElapsed + ' of 7 · ' + Object.keys(twDays).length + ' active';
-  document.getElementById('an-lastweek').textContent    = lwAvg ? lwAvg + 'm' : '—';
-  document.getElementById('an-lastweek-sub').textContent = Object.keys(lwDays).length + ' active days (÷7)';
-
-  var daily = {};
-  sessions.forEach(function(s) { if(s.session_date) daily[s.session_date]=(daily[s.session_date]||0)+(s.focus_min||0); });
-  var days = Object.entries(daily).sort(function(a,b){return a[0]<b[0]?-1:1;}).slice(-14);
-  var maxM = Math.max.apply(null, days.map(function(d){return d[1];}).concat([1]));
-  document.getElementById('focus-bars').innerHTML = days.length
-    ? days.map(function(d) {
-        var h = Math.round(d[1]/maxM*100);
-        return '<div class="bar-col"><div class="bar" style="height:'+h+'px" title="'+d[0]+': '+d[1]+'min"></div><div class="bar-lbl">'+d[0].slice(5)+'</div></div>';
-      }).join('')
-    : '<span style="color:var(--muted);font-family:var(--mono);font-size:11px;">No data</span>';
-
-  var catMin = {};
-  Object.keys(CAT).forEach(function(k){catMin[k]=0;});
-  sessions.forEach(function(s){ if(s.task_type&&CAT[s.task_type]) catMin[s.task_type]+=(s.focus_min||0); });
-  document.getElementById('cat-breakdown').innerHTML = Object.entries(catMin).map(function(e) {
-    var cat=e[0], min=e[1];
-    var h = min>=60 ? Math.floor(min/60)+'h '+(min%60)+'m' : min+'m';
-    return '<div class="cat-an-card"><div class="cat-an-icon">'+CAT[cat].emoji+'</div><div class="cat-an-lbl">'+cat+'</div><div class="cat-an-val" style="color:'+CAT[cat].col+'">'+h+'</div></div>';
-  }).join('');
-
-  var acts = {};
-  sessions.forEach(function(s){ (s.break_activities||'').split('; ').filter(Boolean).forEach(function(a){acts[a]=(acts[a]||0)+1;}); });
-  var ae = Object.entries(acts).sort(function(a,b){return b[1]-a[1];});
-  document.getElementById('break-breakdown').innerHTML = ae.length
-    ? ae.map(function(e){return '<div class="break-card"><div class="break-card-lbl">'+e[0]+'</div><div class="break-card-val">'+e[1]+'</div></div>';}).join('')
-    : '<span style="color:var(--muted);font-family:var(--mono);font-size:11px;">No break data yet</span>';
+  var sessions=await fetchSessions(10000); if (!sessions.length) return;
+  var totalFocus=sessions.reduce(function(a,s){return a+(s.focus_min||0);},0);
+  document.getElementById('an-sessions').textContent=sessions.length;
+  document.getElementById('an-focus').textContent=totalFocus>=60?Math.floor(totalFocus/60)+'h '+(totalFocus%60)+'m':totalFocus+'m';
+  var thisWeek=getWeekBounds(0), lastWeek=getWeekBounds(1);
+  var twTotal=weekTotal(sessions,thisWeek), lwTotal=weekTotal(sessions,lastWeek);
+  var twEl=daysElapsedInWeek(), twAvg=Math.round(twTotal/twEl), lwAvg=Math.round(lwTotal/7);
+  var twDays={}, lwDays={};
+  sessions.forEach(function(s){ if(s.session_date>=thisWeek[0]&&s.session_date<=thisWeek[1]) twDays[s.session_date]=1; if(s.session_date>=lastWeek[0]&&s.session_date<=lastWeek[1]) lwDays[s.session_date]=1; });
+  document.getElementById('an-thisweek').textContent=twAvg?twAvg+'m':'—';
+  document.getElementById('an-thisweek-sub').textContent='day '+twEl+' of 7 · '+Object.keys(twDays).length+' active';
+  document.getElementById('an-lastweek').textContent=lwAvg?lwAvg+'m':'—';
+  document.getElementById('an-lastweek-sub').textContent=Object.keys(lwDays).length+' active days (÷7)';
+  var daily={}; sessions.forEach(function(s){if(s.session_date)daily[s.session_date]=(daily[s.session_date]||0)+(s.focus_min||0);});
+  var days=Object.entries(daily).sort(function(a,b){return a[0]<b[0]?-1:1;}).slice(-14);
+  var maxM=Math.max.apply(null,days.map(function(d){return d[1];}).concat([1]));
+  document.getElementById('focus-bars').innerHTML=days.length?days.map(function(d){var h=Math.round(d[1]/maxM*100);return '<div class="bar-col"><div class="bar" style="height:'+h+'px" title="'+d[0]+': '+d[1]+'min"></div><div class="bar-lbl">'+d[0].slice(5)+'</div></div>';}).join(''):'<span style="color:var(--muted);font-family:var(--mono);font-size:11px;">No data</span>';
+  var catMin={}; Object.keys(CAT).forEach(function(k){catMin[k]=0;}); sessions.forEach(function(s){if(s.task_type&&CAT[s.task_type])catMin[s.task_type]+=(s.focus_min||0);});
+  document.getElementById('cat-breakdown').innerHTML=Object.entries(catMin).map(function(e){var cat=e[0],min=e[1],h=min>=60?Math.floor(min/60)+'h '+(min%60)+'m':min+'m';return '<div class="cat-an-card"><div class="cat-an-icon">'+CAT[cat].emoji+'</div><div class="cat-an-lbl">'+cat+'</div><div class="cat-an-val" style="color:'+CAT[cat].col+'">'+h+'</div></div>';}).join('');
+  var acts={}; sessions.forEach(function(s){(s.break_activities||'').split('; ').filter(Boolean).forEach(function(a){acts[a]=(acts[a]||0)+1;});});
+  var ae=Object.entries(acts).sort(function(a,b){return b[1]-a[1];});
+  document.getElementById('break-breakdown').innerHTML=ae.length?ae.map(function(e){return '<div class="break-card"><div class="break-card-lbl">'+e[0]+'</div><div class="break-card-val">'+e[1]+'</div></div>';}).join(''):'<span style="color:var(--muted);font-family:var(--mono);font-size:11px;">No break data yet</span>';
 }
 
-// ─── SETTINGS ─────────────────────────────────────────────────────────────────
-function loadSettings() {
-  try {
-    var saved = JSON.parse(localStorage.getItem('ft_settings') || '{}');
-    settings = Object.assign(settings, saved);
-  } catch(e) {}
-  settings.pomodoro  = Math.min(120, Math.max(1,  parseInt(settings.pomodoro)  || 25));
-  settings.short     = Math.min(30,  Math.max(1,  parseInt(settings.short)     || 5));
-  settings.long      = Math.min(60,  Math.max(1,  parseInt(settings.long)      || 15));
-  settings.interval  = Math.min(10,  Math.max(2,  parseInt(settings.interval)  || 4));
-  settings.overdue   = Math.min(20,  Math.max(0,  parseInt(settings.overdue)   || 3));
-  settings.flowMode  = settings.flowMode  !== false;
-  settings.autoBreak = settings.autoBreak === true;
-  settings.autoPomo  = settings.autoPomo  === true;
-  localStorage.setItem('ft_settings', JSON.stringify(settings));
-  document.getElementById('set-pomodoro').value = settings.pomodoro;
-  document.getElementById('set-short').value    = settings.short;
-  document.getElementById('set-long').value     = settings.long;
-  document.getElementById('set-interval').value = settings.interval;
-  document.getElementById('set-overdue').value  = settings.overdue;
-  document.getElementById('tog-flowMode').classList.toggle('on', settings.flowMode);
-  document.getElementById('tog-autoBreak').classList.toggle('on', settings.autoBreak);
-  document.getElementById('tog-autoPomo').classList.toggle('on', settings.autoPomo);
+function loadSettings(){
+  try{ var saved=JSON.parse(localStorage.getItem('ft_settings')||'{}'); settings=Object.assign(settings,saved); }catch(e){}
+  settings.pomodoro=Math.min(120,Math.max(1,parseInt(settings.pomodoro)||25));
+  settings.short=Math.min(30,Math.max(1,parseInt(settings.short)||5));
+  settings.long=Math.min(60,Math.max(1,parseInt(settings.long)||15));
+  settings.interval=Math.min(10,Math.max(2,parseInt(settings.interval)||4));
+  settings.overdue=Math.min(20,Math.max(0,parseInt(settings.overdue)||3));
+  settings.flowMode=settings.flowMode!==false; settings.autoBreak=settings.autoBreak===true; settings.autoPomo=settings.autoPomo===true;
+  localStorage.setItem('ft_settings',JSON.stringify(settings));
+  document.getElementById('set-pomodoro').value=settings.pomodoro; document.getElementById('set-short').value=settings.short;
+  document.getElementById('set-long').value=settings.long; document.getElementById('set-interval').value=settings.interval;
+  document.getElementById('set-overdue').value=settings.overdue;
+  document.getElementById('tog-flowMode').classList.toggle('on',settings.flowMode);
+  document.getElementById('tog-autoBreak').classList.toggle('on',settings.autoBreak);
+  document.getElementById('tog-autoPomo').classList.toggle('on',settings.autoPomo);
 }
-function saveSettings() {
-  settings.pomodoro = parseInt(document.getElementById('set-pomodoro').value) || 25;
-  settings.short    = parseInt(document.getElementById('set-short').value)    || 5;
-  settings.long     = parseInt(document.getElementById('set-long').value)     || 15;
-  settings.interval = parseInt(document.getElementById('set-interval').value) || 4;
-  settings.overdue  = parseInt(document.getElementById('set-overdue').value)  || 3;
-  localStorage.setItem('ft_settings', JSON.stringify(settings));
-  var overlayOpen = document.getElementById('break-overlay').classList.contains('show');
-  if (!running && !overlayOpen && !manualBreakTick) {
-    timeLeft = totalSecs = settings.pomodoro * 60;
-    renderClock(timeLeft, false);
-    setRing(1);
-  }
+function saveSettings(){
+  settings.pomodoro=parseInt(document.getElementById('set-pomodoro').value)||25;
+  settings.short=parseInt(document.getElementById('set-short').value)||5;
+  settings.long=parseInt(document.getElementById('set-long').value)||15;
+  settings.interval=parseInt(document.getElementById('set-interval').value)||4;
+  settings.overdue=parseInt(document.getElementById('set-overdue').value)||3;
+  localStorage.setItem('ft_settings',JSON.stringify(settings));
+  var overlayOpen=document.getElementById('break-overlay').classList.contains('show');
+  if (!running&&!overlayOpen&&!manualBreakTick){ timeLeft=totalSecs=settings.pomodoro*60; renderClock(timeLeft,false); setRing(1); }
 }
-function toggleSetting(key) {
-  settings[key] = !settings[key];
-  document.getElementById('tog-'+key).classList.toggle('on', settings[key]);
-  localStorage.setItem('ft_settings', JSON.stringify(settings));
-}
-function clearLocalCache() {
-  if (!confirm('Clear local cache? Supabase data is unaffected.')) return;
-  ['ft_settings','ft_daymeta','ft_projects','ft_categories'].forEach(function(k){localStorage.removeItem(k);});
-  location.reload();
-}
+function toggleSetting(key){ settings[key]=!settings[key]; document.getElementById('tog-'+key).classList.toggle('on',settings[key]); localStorage.setItem('ft_settings',JSON.stringify(settings)); }
+function clearLocalCache(){ if (!confirm('Clear local cache? Supabase data unaffected.')) return; ['ft_settings','ft_daymeta','ft_projects','ft_categories','ft_excluded'].forEach(function(k){localStorage.removeItem(k);}); location.reload(); }
 
-// ─── UI HELPERS ──────────────────────────────────────────────────────────────
-function setSidebarEnergy(e) {
-  currentEnergy = e;
-  document.querySelectorAll('.energy-btn[data-e]').forEach(function(b) {
-    b.classList.toggle('active', parseInt(b.dataset.e) === e);
-  });
+function setSidebarEnergy(e){ currentEnergy=e; document.querySelectorAll('.energy-btn[data-e]').forEach(function(b){b.classList.toggle('active',parseInt(b.dataset.e)===e);}); }
+function setCategory(cat){ currentCat=cat; renderCategoryChips(); updateTaskDisplay(); }
+function updateTaskDisplay(){
+  var taskName='';
+  if (currentProject&&currentTask&&projects[currentProject]) taskName=projects[currentProject].tasks[currentTask]||'';
+  document.getElementById('task-name-shown').textContent=taskName||'—';
+  var pill=document.getElementById('task-cat-pill');
+  if (currentCat&&CAT[currentCat]){ var col=CAT[currentCat].col; pill.textContent=CAT[currentCat].emoji+' '+currentCat; pill.className='task-cat-pill'; pill.style.borderColor=catRgba(col,0.6); pill.style.color=catRgba(col,1); pill.style.background=catRgba(col,0.1); }
+  else{ pill.textContent='no category'; pill.className='task-cat-pill'; pill.style.borderColor=''; pill.style.color=''; pill.style.background=''; }
 }
-function setCategory(cat) {
-  currentCat = cat;
-  renderCategoryChips();
-  updateTaskDisplay();
-}
-function updateTaskDisplay() {
-  var taskName = '';
-  if (currentProject && currentTask && projects[currentProject]) {
-    taskName = projects[currentProject].tasks[currentTask] || '';
-  }
-  document.getElementById('task-name-shown').textContent = taskName || '—';
-  var pill = document.getElementById('task-cat-pill');
-  if (currentCat && CAT[currentCat]) {
-    var col = CAT[currentCat].col;
-    pill.textContent = CAT[currentCat].emoji + ' ' + currentCat;
-    pill.className   = 'task-cat-pill';
-    pill.style.borderColor  = catRgba(col, 0.6);
-    pill.style.color        = catRgba(col, 1);
-    pill.style.background   = catRgba(col, 0.1);
-  } else {
-    pill.textContent       = 'no category';
-    pill.className         = 'task-cat-pill';
-    pill.style.borderColor = '';
-    pill.style.color       = '';
-    pill.style.background  = '';
-  }
-}
-function isoDate() { return new Date().toISOString().slice(0,10); }
-function fmt24(d)  { return d.toTimeString().slice(0,8); }
-function formatDisplayDate(iso) {
-  var d = new Date(iso + 'T12:00:00');
-  return d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
-}
+function isoDate(){ return new Date().toISOString().slice(0,10); }
+function fmt24(d){ return d.toTimeString().slice(0,8); }
+function formatDisplayDate(iso){ var d=new Date(iso+'T12:00:00'); return d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}); }
 
-// ─── NAV ─────────────────────────────────────────────────────────────────────
-function showPage(id) {
-  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
-  document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.remove('active'); });
+function showPage(id){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active');});
   document.getElementById('page-'+id).classList.add('active');
   document.querySelector('.nav-tab[onclick="showPage(\''+id+'\')"]').classList.add('active');
-  if (id === 'log')       loadLog();
-  if (id === 'analytics') loadAnalytics();
+  if (id==='log') loadLog();
+  if (id==='analytics') loadAnalytics();
 }
 
-document.addEventListener('visibilitychange', function() {
-  if (document.visibilityState === 'visible') {
-    if (running) doTick();
-  }
+document.addEventListener('visibilitychange', function(){ if (document.visibilityState==='visible'&&running) doTick(); });
+window.addEventListener('keydown', function(event){
+  if (event.key!==' '&&event.code!=='Space') return;
+  var tag=document.activeElement&&document.activeElement.tagName;
+  if (tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT') return;
+  event.preventDefault(); toggleTimer();
 });
 
-window.addEventListener('keydown', function(event) {
-  if (event.key !== ' ' && event.code !== 'Space') return;
-  var tag = document.activeElement && document.activeElement.tagName;
-  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-  event.preventDefault();
-  toggleTimer();
-});
-
-// ─── BOOT ────────────────────────────────────────────────────────────────────
-(function init() {
-  try {
-    var raw = JSON.parse(localStorage.getItem('ft_settings') || '{}');
-    if ((raw.short && raw.short > 30) || (raw.long && raw.long > 60)) {
-      localStorage.removeItem('ft_settings');
-    }
-  } catch(e) { localStorage.removeItem('ft_settings'); }
-
-  buildAlarm();
-  loadSettings();
-  loadCategories();
-  loadExcluded();
-  loadProjects();
-  setRing(1);
-  initSupabase();
-  checkDailyCheckin();
+(function init(){
+  try{ var raw=JSON.parse(localStorage.getItem('ft_settings')||'{}'); if((raw.short&&raw.short>30)||(raw.long&&raw.long>60)) localStorage.removeItem('ft_settings'); }catch(e){ localStorage.removeItem('ft_settings'); }
+  buildAlarm(); loadSettings(); loadCategories(); loadExcluded(); loadProjects();
+  setRing(1); initSupabase(); checkDailyCheckin();
   if (!navigator.onLine) document.getElementById('offline-bar').classList.add('show');
 })();
 </script>
