@@ -312,17 +312,7 @@ td.dim{color:var(--muted);}
         <div id="flow-hint">Start a session to begin tracking</div>
         <div id="manual-break-panel" style="display:none;margin-top:10px;width:100%;max-width:360px;text-align:center;">
           <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Break Activity</div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:8px;">
-            <button class="break-chip" onclick="toggleManualBreakAct(this,'Phone')">📱 Phone</button>
-            <button class="break-chip" onclick="toggleManualBreakAct(this,'Food')">🍽 Food</button>
-            <button class="break-chip" onclick="toggleManualBreakAct(this,'Walk')">🚶 Walk</button>
-            <button class="break-chip" onclick="toggleManualBreakAct(this,'Bathroom')">🚿 Bathroom</button>
-            <button class="break-chip" onclick="toggleManualBreakAct(this,'Nap')">😴 Nap</button>
-            <button class="break-chip" onclick="toggleManualBreakAct(this,'Reading')">📖 Reading</button>
-            <button class="break-chip" onclick="toggleManualBreakAct(this,'Scrolling')">📲 Scrolling</button>
-            <button class="break-chip" onclick="toggleManualBreakAct(this,'Stretch')">🤸 Stretch</button>
-            <button class="break-chip" onclick="toggleManualBreakAct(this,'Porn')">🔞 Porn</button>
-          </div>
+          <div id="manual-break-chips-dynamic" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:8px;"></div>
         </div>
         <div class="metrics-row">
           <div class="metric-cell">
@@ -399,7 +389,8 @@ td.dim{color:var(--muted);}
       <div class="edit-field"><label>Start Time</label><input type="time" class="input-field" id="edit-start" step="1"></div>
       <div class="edit-field"><label>End Time</label><input type="time" class="input-field" id="edit-end" step="1"></div>
       <div class="edit-field"><label>Span (min)</label><input type="number" class="input-field" id="edit-span" min="0"></div>
-      <div class="edit-field"><label>Focus (min)</label><input type="number" class="input-field" id="edit-focus" min="0"></div>
+      <div class="edit-field"><label>Focus M:SS <span style="font-size:9px;color:var(--muted);">(primary)</span></label><input type="text" class="input-field" id="edit-focus-sec" placeholder="25:00" title="Format: M:SS e.g. 25:00"></div>
+      <div class="edit-field"><label>Focus (min) <span style="font-size:9px;color:var(--muted);">(auto)</span></label><input type="number" class="input-field" id="edit-focus" min="0" readonly style="opacity:.6;cursor:not-allowed;"></div>
       <div class="edit-field"><label>Project</label><input type="text" class="input-field" id="edit-project"></div>
       <div class="edit-field"><label>Task</label><input type="text" class="input-field" id="edit-task"></div>
       <div class="edit-field"><label>Category</label><select class="input-field" id="edit-cat"></select></div>
@@ -434,17 +425,7 @@ td.dim{color:var(--muted);}
   <div class="break-clock" id="break-clock">05:00</div>
   <div class="overdue-warn" id="overdue-warn">⚠ Break is running over — still coming back?</div>
   <div class="bo-lbl">What are you doing?</div>
-  <div class="break-chips">
-    <button class="break-chip" onclick="toggleBreakAct(this,'Phone')">📱 Phone</button>
-    <button class="break-chip" onclick="toggleBreakAct(this,'Food')">🍽 Food</button>
-    <button class="break-chip" onclick="toggleBreakAct(this,'Walk')">🚶 Walk</button>
-    <button class="break-chip" onclick="toggleBreakAct(this,'Bathroom')">🚿 Bathroom</button>
-    <button class="break-chip" onclick="toggleBreakAct(this,'Nap')">😴 Nap</button>
-    <button class="break-chip" onclick="toggleBreakAct(this,'Reading')">📖 Reading</button>
-    <button class="break-chip" onclick="toggleBreakAct(this,'Scrolling')">📲 Scrolling</button>
-    <button class="break-chip" onclick="toggleBreakAct(this,'Stretch')">🤸 Stretch</button>
-    <button class="break-chip" onclick="toggleBreakAct(this,'Porn')">🔞 Porn</button>
-  </div>
+  <div class="break-chips" id="break-chips-dynamic"></div>
   <textarea class="input-field break-note-field" id="break-note" placeholder="Break note (optional)..." rows="2"></textarea>
   <div class="break-actions">
     <button class="btn-return" onclick="endBreak(true)">✓ Back to Work</button>
@@ -587,9 +568,68 @@ WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div
       <div id="cat-exclude-chips" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
     </div>
     <div class="full-col">
-      <div class="settings-title">Table Setup — Supabase SQL Editor</div>
-      <div class="sql-block"><pre>-- focus_sessions, breaks, daily_checkins
--- See README for full setup SQL</pre></div>
+      <div class="settings-title">Break Activity Categories</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:10px;">Customise the chips shown during breaks. Changes apply immediately.</div>
+      <div id="break-acts-settings-list" style="margin-bottom:10px;"></div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <input type="text" class="input-field" id="new-break-act-emoji" placeholder="🏃" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;">
+        <input type="text" class="input-field" id="new-break-act-name" placeholder="Activity name..." onkeydown="if(event.key==='Enter')addBreakAct()">
+        <button class="btn-add" onclick="addBreakAct()">+ Add</button>
+      </div>
+    </div>
+    <div class="full-col">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:.75rem;padding-bottom:8px;border-bottom:1px solid var(--border);">Migration — Run in Supabase SQL Editor</div>
+      <div class="sql-block"><pre>-- ═══════════════════════════════════════════════════════════════
+-- STEP 1 — fill focus_sec where it is NULL (never had seconds data)
+-- ═══════════════════════════════════════════════════════════════
+UPDATE focus_sessions
+SET focus_sec = focus_min * 60
+WHERE focus_sec IS NULL AND focus_min IS NOT NULL;
+
+-- ═══════════════════════════════════════════════════════════════
+-- STEP 2 — audit rows where focus_min was hand-edited in the app
+-- but focus_sec was never updated to match.
+-- "out of sync" = focus_min differs from focus_sec/60 by >1 min
+-- Run this SELECT first to review before touching anything.
+-- ═══════════════════════════════════════════════════════════════
+SELECT
+  id,
+  session_date,
+  start_time,
+  focus_min                        AS focus_min_stored,
+  focus_sec                        AS focus_sec_stored,
+  ROUND(focus_sec / 60.0, 2)       AS focus_sec_as_min,
+  focus_min - ROUND(focus_sec / 60.0, 0) AS drift_min
+FROM focus_sessions
+WHERE focus_sec IS NOT NULL
+  AND focus_min IS NOT NULL
+  AND ABS(focus_min - ROUND(focus_sec / 60.0, 0)) > 1
+ORDER BY ABS(focus_min - ROUND(focus_sec / 60.0, 0)) DESC;
+
+-- ═══════════════════════════════════════════════════════════════
+-- STEP 3 — for those drifted rows, trust focus_min (your edits)
+-- and overwrite focus_sec to match.
+-- ═══════════════════════════════════════════════════════════════
+UPDATE focus_sessions
+SET focus_sec = focus_min * 60
+WHERE focus_sec IS NOT NULL
+  AND focus_min IS NOT NULL
+  AND ABS(focus_min - ROUND(focus_sec / 60.0, 0)) > 1;
+
+-- ═══════════════════════════════════════════════════════════════
+-- STEP 4 — verify everything is now in sync (should return 0)
+-- ═══════════════════════════════════════════════════════════════
+SELECT COUNT(*) AS out_of_sync
+FROM focus_sessions
+WHERE focus_sec IS NOT NULL
+  AND focus_min IS NOT NULL
+  AND ABS(focus_min - ROUND(focus_sec / 60.0, 0)) > 1;
+
+-- ═══════════════════════════════════════════════════════════════
+-- STEP 5 — drop focus_min (only after steps 1-4 look clean)
+-- WARNING: irreversible. Back up first if unsure.
+-- ═══════════════════════════════════════════════════════════════
+ALTER TABLE focus_sessions DROP COLUMN focus_min;</pre></div>
       <div style="margin-top:1rem;"><button class="btn-danger" onclick="clearLocalCache()">Clear Local Cache</button></div>
     </div>
   </div>
@@ -608,6 +648,53 @@ function playAlarm() { if (!alarmAudio) return; if (alarmAudio.paused) { alarmAu
 function stopAlarm() { if (!alarmAudio) return; alarmAudio.pause(); alarmAudio.currentTime = 0; }
 
 var CIRC = 2 * Math.PI * 120;
+
+var DEFAULT_BREAK_ACTS = [
+  {label:'Phone',   emoji:'📱'}, {label:'Food',      emoji:'🍽'},
+  {label:'Walk',    emoji:'🚶'}, {label:'Bathroom',  emoji:'🚿'},
+  {label:'Nap',     emoji:'😴'}, {label:'Reading',   emoji:'📖'},
+  {label:'Scrolling',emoji:'📲'},{label:'Stretch',   emoji:'🤸'},
+  {label:'Porn',    emoji:'🔞'}
+];
+var breakActsList = [];
+function loadBreakActs(){
+  try{ var s=JSON.parse(localStorage.getItem('ft_break_acts')||'null'); breakActsList=s&&s.length?s:DEFAULT_BREAK_ACTS.slice(); }
+  catch(e){ breakActsList=DEFAULT_BREAK_ACTS.slice(); }
+  renderBreakChips(); renderBreakActSettings();
+}
+function saveBreakActs(){ localStorage.setItem('ft_break_acts',JSON.stringify(breakActsList)); }
+function _breakChipHtml(act, toggleFn){
+  var label=escHtml(act.label);
+  return '<button class="break-chip" data-act="'+label+'" data-fn="'+toggleFn+'" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===\'toggleBreakAct\')toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">'+(act.emoji?act.emoji+' ':'')+label+'</button>';
+}
+function renderBreakChips(){
+  var overlay=document.getElementById('break-chips-dynamic');
+  var manual=document.getElementById('manual-break-chips-dynamic');
+  var html=breakActsList.map(function(a){return _breakChipHtml(a,'toggleBreakAct');}).join('');
+  var htmlM=breakActsList.map(function(a){return _breakChipHtml(a,'toggleManualBreakAct');}).join('');
+  if(overlay) overlay.innerHTML=html;
+  if(manual) manual.innerHTML=htmlM;
+}
+function renderBreakActSettings(){
+  var list=document.getElementById('break-acts-settings-list'); if(!list) return;
+  list.innerHTML=breakActsList.map(function(a,i){
+    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'+
+      '<input type="text" class="input-field" value="'+escHtml(a.emoji||'')+'" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;" onchange="updateBreakActEmoji('+i+',this.value)">'+
+      '<input type="text" class="input-field" value="'+escHtml(a.label)+'" style="flex:1;" onchange="updateBreakActLabel('+i+',this.value)">'+
+      '<button class="proj-del" style="font-size:13px;" onclick="deleteBreakAct('+i+')">✕</button>'+
+    '</div>';
+  }).join('');
+}
+function addBreakAct(){
+  var inp=document.getElementById('new-break-act-name'), ei=document.getElementById('new-break-act-emoji');
+  var label=inp.value.trim(), emoji=ei.value.trim()||'';
+  if(!label) return;
+  breakActsList.push({label:label,emoji:emoji}); saveBreakActs(); renderBreakChips(); renderBreakActSettings();
+  inp.value=''; ei.value='';
+}
+function deleteBreakAct(i){ breakActsList.splice(i,1); saveBreakActs(); renderBreakChips(); renderBreakActSettings(); }
+function updateBreakActLabel(i,val){ val=val.trim(); if(!val) return; breakActsList[i].label=val; saveBreakActs(); renderBreakChips(); }
+function updateBreakActEmoji(i,val){ breakActsList[i].emoji=val.trim(); saveBreakActs(); renderBreakChips(); }
 var DEFAULT_CATS = [
   { name:'Learn',   emoji:'📚', col:'var(--info)'   },
   { name:'Build',   emoji:'🔨', col:'var(--accent)' },
@@ -820,7 +907,7 @@ async function dbInsertReturning(sess){
   var row={
     session_date:sess.session_date, start_time:sess.start_time, end_time:sess.end_time,
     span_min:sess.span_min, task_type:sess.task_type, focus_sec:sess.focus_sec,
-    focus_min:sess.focus_min, ratio:sess.ratio, project:sess.project, task:sess.task,
+    ratio:sess.ratio, project:sess.project, task:sess.task,
     seq:sess.seq, energy:sess.energy, note:sess.note
   };
   var res=await sb.from('focus_sessions').insert([row]).select('id').single();
@@ -828,14 +915,15 @@ async function dbInsertReturning(sess){
   return res.data?res.data.id:null;
 }
 
-// ── FIXED: explicitly list only breaks table columns, no extras ──────────────
+// ── breaks table columns: id, created_at, session_date, start_time, end_time,
+//    break_duration_min, break_activities, overdue, returned, break_note
+//    (NO span_min column — removed to match schema)
 async function dbSave(sess){
   if (!sb){ offlineQueue.push(Object.assign({_isBreak:true},sess)); return false; }
   var row={
     session_date:       sess.session_date,
     start_time:         sess.start_time,
     end_time:           sess.end_time,
-    span_min:           sess.span_min || 0,
     break_duration_min: sess.break_duration_min || null,
     break_activities:   sess.break_activities   || null,
     overdue:            sess.overdue             || false,
@@ -853,7 +941,7 @@ async function flushQueue(){
   for (var i=0;i<q.length;i++){
     var item=q[i];
     if (item._isBreak){
-      var brow={session_date:item.session_date,start_time:item.start_time,end_time:item.end_time,span_min:item.span_min||0,break_duration_min:item.break_duration_min,break_activities:item.break_activities,overdue:item.overdue||false,returned:item.returned,break_note:item.break_note||null};
+      var brow={session_date:item.session_date,start_time:item.start_time,end_time:item.end_time,break_duration_min:item.break_duration_min,break_activities:item.break_activities,overdue:item.overdue||false,returned:item.returned,break_note:item.break_note||null};
       var res=await sb.from('breaks').insert([brow]); if(res.error) offlineQueue.push(item);
     }else{
       var frow=Object.assign({},item); ['_otMin','_isBreak'].forEach(function(k){delete frow[k];});
@@ -870,7 +958,7 @@ async function fetchSessions(limit){
     sb.from('breaks').select('*').order('session_date',{ascending:false}).order('start_time',{ascending:false}).limit(Math.floor(limit/2))
   ]);
   var fRows=fRes.error?[]:(fRes.data||[]);
-  var bRows=(bRes.error?[]:(bRes.data||[])).map(function(b){ return Object.assign({task_type:'_break',focus_min:0,ratio:0},b); });
+  var bRows=(bRes.error?[]:(bRes.data||[])).map(function(b){ return Object.assign({task_type:'_break',focus_sec:0,ratio:0},b); });
   var all=fRows.concat(bRows);
   all.sort(function(a,b){ return a.created_at<b.created_at?1:-1; });
   return all;
@@ -886,7 +974,7 @@ function getWeekBounds(offsetWeeks){
 function daysElapsedInWeek(){ var day=new Date().getDay(); return (day+1)%7+1; }
 function weekTotal(sessions,bounds,exclude){
   var total=0;
-  sessions.forEach(function(s){ if(s.session_date>=bounds[0]&&s.session_date<=bounds[1]){ if(!exclude||!exclude[s.task_type]) total+=(s.focus_min||0); } });
+  sessions.forEach(function(s){ if(s.session_date>=bounds[0]&&s.session_date<=bounds[1]){ if(!exclude||!exclude[s.task_type]) total+=Math.floor((s.focus_sec||0)/60); } });
   return total;
 }
 
@@ -904,20 +992,20 @@ function renderExcludeUI(){
 async function refreshMetrics(){
   if (!sb) return;
   var today=isoDate(), thisWeek=getWeekBounds(0), lastWeek=getWeekBounds(1);
-  var todayRes=await sb.from('focus_sessions').select('focus_min').eq('session_date',today);
-  var todaySess=todayRes.data||[], todayMin=todaySess.reduce(function(a,s){return a+(s.focus_min||0);},0);
+  var todayRes=await sb.from('focus_sessions').select('focus_sec').eq('session_date',today);
+  var todaySess=todayRes.data||[], todayMin=todaySess.reduce(function(a,s){return a+Math.floor((s.focus_sec||0)/60);},0);
   seqToday=todaySess.length;
   document.getElementById('m-today').textContent=todayMin+'m';
   document.getElementById('m-today-sub').textContent=seqToday+' session'+(seqToday!==1?'s':'');
   var twEl=daysElapsedInWeek();
-  var twRes=await sb.from('focus_sessions').select('focus_min,task_type').gte('session_date',thisWeek[0]).lte('session_date',thisWeek[1]);
-  var twTotal=(twRes.data||[]).reduce(function(a,s){return !excludedFromAvg[s.task_type]?a+(s.focus_min||0):a;},0);
+  var twRes=await sb.from('focus_sessions').select('focus_sec,task_type').gte('session_date',thisWeek[0]).lte('session_date',thisWeek[1]);
+  var twTotal=(twRes.data||[]).reduce(function(a,s){return !excludedFromAvg[s.task_type]?a+Math.floor((s.focus_sec||0)/60):a;},0);
   var twAvg=Math.round(twTotal/twEl);
   document.getElementById('m-thisweek').textContent=twAvg?twAvg+'m':'—';
   document.getElementById('m-thisweek-sub').textContent='day '+twEl+' of 7';
-  var lwRes=await sb.from('focus_sessions').select('focus_min,session_date,task_type').gte('session_date',lastWeek[0]).lte('session_date',lastWeek[1]);
+  var lwRes=await sb.from('focus_sessions').select('focus_sec,session_date,task_type').gte('session_date',lastWeek[0]).lte('session_date',lastWeek[1]);
   var lwData=lwRes.data||[];
-  var lwTotal=lwData.reduce(function(a,s){return !excludedFromAvg[s.task_type]?a+(s.focus_min||0):a;},0);
+  var lwTotal=lwData.reduce(function(a,s){return !excludedFromAvg[s.task_type]?a+Math.floor((s.focus_sec||0)/60):a;},0);
   var lwAvg=Math.round(lwTotal/7);
   var lwDays={}; lwData.forEach(function(s){lwDays[s.session_date]=1;});
   var lwCount=Object.keys(lwDays).length;
@@ -969,7 +1057,7 @@ function toggleManualBreakAct(el,act){
   el.classList.toggle('active',manualBreakActs.includes(act));
 }
 function _runManualBreak(type){
-  manualBreakActs=[]; document.querySelectorAll('#manual-break-panel .break-chip').forEach(function(c){c.classList.remove('active');});
+  manualBreakActs=[]; document.querySelectorAll('#manual-break-chips-dynamic .break-chip').forEach(function(c){c.classList.remove('active');});
   document.getElementById('manual-break-panel').style.display='block';
   if (running) pauseTimer();
   clearInterval(tickInterval); tickInterval=null;
@@ -1025,7 +1113,7 @@ function endSession(){
   var ratio=Math.round(focusSec/Math.max(spanSec,1)*100), otMin=Math.max(0,focusMin-settings.pomodoro);
   var sessNow={
     session_date:isoDate(), start_time:sessionStart?fmt24(sessionStart):fmt24(end), end_time:fmt24(end),
-    span_min:spanMin, task_type:currentCat||null, focus_sec:focusSec, focus_min:focusMin, ratio:ratio,
+    span_min:spanMin, task_type:currentCat||null, focus_sec:focusSec, ratio:ratio,
     project:currentProject&&projects[currentProject]?projects[currentProject].name:null,
     task:currentTask&&currentProject&&projects[currentProject]?projects[currentProject].tasks[currentTask]:null,
     seq:seqToday, energy:currentEnergy, note:document.getElementById('session-note').value.trim()||null, _otMin:otMin
@@ -1061,12 +1149,12 @@ function showBreakOverlay(type){
   clearInterval(breakTick); breakTick=null; stopAlarm();
   document.getElementById('break-overlay').classList.add('show');
   document.getElementById('break-title').textContent=type==='long'?'Long Break':'Short Break';
-  var otMin=pending?(pending._otMin||0):0, focMin=pending?(pending.focus_min||0):0, seq=pending?(pending.seq||0):0;
+  var otMin=pending?(pending._otMin||0):0, focMin=pending?Math.floor((pending.focus_sec||0)/60):0, seq=pending?(pending.seq||0):0;
   var sub='Session #'+seq+' · <b>'+focMin+'</b> min focused';
   if (otMin>0) sub+=' <span class="ot">(+'+otMin+'m flow)</span>';
   document.getElementById('break-sub').innerHTML=sub;
   document.getElementById('break-note').value=''; document.getElementById('save-msg').textContent=''; document.getElementById('save-msg').className='save-msg';
-  document.querySelectorAll('.break-chip').forEach(function(c){c.classList.remove('active');});
+  document.querySelectorAll('#break-chips-dynamic .break-chip').forEach(function(c){c.classList.remove('active');});
   breakActs=[]; overdueShown=false; breakAlarmFired=false;
   document.getElementById('overdue-warn').classList.remove('show');
   document.getElementById('break-clock').className='break-clock';
@@ -1113,7 +1201,18 @@ function openEditModal(id,table){
     document.getElementById('edit-id').value=s.id; document.getElementById('edit-date').value=s.session_date||'';
     document.getElementById('edit-seq').value=s.seq!=null?s.seq:''; document.getElementById('edit-start').value=s.start_time?s.start_time.slice(0,8):'';
     document.getElementById('edit-end').value=s.end_time?s.end_time.slice(0,8):''; document.getElementById('edit-span').value=s.span_min!=null?s.span_min:'';
-    document.getElementById('edit-focus').value=s.focus_min!=null?s.focus_min:''; document.getElementById('edit-project').value=s.project||'';
+    // focus_sec is authoritative; focus_min is derived
+    var fsec=s.focus_sec!=null?s.focus_sec:(s.focus_min!=null?s.focus_min*60:null);
+    document.getElementById('edit-focus-sec').value=fsec!=null?fmtFocusSec(fsec):'';
+    document.getElementById('edit-focus').value=fsec!=null?Math.max(1,Math.floor(fsec/60)):(s.focus_min!=null?s.focus_min:'');
+    // live auto-fill focus_min when M:SS changes
+    document.getElementById('edit-focus-sec').oninput=function(){
+      var p=this.value.trim().split(':'),sec=null;
+      if(p.length===2)sec=parseInt(p[0])*60+parseInt(p[1]);
+      else if(p.length===1&&p[0])sec=parseInt(p[0])*60;
+      document.getElementById('edit-focus').value=sec!=null&&!isNaN(sec)?Math.max(1,Math.floor(sec/60)):'';
+    };
+    document.getElementById('edit-project').value=s.project||'';
     document.getElementById('edit-task').value=s.task||''; document.getElementById('edit-energy').value=s.energy!=null?s.energy:'';
     document.getElementById('edit-note').value=s.note||s.break_note||''; document.getElementById('edit-break-acts').value=s.break_activities||'';
     document.getElementById('edit-returned').value=s.returned===true?'true':s.returned===false?'false':'';
@@ -1125,13 +1224,21 @@ function openEditModal(id,table){
 function closeEditModal(){ document.getElementById('edit-modal').classList.remove('show'); editingSessionId=null; }
 async function saveEdit(){
   if (!sb||!editingSessionId) return;
-  var focusMin=parseInt(document.getElementById('edit-focus').value)||null;
+  // Parse M:SS from focus-sec field; derive focus_min from it
+  var focusSecRaw=document.getElementById('edit-focus-sec').value.trim();
+  var focusSec=null;
+  if (focusSecRaw){
+    var parts=focusSecRaw.split(':');
+    if (parts.length===2){ focusSec=parseInt(parts[0])*60+parseInt(parts[1])||null; }
+    else if (parts.length===1){ focusSec=parseInt(parts[0])*60||null; }
+  }
+  var focusMin=focusSec!=null?Math.max(1,Math.floor(focusSec/60)):(parseInt(document.getElementById('edit-focus').value)||null);
   var spanMin=parseInt(document.getElementById('edit-span').value)||null;
   var ratio=(focusMin&&spanMin)?Math.round(focusMin/spanMin*100):null;
   var retVal=document.getElementById('edit-returned').value;
   var updates={ session_date:document.getElementById('edit-date').value||null, start_time:document.getElementById('edit-start').value||null, end_time:document.getElementById('edit-end').value||null, span_min:spanMin };
   if (editingTable==='focus_sessions'){
-    Object.assign(updates,{ seq:parseInt(document.getElementById('edit-seq').value)||null, focus_min:focusMin, ratio:ratio, project:document.getElementById('edit-project').value.trim()||null, task:document.getElementById('edit-task').value.trim()||null, task_type:document.getElementById('edit-cat').value||null, energy:parseInt(document.getElementById('edit-energy').value)||null, note:document.getElementById('edit-note').value.trim()||null });
+    Object.assign(updates,{ seq:parseInt(document.getElementById('edit-seq').value)||null, focus_sec:focusSec, ratio:ratio, project:document.getElementById('edit-project').value.trim()||null, task:document.getElementById('edit-task').value.trim()||null, task_type:document.getElementById('edit-cat').value||null, energy:parseInt(document.getElementById('edit-energy').value)||null, note:document.getElementById('edit-note').value.trim()||null });
   }else{
     Object.assign(updates,{ break_activities:document.getElementById('edit-break-acts').value.trim()||null, returned:retVal==='true'?true:retVal==='false'?false:null, break_note:document.getElementById('edit-note').value.trim()||null });
   }
@@ -1175,12 +1282,12 @@ async function loadLog(){
   else{
     sempty.style.display='none';
     stbody.innerHTML=fSess.map(function(s){
-      var ratio=s.ratio!=null?s.ratio:(s.span_min>0?Math.round(s.focus_min/s.span_min*100):100);
+      var ratio=s.ratio!=null?s.ratio:(s.span_min>0?Math.round(Math.floor((s.focus_sec||0)/60)/s.span_min*100):100);
       var rCls=ratio>=85?'badge-hi':ratio>=65?'badge-mid':'badge-lo';
       var cat=s.task_type&&CAT[s.task_type];
       var catHtml=cat?'<span class="cat-tag" style="background:'+catRgba(cat.col,0.1)+';color:'+catRgba(cat.col,1)+';">'+cat.emoji+' '+s.task_type+'</span>':'<span class="cat-tag cat-tag-default">'+(s.task_type||'—')+'</span>';
       var ci=checkinMap[s.session_date]||{};
-      return '<tr><td><button class="edit-row-btn" onclick="openEditModal(\''+s.id+'\',\'focus_sessions\')" title="Edit">✏</button></td><td>'+(s.session_date||'—')+'</td><td class="dim">'+(s.start_time?s.start_time.slice(0,5):'—')+'</td><td class="dim">'+(s.end_time?s.end_time.slice(0,5):'—')+'</td><td>'+(s.span_min!=null?s.span_min+'m':'—')+'</td><td><b>'+(s.focus_sec!=null?fmtFocusSec(s.focus_sec):(s.focus_min!=null?s.focus_min+'m':'—'))+'</b></td><td><span class="badge '+rCls+'">'+ratio+'%</span></td><td class="dim">'+(s.project||'—')+'</td><td>'+(s.task||'—')+'</td><td>'+catHtml+'</td><td class="dim">'+(s.seq!=null?s.seq:'—')+'</td><td>'+(eMap[s.energy]||'—')+'</td><td class="dim">'+(ci.sleep_hrs||'—')+'</td><td class="dim">'+(ci.wake_time?ci.wake_time.slice(0,5):'—')+'</td><td class="dim" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;">'+(s.note||'—')+'</td></tr>';
+      return '<tr><td><button class="edit-row-btn" onclick="openEditModal(\''+s.id+'\',\'focus_sessions\')" title="Edit">✏</button></td><td>'+(s.session_date||'—')+'</td><td class="dim">'+(s.start_time?s.start_time.slice(0,5):'—')+'</td><td class="dim">'+(s.end_time?s.end_time.slice(0,5):'—')+'</td><td>'+(s.span_min!=null?s.span_min+'m':'—')+'</td><td><b>'+(s.focus_sec!=null?fmtFocusSec(s.focus_sec):'—')+'</b></td><td><span class="badge '+rCls+'">'+ratio+'%</span></td><td class="dim">'+(s.project||'—')+'</td><td>'+(s.task||'—')+'</td><td>'+catHtml+'</td><td class="dim">'+(s.seq!=null?s.seq:'—')+'</td><td>'+(eMap[s.energy]||'—')+'</td><td class="dim">'+(ci.sleep_hrs||'—')+'</td><td class="dim">'+(ci.wake_time?ci.wake_time.slice(0,5):'—')+'</td><td class="dim" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;">'+(s.note||'—')+'</td></tr>';
     }).join('');
   }
   var btbody=document.getElementById('breaks-tbody'), bempty=document.getElementById('breaks-empty');
@@ -1206,7 +1313,7 @@ async function exportCSV(){
   var fSess=fsRes.data||[], bRows=brRes.data||[];
   if (!fSess.length&&!bRows.length){ alert('No data to export.'); return; }
   var fh=['Date','Start','End','Span(min)','Focus(M:SS)','Focus(min)','Ratio(%)','Project','Task','Category','Seq#','Energy','Note'];
-  var fRows=fSess.map(function(s){ return [s.session_date,s.start_time,s.end_time,s.span_min,s.focus_sec?fmtFocusSec(s.focus_sec):(s.focus_min+'m'),s.focus_min,s.ratio,s.project||'',s.task||'',s.task_type||'',s.seq,s.energy||'',(s.note||'').replace(/,/g,';')].map(function(v){return '"'+(v!=null?v:'')+'"';}).join(','); });
+  var fRows=fSess.map(function(s){ return [s.session_date,s.start_time,s.end_time,s.span_min,s.focus_sec?fmtFocusSec(s.focus_sec):'—',Math.floor((s.focus_sec||0)/60),s.ratio,s.project||'',s.task||'',s.task_type||'',s.seq,s.energy||'',(s.note||'').replace(/,/g,';')].map(function(v){return '"'+(v!=null?v:'')+'"';}).join(','); });
   var bh=['Date','Start','End','Duration(min)','Activities','Overdue','Status','Note'];
   var bRows2=bRows.map(function(b){ var st=b.returned===true?'Returned':b.returned===false?'Didnt return':'Urgent'; return [b.session_date,b.start_time,b.end_time,b.break_duration_min||0,b.break_activities||'',b.overdue?'yes':'no',st,(b.break_note||'').replace(/,/g,';')].map(function(v){return '"'+(v!=null?v:'')+'"';}).join(','); });
   var csv='=== FOCUS SESSIONS ===\n'+[fh.join(',')].concat(fRows).join('\n')+'\n\n=== BREAKS ===\n'+[bh.join(',')].concat(bRows2).join('\n');
@@ -1217,7 +1324,7 @@ async function exportCSV(){
 async function loadAnalytics(){
   if (!sb) return;
   var sessions=await fetchSessions(10000); if (!sessions.length) return;
-  var totalFocus=sessions.reduce(function(a,s){return a+(s.focus_min||0);},0);
+  var totalFocus=sessions.reduce(function(a,s){return a+Math.floor((s.focus_sec||0)/60);},0);
   document.getElementById('an-sessions').textContent=sessions.length;
   document.getElementById('an-focus').textContent=totalFocus>=60?Math.floor(totalFocus/60)+'h '+(totalFocus%60)+'m':totalFocus+'m';
   var thisWeek=getWeekBounds(0), lastWeek=getWeekBounds(1);
@@ -1229,11 +1336,11 @@ async function loadAnalytics(){
   document.getElementById('an-thisweek-sub').textContent='day '+twEl+' of 7 · '+Object.keys(twDays).length+' active';
   document.getElementById('an-lastweek').textContent=lwAvg?lwAvg+'m':'—';
   document.getElementById('an-lastweek-sub').textContent=Object.keys(lwDays).length+' active days (÷7)';
-  var daily={}; sessions.forEach(function(s){if(s.session_date)daily[s.session_date]=(daily[s.session_date]||0)+(s.focus_min||0);});
+  var daily={}; sessions.forEach(function(s){if(s.session_date)daily[s.session_date]=(daily[s.session_date]||0)+Math.floor((s.focus_sec||0)/60);});
   var days=Object.entries(daily).sort(function(a,b){return a[0]<b[0]?-1:1;}).slice(-14);
   var maxM=Math.max.apply(null,days.map(function(d){return d[1];}).concat([1]));
   document.getElementById('focus-bars').innerHTML=days.length?days.map(function(d){var h=Math.round(d[1]/maxM*100);return '<div class="bar-col"><div class="bar" style="height:'+h+'px" title="'+d[0]+': '+d[1]+'min"></div><div class="bar-lbl">'+d[0].slice(5)+'</div></div>';}).join(''):'<span style="color:var(--muted);font-family:var(--mono);font-size:11px;">No data</span>';
-  var catMin={}; Object.keys(CAT).forEach(function(k){catMin[k]=0;}); sessions.forEach(function(s){if(s.task_type&&CAT[s.task_type])catMin[s.task_type]+=(s.focus_min||0);});
+  var catMin={}; Object.keys(CAT).forEach(function(k){catMin[k]=0;}); sessions.forEach(function(s){if(s.task_type&&CAT[s.task_type])catMin[s.task_type]+=Math.floor((s.focus_sec||0)/60);});
   document.getElementById('cat-breakdown').innerHTML=Object.entries(catMin).map(function(e){var cat=e[0],min=e[1],h=min>=60?Math.floor(min/60)+'h '+(min%60)+'m':min+'m';return '<div class="cat-an-card"><div class="cat-an-icon">'+CAT[cat].emoji+'</div><div class="cat-an-lbl">'+cat+'</div><div class="cat-an-val" style="color:'+CAT[cat].col+'">'+h+'</div></div>';}).join('');
   var acts={}; sessions.forEach(function(s){(s.break_activities||'').split('; ').filter(Boolean).forEach(function(a){acts[a]=(acts[a]||0)+1;});});
   var ae=Object.entries(acts).sort(function(a,b){return b[1]-a[1];});
@@ -1302,7 +1409,7 @@ window.addEventListener('keydown', function(event){
 
 (function init(){
   try{ var raw=JSON.parse(localStorage.getItem('ft_settings')||'{}'); if((raw.short&&raw.short>30)||(raw.long&&raw.long>60)) localStorage.removeItem('ft_settings'); }catch(e){ localStorage.removeItem('ft_settings'); }
-  buildAlarm(); loadSettings(); loadCategories(); loadExcluded(); loadProjects();
+  buildAlarm(); loadSettings(); loadCategories(); loadExcluded(); loadProjects(); loadBreakActs();
   setRing(1); initSupabase(); checkDailyCheckin();
   if (!navigator.onLine) document.getElementById('offline-bar').classList.add('show');
 })();
