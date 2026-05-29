@@ -260,6 +260,7 @@ td.dim{color:var(--muted);}
       <button class="nav-tab active" onclick="showPage('timer')">Timer</button>
       <button class="nav-tab" onclick="showPage('log')">Log</button>
       <button class="nav-tab" onclick="showPage('analytics')">Analytics</button>
+      <button class="nav-tab" onclick="showPage('checkins')">Check-in</button>
       <button class="nav-tab" onclick="showPage('settings')">Settings</button>
     </div>
   </div>
@@ -512,6 +513,54 @@ WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div
   </div>
 </div>
 
+<!-- CHECK-IN PAGE -->
+<div class="page" id="page-checkins">
+  <div style="max-width:900px;margin:0 auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div style="font-size:18px;font-weight:700;margin-bottom:4px;">Daily Check-in</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">Log sleep, wake time and energy when you start your day.</div>
+      </div>
+      <button class="btn-success" onclick="openCheckinForm()">+ Today's Check-in</button>
+    </div>
+    <div id="ci-inline-form" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;" id="ci-form-date-label"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:1rem;">
+        <div>
+          <label style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px;">Sleep (hrs)</label>
+          <input type="number" class="input-field" id="ci2-sleep" placeholder="7.5" min="0" max="24" step="0.5">
+        </div>
+        <div>
+          <label style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px;">Wake Time</label>
+          <input type="time" class="input-field" id="ci2-wake">
+        </div>
+        <div>
+          <label style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px;">Energy</label>
+          <div style="display:flex;gap:6px;margin-top:2px;" id="ci2-energy-btns">
+            <button class="energy-btn" data-e2="1" onclick="setCi2Energy(1)" style="flex:1;">🪫</button>
+            <button class="energy-btn" data-e2="2" onclick="setCi2Energy(2)" style="flex:1;">😐</button>
+            <button class="energy-btn" data-e2="3" onclick="setCi2Energy(3)" style="flex:1;">⚡</button>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-success" onclick="saveCheckinInline()">Save</button>
+        <button style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:11px;padding:8px 14px;border-radius:var(--r);cursor:pointer;" onclick="document.getElementById('ci-inline-form').style.display='none'">Cancel</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table id="ci-history-table">
+        <thead><tr>
+          <th>Date</th><th>Sleep</th><th>Wake</th><th>Energy</th><th>Sessions</th><th>Focus</th><th style="width:40px;"></th>
+        </tr></thead>
+        <tbody id="ci-history-body">
+          <tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;padding:2rem;">Connect Supabase to load history.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <!-- SETTINGS PAGE -->
 <div class="page" id="page-settings">
   <div class="settings-cols">
@@ -552,6 +601,37 @@ WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div
         <div><div class="setting-name">Auto-start Pomodoro</div><div class="setting-sub">Timer starts after break ends</div></div>
         <div class="toggle" id="tog-autoPomo" onclick="toggleSetting('autoPomo')"></div>
       </div>
+      <div class="setting-row" style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);">
+        <div><div class="setting-name">Week starts on</div><div class="setting-sub">Used for weekly average calculation</div></div>
+        <select class="input-field" style="width:90px;padding:6px 8px;" id="set-weekStart" onchange="saveSettings()">
+          <option value="6">Saturday</option>
+          <option value="0">Sunday</option>
+          <option value="1">Monday</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-name">Weekly avg divisor</div><div class="setting-sub">Divide by active days or full 7</div></div>
+        <select class="input-field" style="width:100px;padding:6px 8px;" id="set-avgMode" onchange="saveSettings()">
+          <option value="active">Active days</option>
+          <option value="7">Full 7 days</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-name">Midnight sessions</div><div class="setting-sub">Sessions after midnight count as</div></div>
+        <select class="input-field" style="width:110px;padding:6px 8px;" id="set-nightDate" onchange="saveSettings()">
+          <option value="actual">Actual date</option>
+          <option value="prev">Previous day</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-name">Default energy</div><div class="setting-sub">Pre-selected at session start</div></div>
+        <select class="input-field" style="width:90px;padding:6px 8px;" id="set-defEnergy" onchange="saveSettings()">
+          <option value="0">None (blank)</option>
+          <option value="1">🪫 Low</option>
+          <option value="2">😐 Medium</option>
+          <option value="3">⚡ High</option>
+        </select>
+      </div>
     </div>
     <div class="full-col">
       <div class="settings-title">Session Categories</div>
@@ -581,6 +661,19 @@ WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div
     <div class="full-col">
       <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:.75rem;padding-bottom:8px;border-bottom:1px solid var(--border);">Migration — Run in Supabase SQL Editor</div>
       <div class="sql-block"><pre>-- ╔═══════════════════════════════════════════════════════════════╗
+-- ║  app_config table — run once to enable DB-synced settings   ║
+-- ╚═══════════════════════════════════════════════════════════════╝
+CREATE TABLE IF NOT EXISTS app_config (
+  key   text PRIMARY KEY,
+  value text NOT NULL,
+  updated_at timestamptz DEFAULT now()
+);
+-- Enable RLS and allow authenticated / anon reads+writes to match your policy:
+ALTER TABLE app_config ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow all" ON app_config FOR ALL USING (true) WITH CHECK (true);
+
+
+-- ╔═══════════════════════════════════════════════════════════════╗
 -- ║  focus_min → focus_sec  (run steps A1–A5 first)             ║
 -- ╚═══════════════════════════════════════════════════════════════╝
 
@@ -680,8 +773,12 @@ function loadBreakActs(){
   try{ var s=JSON.parse(localStorage.getItem('ft_break_acts')||'null'); breakActsList=s&&s.length?s:DEFAULT_BREAK_ACTS.slice(); }
   catch(e){ breakActsList=DEFAULT_BREAK_ACTS.slice(); }
   renderBreakChips(); renderBreakActSettings();
+  // also try to load from DB (overwrites local if DB has data)
+  dbConfigGet('ft_break_acts').then(function(remote){
+    if(remote&&remote.length){ breakActsList=remote; localStorage.setItem('ft_break_acts',JSON.stringify(remote)); renderBreakChips(); renderBreakActSettings(); }
+  });
 }
-function saveBreakActs(){ localStorage.setItem('ft_break_acts',JSON.stringify(breakActsList)); }
+function saveBreakActs(){ localStorage.setItem('ft_break_acts',JSON.stringify(breakActsList)); dbConfigSet('ft_break_acts',breakActsList); }
 function _breakChipHtml(act, toggleFn){
   var label=escHtml(act.label);
   return '<button class="break-chip" data-act="'+label+'" data-fn="'+toggleFn+'" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===\'toggleBreakAct\')toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">'+(act.emoji?act.emoji+' ':'')+label+'</button>';
@@ -850,15 +947,36 @@ function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
 
 var CAT_COLORS = ['var(--info)','var(--accent)','var(--purple)','var(--warn)','var(--danger)','var(--text)'];
 var CAT_COLOR_LABELS = ['Blue','Green','Purple','Orange','Red','White'];
+// ── app_config helpers ────────────────────────────────────────────────────────
+async function dbConfigGet(key){
+  if (!sb) return null;
+  var res=await sb.from('app_config').select('value').eq('key',key).maybeSingle();
+  if (res.error||!res.data) return null;
+  try{ return JSON.parse(res.data.value); }catch(e){ return null; }
+}
+async function dbConfigSet(key,val){
+  if (!sb) return;
+  await sb.from('app_config').upsert([{key:key,value:JSON.stringify(val)}],{onConflict:'key'});
+}
+
 function loadCategories(){
   var stored=null; try{ stored=JSON.parse(localStorage.getItem('ft_categories')); }catch(e){}
-  rebuildCatMap((stored&&stored.length)?stored:DEFAULT_CATS);
-  renderCategoryChips(); renderCategorySettings();
+  if (stored&&stored.length){ CAT={}; stored.forEach(function(c){ CAT[c.name]={emoji:c.emoji||'📌',col:c.col||'var(--muted)'}; }); }
+  renderCategoryChips(); renderCategorySettings(); renderExcludeUI();
+  // try DB (overwrites local if DB has data)
+  dbConfigGet('ft_categories').then(function(remote){
+    if(remote&&remote.length){
+      CAT={}; remote.forEach(function(c){ CAT[c.name]={emoji:c.emoji||'📌',col:c.col||'var(--muted)'}; });
+      localStorage.setItem('ft_categories',JSON.stringify(remote));
+      renderCategoryChips(); renderCategorySettings(); renderExcludeUI();
+    }
+  });
 }
 function rebuildCatMap(arr){ CAT={}; arr.forEach(function(c){ CAT[c.name]={emoji:c.emoji,col:c.col}; }); }
 function saveCategories(){
-  var arr=Object.entries(CAT).map(function(e){ return {name:e[0],emoji:e[1].emoji,col:e[1].col}; });
+  var arr=Object.keys(CAT).map(function(k){return {name:k,emoji:CAT[k].emoji,col:CAT[k].col};});
   localStorage.setItem('ft_categories',JSON.stringify(arr));
+  dbConfigSet('ft_categories',arr);
 }
 function catRgba(col,alpha){
   var map={'var(--info)':'95,180,255','var(--accent)':'200,240,74','var(--purple)':'181,123,255','var(--warn)':'255,170,68','var(--danger)':'255,95,95','var(--text)':'232,232,226','var(--muted)':'85,85,85'};
@@ -984,13 +1102,19 @@ async function fetchSessions(limit){
 }
 
 function getWeekBounds(offsetWeeks){
+  var ws=settings.weekStart; // 0=Sun,1=Mon,6=Sat
   var date=new Date(); date.setDate(date.getDate()-(offsetWeeks*7));
-  var day=date.getDay(), diff=(day+1)%7;
+  var day=date.getDay();
+  // how many days back to the start of the week
+  var diff=((day - ws) + 7) % 7;
   var start=new Date(date); start.setDate(date.getDate()-diff); start.setHours(0,0,0,0);
   var end=new Date(start); end.setDate(start.getDate()+6); end.setHours(23,59,59,999);
   return [start.toISOString().slice(0,10), end.toISOString().slice(0,10)];
 }
-function daysElapsedInWeek(){ var day=new Date().getDay(); return (day+1)%7+1; }
+function daysElapsedInWeek(){
+  var ws=settings.weekStart, day=new Date().getDay();
+  return ((day - ws) + 7) % 7 + 1;
+}
 function weekTotal(sessions,bounds,exclude){
   var total=0;
   sessions.forEach(function(s){ if(s.session_date>=bounds[0]&&s.session_date<=bounds[1]){ if(!exclude||!exclude[s.task_type]) total+=Math.floor((s.focus_sec||0)/60); } });
@@ -1019,13 +1143,15 @@ async function refreshMetrics(){
   var twEl=daysElapsedInWeek();
   var twRes=await sb.from('focus_sessions').select('focus_sec,task_type').gte('session_date',thisWeek[0]).lte('session_date',thisWeek[1]);
   var twTotal=(twRes.data||[]).reduce(function(a,s){return !excludedFromAvg[s.task_type]?a+Math.floor((s.focus_sec||0)/60):a;},0);
-  var twAvg=Math.round(twTotal/twEl);
+  var twActiveDays=new Set((twRes.data||[]).filter(s=>!excludedFromAvg[s.task_type]).map(s=>s.session_date)).size;
+  var twAvg=Math.round(twTotal/(settings.avgMode==='active'?Math.max(1,twActiveDays):twEl));
   document.getElementById('m-thisweek').textContent=twAvg?twAvg+'m':'—';
   document.getElementById('m-thisweek-sub').textContent='day '+twEl+' of 7';
   var lwRes=await sb.from('focus_sessions').select('focus_sec,session_date,task_type').gte('session_date',lastWeek[0]).lte('session_date',lastWeek[1]);
   var lwData=lwRes.data||[];
   var lwTotal=lwData.reduce(function(a,s){return !excludedFromAvg[s.task_type]?a+Math.floor((s.focus_sec||0)/60):a;},0);
-  var lwAvg=Math.round(lwTotal/7);
+  var lwActiveDays=Object.keys(lwDays).length;
+  var lwAvg=Math.round(lwTotal/(settings.avgMode==='active'?Math.max(1,lwActiveDays):7));
   var lwDays={}; lwData.forEach(function(s){lwDays[s.session_date]=1;});
   var lwCount=Object.keys(lwDays).length;
   document.getElementById('m-lastweek').textContent=lwAvg?lwAvg+'m':'—';
@@ -1205,7 +1331,7 @@ async function endBreak(returned){
     document.getElementById('break-overlay').classList.remove('show');
     pending=null; running=false; sessionStart=null; pausedMs=0; pauseStartMs=null; inOvertime=false;
     timeLeft=settings.pomodoro*60; totalSecs=settings.pomodoro*60; mode='pomodoro';
-    setMode('pomodoro'); refreshMetrics();
+    setMode('pomodoro'); applyDefaultEnergy(); refreshMetrics();
     if (settings.autoPomo) setTimeout(startTimer,300);
   }, 800);
 }
@@ -1363,7 +1489,11 @@ async function loadAnalytics(){
   document.getElementById('an-focus').textContent=totalFocus>=60?Math.floor(totalFocus/60)+'h '+(totalFocus%60)+'m':totalFocus+'m';
   var thisWeek=getWeekBounds(0), lastWeek=getWeekBounds(1);
   var twTotal=weekTotal(sessions,thisWeek), lwTotal=weekTotal(sessions,lastWeek);
-  var twEl=daysElapsedInWeek(), twAvg=Math.round(twTotal/twEl), lwAvg=Math.round(lwTotal/7);
+  var twEl=daysElapsedInWeek();
+  var twActiveDays2=new Set(sessions.filter(s=>s.session_date>=thisWeek[0]&&s.session_date<=thisWeek[1]&&!excludedFromAvg[s.task_type]).map(s=>s.session_date)).size;
+  var lwActiveDays2=new Set(sessions.filter(s=>s.session_date>=lastWeek[0]&&s.session_date<=lastWeek[1]&&!excludedFromAvg[s.task_type]).map(s=>s.session_date)).size;
+  var twAvg=Math.round(twTotal/(settings.avgMode==='active'?Math.max(1,twActiveDays2):twEl));
+  var lwAvg=Math.round(lwTotal/(settings.avgMode==='active'?Math.max(1,lwActiveDays2):7));
   var twDays={}, lwDays={};
   sessions.forEach(function(s){ if(s.session_date>=thisWeek[0]&&s.session_date<=thisWeek[1]) twDays[s.session_date]=1; if(s.session_date>=lastWeek[0]&&s.session_date<=lastWeek[1]) lwDays[s.session_date]=1; });
   document.getElementById('an-thisweek').textContent=twAvg?twAvg+'m':'—';
@@ -1389,6 +1519,10 @@ function loadSettings(){
   settings.interval=Math.min(10,Math.max(2,parseInt(settings.interval)||4));
   settings.overdue=Math.min(20,Math.max(0,parseInt(settings.overdue)||3));
   settings.flowMode=settings.flowMode!==false; settings.autoBreak=settings.autoBreak===true; settings.autoPomo=settings.autoPomo===true;
+  settings.weekStart=[0,1,6].includes(parseInt(settings.weekStart))?parseInt(settings.weekStart):6;
+  settings.avgMode=settings.avgMode==='7'?'7':'active';
+  settings.nightDate=settings.nightDate==='prev'?'prev':'actual';
+  settings.defEnergy=[0,1,2,3].includes(parseInt(settings.defEnergy))?parseInt(settings.defEnergy):0;
   localStorage.setItem('ft_settings',JSON.stringify(settings));
   document.getElementById('set-pomodoro').value=settings.pomodoro; document.getElementById('set-short').value=settings.short;
   document.getElementById('set-long').value=settings.long; document.getElementById('set-interval').value=settings.interval;
@@ -1396,6 +1530,10 @@ function loadSettings(){
   document.getElementById('tog-flowMode').classList.toggle('on',settings.flowMode);
   document.getElementById('tog-autoBreak').classList.toggle('on',settings.autoBreak);
   document.getElementById('tog-autoPomo').classList.toggle('on',settings.autoPomo);
+  document.getElementById('set-weekStart').value=settings.weekStart;
+  document.getElementById('set-avgMode').value=settings.avgMode;
+  document.getElementById('set-nightDate').value=settings.nightDate;
+  document.getElementById('set-defEnergy').value=settings.defEnergy;
 }
 function saveSettings(){
   settings.pomodoro=parseInt(document.getElementById('set-pomodoro').value)||25;
@@ -1403,14 +1541,19 @@ function saveSettings(){
   settings.long=parseInt(document.getElementById('set-long').value)||15;
   settings.interval=parseInt(document.getElementById('set-interval').value)||4;
   settings.overdue=parseInt(document.getElementById('set-overdue').value)||3;
+  settings.weekStart=parseInt(document.getElementById('set-weekStart').value)||6;
+  settings.avgMode=document.getElementById('set-avgMode').value||'active';
+  settings.nightDate=document.getElementById('set-nightDate').value||'actual';
+  settings.defEnergy=parseInt(document.getElementById('set-defEnergy').value)||0;
   localStorage.setItem('ft_settings',JSON.stringify(settings));
   var overlayOpen=document.getElementById('break-overlay').classList.contains('show');
   if (!running&&!overlayOpen&&!manualBreakTick){ timeLeft=totalSecs=settings.pomodoro*60; renderClock(timeLeft,false); setRing(1); }
 }
 function toggleSetting(key){ settings[key]=!settings[key]; document.getElementById('tog-'+key).classList.toggle('on',settings[key]); localStorage.setItem('ft_settings',JSON.stringify(settings)); }
-function clearLocalCache(){ if (!confirm('Clear local cache? Supabase data unaffected.')) return; ['ft_settings','ft_daymeta','ft_projects','ft_categories','ft_excluded'].forEach(function(k){localStorage.removeItem(k);}); location.reload(); }
+function clearLocalCache(){ if (!confirm('Clear local cache? Supabase data unaffected.')) return; ['ft_settings','ft_daymeta','ft_projects','ft_categories','ft_excluded','ft_break_acts'].forEach(function(k){localStorage.removeItem(k);}); location.reload(); }
 
 function setSidebarEnergy(e){ currentEnergy=e; document.querySelectorAll('.energy-btn[data-e]').forEach(function(b){b.classList.toggle('active',parseInt(b.dataset.e)===e);}); }
+function applyDefaultEnergy(){ if(settings.defEnergy>0) setSidebarEnergy(settings.defEnergy); else { currentEnergy=null; document.querySelectorAll('.energy-btn[data-e]').forEach(function(b){b.classList.remove('active');}); } }
 function setCategory(cat){ currentCat=cat; renderCategoryChips(); updateTaskDisplay(); }
 function updateTaskDisplay(){
   var taskName='';
@@ -1420,7 +1563,15 @@ function updateTaskDisplay(){
   if (currentCat&&CAT[currentCat]){ var col=CAT[currentCat].col; pill.textContent=CAT[currentCat].emoji+' '+currentCat; pill.className='task-cat-pill'; pill.style.borderColor=catRgba(col,0.6); pill.style.color=catRgba(col,1); pill.style.background=catRgba(col,0.1); }
   else{ pill.textContent='no category'; pill.className='task-cat-pill'; pill.style.borderColor=''; pill.style.color=''; pill.style.background=''; }
 }
-function isoDate(){ return new Date().toISOString().slice(0,10); }
+function isoDate(){
+  var now=new Date();
+  // if nightDate==='prev' and current hour < 6, count as previous calendar day
+  if (settings.nightDate==='prev' && now.getHours()<6){
+    var prev=new Date(now); prev.setDate(prev.getDate()-1);
+    return prev.toISOString().slice(0,10);
+  }
+  return now.toISOString().slice(0,10);
+}
 function fmt24(d){ return d.toTimeString().slice(0,8); }
 function formatDisplayDate(iso){ var d=new Date(iso+'T12:00:00'); return d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}); }
 
@@ -1431,6 +1582,7 @@ function showPage(id){
   document.querySelector('.nav-tab[onclick="showPage(\''+id+'\')"]').classList.add('active');
   if (id==='log') loadLog();
   if (id==='analytics') loadAnalytics();
+  if (id==='checkins') loadCheckinHistory();
 }
 
 document.addEventListener('visibilitychange', function(){ if (document.visibilityState==='visible'&&running) doTick(); });
@@ -1443,10 +1595,113 @@ window.addEventListener('keydown', function(event){
 
 (function init(){
   try{ var raw=JSON.parse(localStorage.getItem('ft_settings')||'{}'); if((raw.short&&raw.short>30)||(raw.long&&raw.long>60)) localStorage.removeItem('ft_settings'); }catch(e){ localStorage.removeItem('ft_settings'); }
-  buildAlarm(); loadSettings(); loadCategories(); loadExcluded(); loadProjects(); loadBreakActs();
+  buildAlarm(); loadSettings(); loadCategories(); loadExcluded(); loadProjects(); loadBreakActs(); applyDefaultEnergy();
   setRing(1); initSupabase(); checkDailyCheckin();
   if (!navigator.onLine) document.getElementById('offline-bar').classList.add('show');
 })();
+
+// ════════════════════════════════════════════════════════════════
+// CHECK-IN TAB
+// ════════════════════════════════════════════════════════════════
+var ci2Energy = null;
+
+function setCi2Energy(e){
+  ci2Energy=e;
+  document.querySelectorAll('[data-e2]').forEach(function(b){ b.classList.toggle('active', parseInt(b.dataset.e2)===e); });
+}
+
+function openCheckinForm(dateStr){
+  var d = dateStr || isoDate();
+  document.getElementById('ci-form-date-label').textContent = 'Check-in for ' + formatDisplayDate(d);
+  document.getElementById('ci2-sleep').value = '';
+  document.getElementById('ci2-wake').value = new Date().toTimeString().slice(0,5);
+  ci2Energy = null;
+  document.querySelectorAll('[data-e2]').forEach(function(b){ b.classList.remove('active'); });
+  // pre-fill if existing row
+  if (dateStr && sb){
+    sb.from('daily_checkins').select('*').eq('date', dateStr).maybeSingle().then(function(r){
+      if (r.data){
+        if (r.data.sleep_hrs) document.getElementById('ci2-sleep').value = r.data.sleep_hrs;
+        if (r.data.wake_time) document.getElementById('ci2-wake').value = r.data.wake_time.slice(0,5);
+        if (r.data.energy){ ci2Energy = r.data.energy; document.querySelectorAll('[data-e2]').forEach(function(b){ b.classList.toggle('active', parseInt(b.dataset.e2)===r.data.energy); }); }
+      }
+    });
+  }
+  document.getElementById('ci-inline-form').dataset.editDate = d;
+  document.getElementById('ci-inline-form').style.display = 'block';
+  document.getElementById('ci-inline-form').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+async function saveCheckinInline(){
+  var d = document.getElementById('ci-inline-form').dataset.editDate || isoDate();
+  var sleep = document.getElementById('ci2-sleep').value;
+  var wake  = document.getElementById('ci2-wake').value;
+  // also sync the modal meta
+  var meta = loadMeta(); meta[d] = Object.assign(meta[d]||{}, {sleep:sleep, wake:wake, energy:ci2Energy, done:true}); saveMeta(meta);
+  if (d === isoDate()) updateCheckinSummary(meta[d]);
+  document.getElementById('ci-inline-form').style.display = 'none';
+  if (sb){
+    var res = await sb.from('daily_checkins').upsert([{date:d, sleep_hrs:sleep?parseFloat(sleep):null, wake_time:wake||null, energy:ci2Energy||null}], {onConflict:'date'});
+    if (res.error) console.warn('checkin upsert:', res.error.message);
+  }
+  loadCheckinHistory();
+}
+
+async function loadCheckinHistory(){
+  var tbody = document.getElementById('ci-history-body'); if (!tbody) return;
+  if (!sb){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;padding:2rem;">Connect Supabase to load history.</td></tr>'; return; }
+  tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;padding:1.5rem;">Loading…</td></tr>';
+
+  // fetch last 60 days of check-ins and sessions
+  var since = new Date(); since.setDate(since.getDate()-60);
+  var sinceStr = since.toISOString().slice(0,10);
+
+  var [ciRes, sessRes] = await Promise.all([
+    sb.from('daily_checkins').select('*').gte('date', sinceStr).order('date', {ascending:false}),
+    sb.from('focus_sessions').select('session_date,focus_sec').gte('session_date', sinceStr)
+  ]);
+
+  var ciRows = ciRes.data || [];
+  var sessRows = sessRes.data || [];
+
+  // aggregate sessions by date
+  var sessMap = {};
+  sessRows.forEach(function(s){
+    if (!sessMap[s.session_date]) sessMap[s.session_date] = {count:0, focusSec:0};
+    sessMap[s.session_date].count++;
+    sessMap[s.session_date].focusSec += (s.focus_sec||0);
+  });
+
+  // build a set of all dates that have either a check-in or sessions
+  var allDates = new Set([...ciRows.map(function(r){return r.date;}), ...Object.keys(sessMap)]);
+  var sortedDates = Array.from(allDates).sort().reverse();
+
+  if (!sortedDates.length){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;padding:2rem;">No data yet.</td></tr>'; return; }
+
+  var ciByDate = {};
+  ciRows.forEach(function(r){ ciByDate[r.date] = r; });
+
+  var energyLabel = ['','🪫 Low','😐 Med','⚡ High'];
+  var energyColor = ['','#e57373','#9e9e9e','var(--accent)'];
+
+  tbody.innerHTML = sortedDates.map(function(d){
+    var ci = ciByDate[d] || {};
+    var sd = sessMap[d] || {count:0, focusSec:0};
+    var eLabel = ci.energy ? energyLabel[ci.energy]||'' : '—';
+    var eColor = ci.energy ? energyColor[ci.energy]||'var(--muted)' : 'var(--muted)';
+    var isToday = d === isoDate();
+    return '<tr style="'+(isToday?'background:rgba(255,255,255,.03)':'')+'">'+
+      '<td style="font-family:var(--mono);font-size:11px;">'+(isToday?'<span style="color:var(--accent);margin-right:4px;">●</span>':'')+formatDisplayDate(d)+'</td>'+
+      '<td style="font-family:var(--mono);font-size:11px;">'+(ci.sleep_hrs!=null?ci.sleep_hrs+'h':'—')+'</td>'+
+      '<td style="font-family:var(--mono);font-size:11px;">'+(ci.wake_time?ci.wake_time.slice(0,5):'—')+'</td>'+
+      '<td style="font-family:var(--mono);font-size:11px;color:'+eColor+';">'+eLabel+'</td>'+
+      '<td style="font-family:var(--mono);font-size:11px;color:var(--muted);">'+(sd.count?sd.count:'—')+'</td>'+
+      '<td style="font-family:var(--mono);font-size:11px;">'+(sd.focusSec?fmtFocusSec(sd.focusSec):'—')+'</td>'+
+      '<td><button data-ci-date="'+d+'" onclick="openCheckinForm(this.dataset.ciDate)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:4px 6px;" title="Edit">✎</button></td>'+
+    '</tr>';
+  }).join('');
+}
+
 </script>
 </body>
 </html>
