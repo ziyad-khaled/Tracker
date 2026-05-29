@@ -388,7 +388,8 @@ td.dim{color:var(--muted);}
       <div class="edit-field"><label>Seq #</label><input type="number" class="input-field" id="edit-seq" min="1"></div>
       <div class="edit-field"><label>Start Time</label><input type="time" class="input-field" id="edit-start" step="1"></div>
       <div class="edit-field"><label>End Time</label><input type="time" class="input-field" id="edit-end" step="1"></div>
-      <div class="edit-field"><label>Span (min)</label><input type="number" class="input-field" id="edit-span" min="0"></div>
+      <div class="edit-field"><label>Span M:SS <span style="font-size:9px;color:var(--muted);">(primary)</span></label><input type="text" class="input-field" id="edit-span-sec" placeholder="30:00" title="Format: M:SS e.g. 30:00"></div>
+      <div class="edit-field"><label>Span (min) <span style="font-size:9px;color:var(--muted);">(auto)</span></label><input type="number" class="input-field" id="edit-span" min="0" readonly style="opacity:.6;cursor:not-allowed;"></div>
       <div class="edit-field"><label>Focus M:SS <span style="font-size:9px;color:var(--muted);">(primary)</span></label><input type="text" class="input-field" id="edit-focus-sec" placeholder="25:00" title="Format: M:SS e.g. 25:00"></div>
       <div class="edit-field"><label>Focus (min) <span style="font-size:9px;color:var(--muted);">(auto)</span></label><input type="number" class="input-field" id="edit-focus" min="0" readonly style="opacity:.6;cursor:not-allowed;"></div>
       <div class="edit-field"><label>Project</label><input type="text" class="input-field" id="edit-project"></div>
@@ -579,57 +580,75 @@ WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div
     </div>
     <div class="full-col">
       <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:.75rem;padding-bottom:8px;border-bottom:1px solid var(--border);">Migration — Run in Supabase SQL Editor</div>
-      <div class="sql-block"><pre>-- ═══════════════════════════════════════════════════════════════
--- STEP 1 — fill focus_sec where it is NULL (never had seconds data)
--- ═══════════════════════════════════════════════════════════════
+      <div class="sql-block"><pre>-- ╔═══════════════════════════════════════════════════════════════╗
+-- ║  focus_min → focus_sec  (run steps A1–A5 first)             ║
+-- ╚═══════════════════════════════════════════════════════════════╝
+
+-- A1 — fill focus_sec where NULL
 UPDATE focus_sessions
 SET focus_sec = focus_min * 60
 WHERE focus_sec IS NULL AND focus_min IS NOT NULL;
 
--- ═══════════════════════════════════════════════════════════════
--- STEP 2 — audit rows where focus_min was hand-edited in the app
--- but focus_sec was never updated to match.
--- "out of sync" = focus_min differs from focus_sec/60 by >1 min
--- Run this SELECT first to review before touching anything.
--- ═══════════════════════════════════════════════════════════════
-SELECT
-  id,
-  session_date,
-  start_time,
-  focus_min                        AS focus_min_stored,
-  focus_sec                        AS focus_sec_stored,
-  ROUND(focus_sec / 60.0, 2)       AS focus_sec_as_min,
+-- A2 — audit drift (hand-edited focus_min rows); review before touching
+SELECT id, session_date, start_time,
+  focus_min                              AS focus_min_stored,
+  focus_sec                              AS focus_sec_stored,
+  ROUND(focus_sec / 60.0, 2)             AS focus_sec_as_min,
   focus_min - ROUND(focus_sec / 60.0, 0) AS drift_min
 FROM focus_sessions
-WHERE focus_sec IS NOT NULL
-  AND focus_min IS NOT NULL
+WHERE focus_sec IS NOT NULL AND focus_min IS NOT NULL
   AND ABS(focus_min - ROUND(focus_sec / 60.0, 0)) > 1
 ORDER BY ABS(focus_min - ROUND(focus_sec / 60.0, 0)) DESC;
 
--- ═══════════════════════════════════════════════════════════════
--- STEP 3 — for those drifted rows, trust focus_min (your edits)
--- and overwrite focus_sec to match.
--- ═══════════════════════════════════════════════════════════════
+-- A3 — fix drifted rows: trust focus_min (your manual edits)
 UPDATE focus_sessions
 SET focus_sec = focus_min * 60
-WHERE focus_sec IS NOT NULL
-  AND focus_min IS NOT NULL
+WHERE focus_sec IS NOT NULL AND focus_min IS NOT NULL
   AND ABS(focus_min - ROUND(focus_sec / 60.0, 0)) > 1;
 
--- ═══════════════════════════════════════════════════════════════
--- STEP 4 — verify everything is now in sync (should return 0)
--- ═══════════════════════════════════════════════════════════════
-SELECT COUNT(*) AS out_of_sync
+-- A4 — verify (should return 0)
+SELECT COUNT(*) AS out_of_sync FROM focus_sessions
+WHERE focus_sec IS NOT NULL AND focus_min IS NOT NULL
+  AND ABS(focus_min - ROUND(focus_sec / 60.0, 0)) > 1;
+
+-- A5 — drop focus_min — IRREVERSIBLE, run only after A4 = 0
+ALTER TABLE focus_sessions DROP COLUMN focus_min;
+
+
+-- ╔═══════════════════════════════════════════════════════════════╗
+-- ║  span_min → span_sec  (run steps B1–B5 after A is done)     ║
+-- ╚═══════════════════════════════════════════════════════════════╝
+
+-- B1 — add span_sec column (seconds, derived from end_time - start_time)
+ALTER TABLE focus_sessions ADD COLUMN span_sec int4;
+
+-- B2 — populate span_sec from the actual timestamps
+UPDATE focus_sessions
+SET span_sec = EXTRACT(EPOCH FROM (
+    (session_date + end_time::interval) -
+    (session_date + start_time::interval)
+  ))::int
+WHERE start_time IS NOT NULL AND end_time IS NOT NULL;
+
+-- B3 — audit: compare new span_sec to old span_min
+-- Shows rows where they differ by more than 60 seconds (1 min)
+SELECT id, session_date, start_time, end_time,
+  span_min,
+  span_sec,
+  ROUND(span_sec / 60.0, 2)             AS span_sec_as_min,
+  span_min - ROUND(span_sec / 60.0, 0)  AS drift_min
 FROM focus_sessions
-WHERE focus_sec IS NOT NULL
-  AND focus_min IS NOT NULL
-  AND ABS(focus_min - ROUND(focus_sec / 60.0, 0)) > 1;
+WHERE span_sec IS NOT NULL AND span_min IS NOT NULL
+  AND ABS(span_min - ROUND(span_sec / 60.0, 0)) > 1
+ORDER BY ABS(span_min - ROUND(span_sec / 60.0, 0)) DESC;
 
--- ═══════════════════════════════════════════════════════════════
--- STEP 5 — drop focus_min (only after steps 1-4 look clean)
--- WARNING: irreversible. Back up first if unsure.
--- ═══════════════════════════════════════════════════════════════
-ALTER TABLE focus_sessions DROP COLUMN focus_min;</pre></div>
+-- B4 — verify everything looks clean (should return 0 after review)
+SELECT COUNT(*) AS out_of_sync FROM focus_sessions
+WHERE span_sec IS NOT NULL AND span_min IS NOT NULL
+  AND ABS(span_min - ROUND(span_sec / 60.0, 0)) > 1;
+
+-- B5 — drop span_min — IRREVERSIBLE, run only after B4 = 0
+ALTER TABLE focus_sessions DROP COLUMN span_min;</pre></div>
       <div style="margin-top:1rem;"><button class="btn-danger" onclick="clearLocalCache()">Clear Local Cache</button></div>
     </div>
   </div>
@@ -906,7 +925,7 @@ async function dbInsertReturning(sess){
   if (!sb){ offlineQueue.push(sess); return null; }
   var row={
     session_date:sess.session_date, start_time:sess.start_time, end_time:sess.end_time,
-    span_min:sess.span_min, task_type:sess.task_type, focus_sec:sess.focus_sec,
+    span_sec:sess.span_sec, task_type:sess.task_type, focus_sec:sess.focus_sec,
     ratio:sess.ratio, project:sess.project, task:sess.task,
     seq:sess.seq, energy:sess.energy, note:sess.note
   };
@@ -1113,7 +1132,7 @@ function endSession(){
   var ratio=Math.round(focusSec/Math.max(spanSec,1)*100), otMin=Math.max(0,focusMin-settings.pomodoro);
   var sessNow={
     session_date:isoDate(), start_time:sessionStart?fmt24(sessionStart):fmt24(end), end_time:fmt24(end),
-    span_min:spanMin, task_type:currentCat||null, focus_sec:focusSec, ratio:ratio,
+    span_sec:spanSec, task_type:currentCat||null, focus_sec:focusSec, ratio:ratio,
     project:currentProject&&projects[currentProject]?projects[currentProject].name:null,
     task:currentTask&&currentProject&&projects[currentProject]?projects[currentProject].tasks[currentTask]:null,
     seq:seqToday, energy:currentEnergy, note:document.getElementById('session-note').value.trim()||null, _otMin:otMin
@@ -1174,7 +1193,7 @@ async function endBreak(returned){
   var breakEnd=new Date(), bDurSec=breakStart?Math.floor((breakEnd.getTime()-breakStart.getTime())/1000):0, bDurMin=Math.floor(bDurSec/60);
   var breakRow={
     session_date:isoDate(), start_time:breakStart?fmt24(breakStart):fmt24(new Date()), end_time:fmt24(breakEnd),
-    span_min:bDurMin, break_activities:breakActs.length?breakActs.join('; '):null,
+    break_activities:breakActs.length?breakActs.join('; '):null,
     break_note:document.getElementById('break-note').value.trim()||null,
     break_duration_min:bDurMin, overdue:overdueShown, returned:returned
   };
@@ -1200,7 +1219,16 @@ function openEditModal(id,table){
     var s=res.data;
     document.getElementById('edit-id').value=s.id; document.getElementById('edit-date').value=s.session_date||'';
     document.getElementById('edit-seq').value=s.seq!=null?s.seq:''; document.getElementById('edit-start').value=s.start_time?s.start_time.slice(0,8):'';
-    document.getElementById('edit-end').value=s.end_time?s.end_time.slice(0,8):''; document.getElementById('edit-span').value=s.span_min!=null?s.span_min:'';
+    document.getElementById('edit-end').value=s.end_time?s.end_time.slice(0,8):'';
+    var ssec=s.span_sec!=null?s.span_sec:null;
+    document.getElementById('edit-span-sec').value=ssec!=null?fmtFocusSec(ssec):'';
+    document.getElementById('edit-span').value=ssec!=null?Math.floor(ssec/60):'';
+    document.getElementById('edit-span-sec').oninput=function(){
+      var p=this.value.trim().split(':'),sec=null;
+      if(p.length===2)sec=parseInt(p[0])*60+parseInt(p[1]);
+      else if(p.length===1&&p[0])sec=parseInt(p[0])*60;
+      document.getElementById('edit-span').value=sec!=null&&!isNaN(sec)?Math.floor(sec/60):'';
+    };
     // focus_sec is authoritative; focus_min is derived
     var fsec=s.focus_sec!=null?s.focus_sec:(s.focus_min!=null?s.focus_min*60:null);
     document.getElementById('edit-focus-sec').value=fsec!=null?fmtFocusSec(fsec):'';
@@ -1233,10 +1261,16 @@ async function saveEdit(){
     else if (parts.length===1){ focusSec=parseInt(parts[0])*60||null; }
   }
   var focusMin=focusSec!=null?Math.max(1,Math.floor(focusSec/60)):(parseInt(document.getElementById('edit-focus').value)||null);
-  var spanMin=parseInt(document.getElementById('edit-span').value)||null;
-  var ratio=(focusMin&&spanMin)?Math.round(focusMin/spanMin*100):null;
+  var spanSecRaw=document.getElementById('edit-span-sec').value.trim();
+  var spanSec=null;
+  if (spanSecRaw){
+    var sp=spanSecRaw.split(':');
+    if (sp.length===2){ spanSec=parseInt(sp[0])*60+parseInt(sp[1])||null; }
+    else if (sp.length===1){ spanSec=parseInt(sp[0])*60||null; }
+  }
+  var ratio=(focusSec&&spanSec)?Math.round(focusSec/Math.max(spanSec,1)*100):null;
   var retVal=document.getElementById('edit-returned').value;
-  var updates={ session_date:document.getElementById('edit-date').value||null, start_time:document.getElementById('edit-start').value||null, end_time:document.getElementById('edit-end').value||null, span_min:spanMin };
+  var updates={ session_date:document.getElementById('edit-date').value||null, start_time:document.getElementById('edit-start').value||null, end_time:document.getElementById('edit-end').value||null, span_sec:spanSec };
   if (editingTable==='focus_sessions'){
     Object.assign(updates,{ seq:parseInt(document.getElementById('edit-seq').value)||null, focus_sec:focusSec, ratio:ratio, project:document.getElementById('edit-project').value.trim()||null, task:document.getElementById('edit-task').value.trim()||null, task_type:document.getElementById('edit-cat').value||null, energy:parseInt(document.getElementById('edit-energy').value)||null, note:document.getElementById('edit-note').value.trim()||null });
   }else{
@@ -1282,12 +1316,12 @@ async function loadLog(){
   else{
     sempty.style.display='none';
     stbody.innerHTML=fSess.map(function(s){
-      var ratio=s.ratio!=null?s.ratio:(s.span_min>0?Math.round(Math.floor((s.focus_sec||0)/60)/s.span_min*100):100);
+      var ratio=s.ratio!=null?s.ratio:(s.span_sec>0?Math.round((s.focus_sec||0)/s.span_sec*100):100);
       var rCls=ratio>=85?'badge-hi':ratio>=65?'badge-mid':'badge-lo';
       var cat=s.task_type&&CAT[s.task_type];
       var catHtml=cat?'<span class="cat-tag" style="background:'+catRgba(cat.col,0.1)+';color:'+catRgba(cat.col,1)+';">'+cat.emoji+' '+s.task_type+'</span>':'<span class="cat-tag cat-tag-default">'+(s.task_type||'—')+'</span>';
       var ci=checkinMap[s.session_date]||{};
-      return '<tr><td><button class="edit-row-btn" onclick="openEditModal(\''+s.id+'\',\'focus_sessions\')" title="Edit">✏</button></td><td>'+(s.session_date||'—')+'</td><td class="dim">'+(s.start_time?s.start_time.slice(0,5):'—')+'</td><td class="dim">'+(s.end_time?s.end_time.slice(0,5):'—')+'</td><td>'+(s.span_min!=null?s.span_min+'m':'—')+'</td><td><b>'+(s.focus_sec!=null?fmtFocusSec(s.focus_sec):'—')+'</b></td><td><span class="badge '+rCls+'">'+ratio+'%</span></td><td class="dim">'+(s.project||'—')+'</td><td>'+(s.task||'—')+'</td><td>'+catHtml+'</td><td class="dim">'+(s.seq!=null?s.seq:'—')+'</td><td>'+(eMap[s.energy]||'—')+'</td><td class="dim">'+(ci.sleep_hrs||'—')+'</td><td class="dim">'+(ci.wake_time?ci.wake_time.slice(0,5):'—')+'</td><td class="dim" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;">'+(s.note||'—')+'</td></tr>';
+      return '<tr><td><button class="edit-row-btn" onclick="openEditModal(\''+s.id+'\',\'focus_sessions\')" title="Edit">✏</button></td><td>'+(s.session_date||'—')+'</td><td class="dim">'+(s.start_time?s.start_time.slice(0,5):'—')+'</td><td class="dim">'+(s.end_time?s.end_time.slice(0,5):'—')+'</td><td>'+(s.span_sec!=null?fmtFocusSec(s.span_sec):'—')+'</td><td><b>'+(s.focus_sec!=null?fmtFocusSec(s.focus_sec):'—')+'</b></td><td><span class="badge '+rCls+'">'+ratio+'%</span></td><td class="dim">'+(s.project||'—')+'</td><td>'+(s.task||'—')+'</td><td>'+catHtml+'</td><td class="dim">'+(s.seq!=null?s.seq:'—')+'</td><td>'+(eMap[s.energy]||'—')+'</td><td class="dim">'+(ci.sleep_hrs||'—')+'</td><td class="dim">'+(ci.wake_time?ci.wake_time.slice(0,5):'—')+'</td><td class="dim" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;">'+(s.note||'—')+'</td></tr>';
     }).join('');
   }
   var btbody=document.getElementById('breaks-tbody'), bempty=document.getElementById('breaks-empty');
@@ -1313,7 +1347,7 @@ async function exportCSV(){
   var fSess=fsRes.data||[], bRows=brRes.data||[];
   if (!fSess.length&&!bRows.length){ alert('No data to export.'); return; }
   var fh=['Date','Start','End','Span(min)','Focus(M:SS)','Focus(min)','Ratio(%)','Project','Task','Category','Seq#','Energy','Note'];
-  var fRows=fSess.map(function(s){ return [s.session_date,s.start_time,s.end_time,s.span_min,s.focus_sec?fmtFocusSec(s.focus_sec):'—',Math.floor((s.focus_sec||0)/60),s.ratio,s.project||'',s.task||'',s.task_type||'',s.seq,s.energy||'',(s.note||'').replace(/,/g,';')].map(function(v){return '"'+(v!=null?v:'')+'"';}).join(','); });
+  var fRows=fSess.map(function(s){ return [s.session_date,s.start_time,s.end_time,s.span_sec!=null?fmtFocusSec(s.span_sec):'—',s.focus_sec?fmtFocusSec(s.focus_sec):'—',Math.floor((s.focus_sec||0)/60),s.ratio,s.project||'',s.task||'',s.task_type||'',s.seq,s.energy||'',(s.note||'').replace(/,/g,';')].map(function(v){return '"'+(v!=null?v:'')+'"';}).join(','); });
   var bh=['Date','Start','End','Duration(min)','Activities','Overdue','Status','Note'];
   var bRows2=bRows.map(function(b){ var st=b.returned===true?'Returned':b.returned===false?'Didnt return':'Urgent'; return [b.session_date,b.start_time,b.end_time,b.break_duration_min||0,b.break_activities||'',b.overdue?'yes':'no',st,(b.break_note||'').replace(/,/g,';')].map(function(v){return '"'+(v!=null?v:'')+'"';}).join(','); });
   var csv='=== FOCUS SESSIONS ===\n'+[fh.join(',')].concat(fRows).join('\n')+'\n\n=== BREAKS ===\n'+[bh.join(',')].concat(bRows2).join('\n');
