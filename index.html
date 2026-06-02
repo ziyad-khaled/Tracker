@@ -180,6 +180,8 @@ td.dim{color:var(--muted);}
 .btn-cancel-edit{font-family:var(--mono);font-size:11px;padding:10px 18px;border-radius:var(--r);cursor:pointer;background:none;color:var(--muted);border:1px solid var(--border);}
 .btn-del-edit{font-family:var(--mono);font-size:11px;padding:10px 16px;border-radius:var(--r);cursor:pointer;background:none;color:var(--danger);border:1px solid var(--danger);margin-right:auto;}
 .edit-status{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:6px;min-height:14px;}
+#edit-modal.break-mode .edit-focus-only{display:none;}
+#edit-modal.focus-mode .edit-break-only{display:none;}
 .edit-row-btn{font-size:12px;background:none;border:none;color:var(--muted);cursor:pointer;padding:2px 6px;border-radius:2px;}
 .edit-row-btn:hover{color:var(--accent);}
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:2rem;}
@@ -382,40 +384,38 @@ td.dim{color:var(--muted);}
 <!-- EDIT MODAL -->
 <div id="edit-modal">
   <div class="edit-box">
-    <h3>Edit Session</h3>
+    <h3 id="edit-modal-title">Edit Session</h3>
     <input type="hidden" id="edit-id">
     <div class="edit-grid">
       <div class="edit-field"><label>Date</label><input type="date" class="input-field" id="edit-date"></div>
-      <div class="edit-field"><label>Seq #</label><input type="number" class="input-field" id="edit-seq" min="1"></div>
+      <div class="edit-field edit-focus-only"><label>Seq #</label><input type="number" class="input-field" id="edit-seq" min="1"></div>
       <div class="edit-field"><label>Start Time</label><input type="time" class="input-field" id="edit-start" step="1"></div>
       <div class="edit-field"><label>End Time</label><input type="time" class="input-field" id="edit-end" step="1"></div>
-      <div class="edit-field"><label>Span M:SS <span style="font-size:9px;color:var(--muted);">(primary)</span></label><input type="text" class="input-field" id="edit-span-sec" placeholder="30:00" title="Format: M:SS e.g. 30:00"></div>
-      <div class="edit-field"><label>Span (min) <span style="font-size:9px;color:var(--muted);">(auto)</span></label><input type="number" class="input-field" id="edit-span" min="0" readonly style="opacity:.6;cursor:not-allowed;"></div>
-      <div class="edit-field"><label>Focus M:SS <span style="font-size:9px;color:var(--muted);">(primary)</span></label><input type="text" class="input-field" id="edit-focus-sec" placeholder="25:00" title="Format: M:SS e.g. 25:00"></div>
-      <div class="edit-field"><label>Focus (min) <span style="font-size:9px;color:var(--muted);">(auto)</span></label><input type="number" class="input-field" id="edit-focus" min="0" readonly style="opacity:.6;cursor:not-allowed;"></div>
-      <div class="edit-field"><label>Project</label><input type="text" class="input-field" id="edit-project"></div>
-      <div class="edit-field"><label>Task</label><input type="text" class="input-field" id="edit-task"></div>
-      <div class="edit-field"><label>Category</label><select class="input-field" id="edit-cat"></select></div>
+      <div class="edit-field edit-focus-only"><label>Span M:SS</label><input type="text" class="input-field" id="edit-span-sec" placeholder="30:00" title="M:SS — recalculated from start/end on save if blank"></div>
+      <div class="edit-field edit-focus-only"><label>Focus M:SS</label><input type="text" class="input-field" id="edit-focus-sec" placeholder="25:00" title="M:SS e.g. 25:00"></div>
+      <div class="edit-field edit-focus-only"><label>Project</label><input type="text" class="input-field" id="edit-project"></div>
+      <div class="edit-field edit-focus-only"><label>Task</label><input type="text" class="input-field" id="edit-task"></div>
+      <div class="edit-field edit-focus-only"><label>Category</label><select class="input-field" id="edit-cat"></select></div>
       <div class="edit-field"><label>Energy</label>
         <select class="input-field" id="edit-energy">
-          <option value="">—</option><option value="1">↓ Low</option>
-          <option value="2">→ Medium</option><option value="3">↑ High</option>
+          <option value="">—</option><option value="1">🪫 Low</option>
+          <option value="2">😐 Medium</option><option value="3">⚡ High</option>
         </select>
       </div>
-      <div class="edit-field"><label>Returned?</label>
+      <div class="edit-field edit-break-only"><label>Returned?</label>
         <select class="input-field" id="edit-returned">
           <option value="">—</option><option value="true">Yes ✓</option>
           <option value="false">No ✗</option>
         </select>
       </div>
-      <div class="edit-field"><label>Break acts</label><input type="text" class="input-field" id="edit-break-acts" placeholder="Phone; Walk"></div>
+      <div class="edit-field edit-break-only"><label>Break activities</label><input type="text" class="input-field" id="edit-break-acts" placeholder="Phone; Walk"></div>
       <div class="edit-field full"><label>Note</label><textarea class="input-field" id="edit-note" rows="2"></textarea></div>
     </div>
     <div class="edit-status" id="edit-status"></div>
     <div class="edit-actions">
       <button class="btn-del-edit" onclick="deleteSession()">Delete</button>
       <button class="btn-cancel-edit" onclick="closeEditModal()">Cancel</button>
-      <button class="btn-save-edit" onclick="saveEdit()">Save</button>
+      <button class="btn-save-edit" onclick="saveEdit()">SAVE</button>
     </div>
   </div>
 </div>
@@ -442,6 +442,7 @@ td.dim{color:var(--muted);}
   <div class="log-tabs">
     <button class="log-tab active" id="tab-sessions" onclick="switchLogTab('sessions')">📚 Focus Sessions</button>
     <button class="log-tab break-tab" id="tab-breaks" onclick="switchLogTab('breaks')">⏸ Breaks</button>
+    <button class="log-tab" id="tab-checkins-log" onclick="switchLogTab('checkins')">🌙 Check-ins</button>
   </div>
   <div class="log-toolbar">
     <button class="btn-primary" style="padding:8px 20px;font-size:11px;" onclick="exportCSV()">↓ CSV</button>
@@ -458,6 +459,18 @@ td.dim{color:var(--muted);}
       <tbody id="sessions-tbody"></tbody>
     </table>
     <div class="empty-state" id="sessions-empty" style="display:none;">No focus sessions yet.</div>
+  </div>
+  <div id="checkins-log-wrap" style="display:none;">
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Date</th><th>Sleep</th><th>Wake</th><th>Energy</th><th>Sessions</th><th>Focus</th><th style="width:40px;"></th>
+        </tr></thead>
+        <tbody id="ci-log-body">
+          <tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;padding:2rem;">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
   <div id="breaks-table-wrap" class="table-wrap" style="display:none;">
     <table>
@@ -1145,17 +1158,18 @@ async function refreshMetrics(){
   var twTotal=(twRes.data||[]).reduce(function(a,s){return !excludedFromAvg[s.task_type]?a+Math.floor((s.focus_sec||0)/60):a;},0);
   var twActiveDays=new Set((twRes.data||[]).filter(s=>!excludedFromAvg[s.task_type]).map(s=>s.session_date)).size;
   var twAvg=Math.round(twTotal/(settings.avgMode==='active'?Math.max(1,twActiveDays):twEl));
-  document.getElementById('m-thisweek').textContent=twAvg?twAvg+'m':'—';
-  document.getElementById('m-thisweek-sub').textContent='day '+twEl+' of 7';
+  document.getElementById('m-thisweek').textContent=twTotal?twAvg+'m':'—';
+  var twDivisor=settings.avgMode==='active'?twActiveDays:twEl;
+  document.getElementById('m-thisweek-sub').textContent='day '+twEl+' of 7'+(twActiveDays?' · '+twActiveDays+' active':'');
   var lwRes=await sb.from('focus_sessions').select('focus_sec,session_date,task_type').gte('session_date',lastWeek[0]).lte('session_date',lastWeek[1]);
   var lwData=lwRes.data||[];
   var lwTotal=lwData.reduce(function(a,s){return !excludedFromAvg[s.task_type]?a+Math.floor((s.focus_sec||0)/60):a;},0);
+  var lwDays={}; lwData.forEach(function(s){if(!excludedFromAvg[s.task_type])lwDays[s.session_date]=1;});
   var lwActiveDays=Object.keys(lwDays).length;
   var lwAvg=Math.round(lwTotal/(settings.avgMode==='active'?Math.max(1,lwActiveDays):7));
-  var lwDays={}; lwData.forEach(function(s){lwDays[s.session_date]=1;});
   var lwCount=Object.keys(lwDays).length;
-  document.getElementById('m-lastweek').textContent=lwAvg?lwAvg+'m':'—';
-  document.getElementById('m-lastweek-sub').textContent=lwCount+' active day'+(lwCount!==1?'s':'')+' / 7';
+  document.getElementById('m-lastweek').textContent=lwTotal?lwAvg+'m':'—';
+  document.getElementById('m-lastweek-sub').textContent=lwCount?(lwCount+' active day'+(lwCount!==1?'s':'')+' (÷'+(settings.avgMode==='active'?lwActiveDays:7)+')'):'no sessions';
   var dEl=document.getElementById('m-week-delta');
   if (twAvg&&lwAvg){ var diff=twAvg-lwAvg; if(diff>0){dEl.textContent='▲ '+diff+'m vs last week';dEl.className='metric-cell-sub metric-up';}else if(diff<0){dEl.textContent='▼ '+Math.abs(diff)+'m vs last week';dEl.className='metric-cell-sub metric-down';}else{dEl.textContent='= same as last week';dEl.className='metric-cell-sub metric-same';} }
   else{ dEl.textContent='vs last week'; dEl.className='metric-cell-sub'; }
@@ -1226,13 +1240,14 @@ function _runManualBreak(type){
 }
 function toggleTimer(){
   if (mode==='short'||mode==='long'){
-    if (manualBreakTick){ clearInterval(manualBreakTick); manualBreakTick=null; stopAlarm(); document.getElementById('start-btn').textContent='START BREAK'; document.getElementById('flow-hint').textContent='Break paused'; }
+    if (manualBreakTick){ saveManualBreak(); }
     else { _runManualBreak(mode); }
     return;
   }
   if (running){ pauseTimer(); }else{ startTimer(); }
 }
 function startTimer(){
+  stopAlarm();
   if (mode!=='pomodoro'){ setMode('pomodoro'); setTimeout(startTimer,50); return; }
   if (!sessionStart){ sessionStart=new Date(); pausedMs=0; pauseStartMs=null; seqToday++; }
   else if (pauseStartMs!==null){ pausedMs+=Date.now()-pauseStartMs; pauseStartMs=null; }
@@ -1244,8 +1259,8 @@ function startTimer(){
 }
 function pauseTimer(){ running=false; clearInterval(tickInterval); tickInterval=null; pauseStartMs=Date.now(); document.getElementById('start-btn').textContent='RESUME'; document.getElementById('flow-hint').textContent='Paused — resume or end the session'; }
 function resetTimer(){ clearInterval(tickInterval); tickInterval=null; running=false; sessionStart=null; pausedMs=0; pauseStartMs=null; inOvertime=false; pomodoroCount=Math.max(0,pomodoroCount-1); setMode('pomodoro'); }
-function endSession(){
-  stopAlarm(); clearInterval(tickInterval); tickInterval=null;
+function endSession(keepAlarm){
+  if (!keepAlarm) stopAlarm(); clearInterval(tickInterval); tickInterval=null;
   running=false; pomodoroCount++;
   document.getElementById('start-btn').textContent='START';
   document.getElementById('end-btn').classList.remove('show');
@@ -1282,7 +1297,7 @@ function doTick(){
   else{
     if (!inOvertime){
       if (settings.flowMode){ inOvertime=true; document.getElementById('overtime-badge').classList.add('show'); document.getElementById('ring').style.stroke='var(--warn)'; document.getElementById('timer-display').style.color='var(--warn)'; document.getElementById('flow-hint').textContent='Target reached — keep going or end when ready'; document.getElementById('flow-hint').className='overtime'; }
-      else{ playAlarm(); endSession(); return; }
+      else{ playAlarm(); endSession(true); return; }
     }
     var ot=elapsed-totalSecs; setRing(Math.min(1,ot/totalSecs)); renderClock(ot,true);
   }
@@ -1313,6 +1328,23 @@ function showBreakOverlay(type){
   }
   tickBreak(); breakTick=setInterval(tickBreak,500);
 }
+async function saveManualBreak(){
+  clearInterval(manualBreakTick); manualBreakTick=null; stopAlarm();
+  var breakEnd=new Date(), bDurSec=breakStart?Math.floor((breakEnd.getTime()-breakStart.getTime())/1000):0, bDurMin=Math.floor(bDurSec/60);
+  document.getElementById('start-btn').textContent='START BREAK';
+  document.getElementById('flow-hint').textContent='Break saved — start next session';
+  document.getElementById('manual-break-panel').style.display='none';
+  if (bDurSec>5){
+    var breakRow={
+      session_date:isoDate(), start_time:breakStart?fmt24(breakStart):fmt24(new Date()), end_time:fmt24(breakEnd),
+      break_activities:manualBreakActs.length?manualBreakActs.join('; '):null,
+      break_note:null, break_duration_min:bDurMin, overdue:false, returned:true
+    };
+    await dbSave(breakRow);
+  }
+  manualBreakActs=[];
+  document.querySelectorAll('#manual-break-chips-dynamic .break-chip').forEach(function(c){c.classList.remove('active');});
+}
 function toggleBreakAct(el,act){ var idx=breakActs.indexOf(act); if(idx>=0){breakActs.splice(idx,1);}else{breakActs.push(act);} el.classList.toggle('active',breakActs.includes(act)); }
 async function endBreak(returned){
   stopAlarm(); clearInterval(breakTick); breakTick=null;
@@ -1339,7 +1371,11 @@ async function endBreak(returned){
 var editingSessionId=null, editingTable='focus_sessions';
 function openEditModal(id,table){
   editingTable=table||'focus_sessions'; if (!sb){ alert('Connect Supabase first'); return; }
-  editingSessionId=id; document.getElementById('edit-status').textContent='Loading...'; document.getElementById('edit-modal').classList.add('show');
+  var modal=document.getElementById('edit-modal');
+  modal.classList.remove('break-mode','focus-mode');
+  modal.classList.add(editingTable==='breaks'?'break-mode':'focus-mode');
+  document.getElementById('edit-modal-title').textContent=editingTable==='breaks'?'Edit Break':'Edit Session';
+  editingSessionId=id; document.getElementById('edit-status').textContent='Loading...'; modal.classList.add('show');
   sb.from(editingTable).select('*').eq('id',id).single().then(function(res){
     if (res.error||!res.data){ document.getElementById('edit-status').textContent='✗ Could not load'; return; }
     var s=res.data;
@@ -1347,25 +1383,11 @@ function openEditModal(id,table){
     document.getElementById('edit-seq').value=s.seq!=null?s.seq:''; document.getElementById('edit-start').value=s.start_time?s.start_time.slice(0,8):'';
     document.getElementById('edit-end').value=s.end_time?s.end_time.slice(0,8):'';
     var ssec=s.span_sec!=null?s.span_sec:null;
-    document.getElementById('edit-span-sec').value=ssec!=null?fmtFocusSec(ssec):'';
-    document.getElementById('edit-span').value=ssec!=null?Math.floor(ssec/60):'';
-    document.getElementById('edit-span-sec').oninput=function(){
-      var p=this.value.trim().split(':'),sec=null;
-      if(p.length===2)sec=parseInt(p[0])*60+parseInt(p[1]);
-      else if(p.length===1&&p[0])sec=parseInt(p[0])*60;
-      document.getElementById('edit-span').value=sec!=null&&!isNaN(sec)?Math.floor(sec/60):'';
-    };
-    // focus_sec is authoritative; focus_min is derived
+    var spanEl=document.getElementById('edit-span-sec');
+    if(spanEl) spanEl.value=ssec!=null?fmtFocusSec(ssec):'';
     var fsec=s.focus_sec!=null?s.focus_sec:(s.focus_min!=null?s.focus_min*60:null);
-    document.getElementById('edit-focus-sec').value=fsec!=null?fmtFocusSec(fsec):'';
-    document.getElementById('edit-focus').value=fsec!=null?Math.max(1,Math.floor(fsec/60)):(s.focus_min!=null?s.focus_min:'');
-    // live auto-fill focus_min when M:SS changes
-    document.getElementById('edit-focus-sec').oninput=function(){
-      var p=this.value.trim().split(':'),sec=null;
-      if(p.length===2)sec=parseInt(p[0])*60+parseInt(p[1]);
-      else if(p.length===1&&p[0])sec=parseInt(p[0])*60;
-      document.getElementById('edit-focus').value=sec!=null&&!isNaN(sec)?Math.max(1,Math.floor(sec/60)):'';
-    };
+    var focEl=document.getElementById('edit-focus-sec');
+    if(focEl) focEl.value=fsec!=null?fmtFocusSec(fsec):'';
     document.getElementById('edit-project').value=s.project||'';
     document.getElementById('edit-task').value=s.task||''; document.getElementById('edit-energy').value=s.energy!=null?s.energy:'';
     document.getElementById('edit-note').value=s.note||s.break_note||''; document.getElementById('edit-break-acts').value=s.break_activities||'';
@@ -1378,29 +1400,29 @@ function openEditModal(id,table){
 function closeEditModal(){ document.getElementById('edit-modal').classList.remove('show'); editingSessionId=null; }
 async function saveEdit(){
   if (!sb||!editingSessionId) return;
-  // Parse M:SS from focus-sec field; derive focus_min from it
-  var focusSecRaw=document.getElementById('edit-focus-sec').value.trim();
-  var focusSec=null;
-  if (focusSecRaw){
-    var parts=focusSecRaw.split(':');
-    if (parts.length===2){ focusSec=parseInt(parts[0])*60+parseInt(parts[1])||null; }
-    else if (parts.length===1){ focusSec=parseInt(parts[0])*60||null; }
-  }
-  var focusMin=focusSec!=null?Math.max(1,Math.floor(focusSec/60)):(parseInt(document.getElementById('edit-focus').value)||null);
-  var spanSecRaw=document.getElementById('edit-span-sec').value.trim();
-  var spanSec=null;
-  if (spanSecRaw){
-    var sp=spanSecRaw.split(':');
-    if (sp.length===2){ spanSec=parseInt(sp[0])*60+parseInt(sp[1])||null; }
-    else if (sp.length===1){ spanSec=parseInt(sp[0])*60||null; }
+  function fieldVal(id){ var el=document.getElementById(id); return el?el.value.trim():''; }
+  function parseMSS(raw){ if(!raw) return null; var p=raw.split(':'); if(p.length===2) return parseInt(p[0])*60+(parseInt(p[1])||0)||null; return parseInt(p[0])*60||null; }
+  var startVal=fieldVal('edit-start'), endVal=fieldVal('edit-end'), dateVal=fieldVal('edit-date');
+  var focusSec=parseMSS(fieldVal('edit-focus-sec'));
+  // span: use M:SS field if filled, else recalculate from start/end times
+  var spanSecRaw=fieldVal('edit-span-sec');
+  var spanSec=spanSecRaw?parseMSS(spanSecRaw):null;
+  if (!spanSec&&startVal&&endVal){
+    // compute from times (handles same-day only; for cross-midnight add 86400)
+    var s=startVal.split(':').map(Number), e=endVal.split(':').map(Number);
+    var ss=s[0]*3600+(s[1]||0)*60+(s[2]||0), es=e[0]*3600+(e[1]||0)*60+(e[2]||0);
+    if (es<ss) es+=86400; // cross midnight
+    spanSec=es-ss||null;
   }
   var ratio=(focusSec&&spanSec)?Math.round(focusSec/Math.max(spanSec,1)*100):null;
-  var retVal=document.getElementById('edit-returned').value;
-  var updates={ session_date:document.getElementById('edit-date').value||null, start_time:document.getElementById('edit-start').value||null, end_time:document.getElementById('edit-end').value||null, span_sec:spanSec };
+  var retVal=fieldVal('edit-returned');
+  var updates={ session_date:dateVal||null, start_time:startVal||null, end_time:endVal||null };
   if (editingTable==='focus_sessions'){
-    Object.assign(updates,{ seq:parseInt(document.getElementById('edit-seq').value)||null, focus_sec:focusSec, ratio:ratio, project:document.getElementById('edit-project').value.trim()||null, task:document.getElementById('edit-task').value.trim()||null, task_type:document.getElementById('edit-cat').value||null, energy:parseInt(document.getElementById('edit-energy').value)||null, note:document.getElementById('edit-note').value.trim()||null });
+    Object.assign(updates,{ span_sec:spanSec, focus_sec:focusSec, ratio:ratio, seq:parseInt(fieldVal('edit-seq'))||null, project:fieldVal('edit-project')||null, task:fieldVal('edit-task')||null, task_type:fieldVal('edit-cat')||null, energy:parseInt(fieldVal('edit-energy'))||null, note:fieldVal('edit-note')||null });
   }else{
-    Object.assign(updates,{ break_activities:document.getElementById('edit-break-acts').value.trim()||null, returned:retVal==='true'?true:retVal==='false'?false:null, break_note:document.getElementById('edit-note').value.trim()||null });
+    // breaks: duration is derived from start/end; don't touch span_sec (breaks have no such column)
+    var bDurSec=spanSec||null, bDurMin=bDurSec?Math.floor(bDurSec/60):null;
+    Object.assign(updates,{ break_duration_min:bDurMin, break_activities:fieldVal('edit-break-acts')||null, returned:retVal==='true'?true:retVal==='false'?false:null, break_note:fieldVal('edit-note')||null });
   }
   document.getElementById('edit-status').textContent='Saving...';
   var res=await sb.from(editingTable).update(updates).eq('id',editingSessionId);
@@ -1420,7 +1442,10 @@ function switchLogTab(tab){
   currentLogTab=tab;
   document.getElementById('tab-sessions').classList.toggle('active',tab==='sessions');
   document.getElementById('tab-breaks').classList.toggle('active',tab==='breaks');
+  document.getElementById('tab-checkins-log').classList.toggle('active',tab==='checkins');
   document.getElementById('sessions-table-wrap').style.display=tab==='sessions'?'block':'none';
+  document.getElementById('checkins-log-wrap').style.display=tab==='checkins'?'block':'none';
+  if(tab==='checkins') loadCheckinLogTab();
   document.getElementById('breaks-table-wrap').style.display=tab==='breaks'?'block':'none';
 }
 
@@ -1601,8 +1626,43 @@ window.addEventListener('keydown', function(event){
 })();
 
 // ════════════════════════════════════════════════════════════════
-// CHECK-IN TAB
+// CHECK-IN TAB + LOG TAB SHARED
 // ════════════════════════════════════════════════════════════════
+async function loadCheckinLogTab(){
+  var tbody=document.getElementById('ci-log-body'); if (!tbody) return;
+  if (!sb){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;padding:2rem;">Connect Supabase to load.</td></tr>'; return; }
+  tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;padding:1rem;">Loading…</td></tr>';
+  var since=new Date(); since.setDate(since.getDate()-60);
+  var sinceStr=since.toISOString().slice(0,10);
+  var [ciRes,sessRes]=await Promise.all([
+    sb.from('daily_checkins').select('*').gte('date',sinceStr).order('date',{ascending:false}),
+    sb.from('focus_sessions').select('session_date,focus_sec').gte('session_date',sinceStr)
+  ]);
+  var ciRows=ciRes.data||[], sessRows=sessRes.data||[];
+  var sessMap={};
+  sessRows.forEach(function(s){ if(!sessMap[s.session_date])sessMap[s.session_date]={count:0,focusSec:0}; sessMap[s.session_date].count++; sessMap[s.session_date].focusSec+=(s.focus_sec||0); });
+  var allDates=new Set([...ciRows.map(function(r){return r.date;}),...Object.keys(sessMap)]);
+  var sortedDates=Array.from(allDates).sort().reverse();
+  var ciByDate={}; ciRows.forEach(function(r){ciByDate[r.date]=r;});
+  var energyLabel=['','🪫 Low','😐 Med','⚡ High'];
+  var energyColor=['','#e57373','#9e9e9e','var(--accent)'];
+  if(!sortedDates.length){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;padding:2rem;">No data yet.</td></tr>'; return; }
+  tbody.innerHTML=sortedDates.map(function(d){
+    var ci=ciByDate[d]||{}, sd=sessMap[d]||{count:0,focusSec:0};
+    var eLabel=ci.energy?energyLabel[ci.energy]||'':'—';
+    var eColor=ci.energy?energyColor[ci.energy]||'var(--muted)':'var(--muted)';
+    var isToday=d===isoDate();
+    return '<tr style="'+(isToday?'background:rgba(255,255,255,.03)':'')+'">'+
+      '<td style="font-family:var(--mono);font-size:11px;">'+(isToday?'<span style="color:var(--accent);margin-right:4px;">●</span>':'')+formatDisplayDate(d)+'</td>'+
+      '<td style="font-family:var(--mono);font-size:11px;">'+(ci.sleep_hrs!=null?ci.sleep_hrs+'h':'—')+'</td>'+
+      '<td style="font-family:var(--mono);font-size:11px;">'+(ci.wake_time?ci.wake_time.slice(0,5):'—')+'</td>'+
+      '<td style="font-family:var(--mono);font-size:11px;color:'+eColor+';">'+eLabel+'</td>'+
+      '<td style="font-family:var(--mono);font-size:11px;color:var(--muted);">'+(sd.count?sd.count:'—')+'</td>'+
+      '<td style="font-family:var(--mono);font-size:11px;">'+(sd.focusSec?fmtFocusSec(sd.focusSec):'—')+'</td>'+
+      '<td><button data-ci-date="'+d+'" onclick="openCheckinForm(this.dataset.ciDate);showPage(&quot;checkins&quot;)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:4px 6px;" title="Edit">✎</button></td>'+
+    '</tr>';
+  }).join('');
+}
 var ci2Energy = null;
 
 function setCi2Energy(e){
