@@ -143,6 +143,9 @@ textarea.input-field{resize:vertical;}
 .break-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
 .btn-return{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:12px 32px;border-radius:var(--r);cursor:pointer;background:var(--info);color:#0a0a0a;border:none;font-weight:700;}
 .btn-skip-break{font-family:var(--mono);font-size:11px;padding:12px 20px;border-radius:var(--r);cursor:pointer;background:none;color:var(--muted);border:1px solid var(--border);}
+.btn-snooze{background:none;border:1px solid rgba(255,170,68,.4);color:var(--warn);font-family:var(--mono);font-size:11px;padding:8px 18px;border-radius:var(--r);cursor:pointer;letter-spacing:.06em;transition:background .15s;}
+.btn-snooze:hover{background:rgba(255,170,68,.12);}
+.btn-snooze.snoozed{background:rgba(255,170,68,.18);border-color:var(--warn);}
 .save-msg{font-family:var(--mono);font-size:10px;margin-top:1rem;min-height:16px;color:var(--muted);}
 .save-msg.saving{color:var(--warn);}.save-msg.saved{color:var(--accent);}.save-msg.failed{color:var(--danger);}
 .log-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;}
@@ -267,6 +270,18 @@ td.dim{color:var(--muted);}
     </div>
   </div>
 </nav>
+
+<div id="recovery-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#1a1200;border-bottom:2px solid var(--warn);padding:14px 20px;font-family:var(--mono);font-size:12px;">
+  <div style="max-width:700px;margin:0 auto;">
+    <div style="color:var(--warn);font-weight:700;letter-spacing:.08em;margin-bottom:6px;">⚡ UNSAVED SESSION DETECTED</div>
+    <div id="recovery-detail" style="color:var(--text);margin-bottom:10px;line-height:1.7;"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="recoverSession()" style="background:var(--warn);color:#0a0a0a;border:none;font-family:var(--mono);font-size:11px;font-weight:700;padding:8px 18px;border-radius:var(--r);cursor:pointer;letter-spacing:.08em;">RECOVER SESSION</button>
+      <button onclick="saveRecoveredSession()" style="background:none;border:1px solid var(--warn);color:var(--warn);font-family:var(--mono);font-size:11px;padding:8px 18px;border-radius:var(--r);cursor:pointer;">Save as-is to DB</button>
+      <button onclick="dismissRecovery()" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:11px;padding:8px 18px;border-radius:var(--r);cursor:pointer;">Dismiss</button>
+    </div>
+  </div>
+</div>
 
 <div id="install-banner">
   <p>◆ Install Focus Tracker as a desktop app</p>
@@ -429,6 +444,12 @@ td.dim{color:var(--muted);}
   <div class="bo-lbl">What are you doing?</div>
   <div class="break-chips" id="break-chips-dynamic"></div>
   <textarea class="input-field break-note-field" id="break-note" placeholder="Break note (optional)..." rows="2"></textarea>
+  <div style="display:flex;gap:8px;justify-content:center;margin-bottom:10px;">
+    <button class="btn-snooze" onclick="snoozeBreak(5)">+5 min</button>
+    <button class="btn-snooze" onclick="snoozeBreak(10)">+10 min</button>
+    <button class="btn-snooze" onclick="snoozeBreak(15)">+15 min</button>
+  </div>
+  <div id="snooze-log" style="font-family:var(--mono);font-size:10px;color:var(--warn);text-align:center;min-height:14px;margin-bottom:6px;"></div>
   <div class="break-actions">
     <button class="btn-return" onclick="endBreak(true)">✓ Back to Work</button>
     <button class="btn-skip-break" onclick="endBreak(false)">✗ Didn't Return</button>
@@ -775,20 +796,25 @@ function stopAlarm() { if (!alarmAudio) return; alarmAudio.pause(); alarmAudio.c
 var CIRC = 2 * Math.PI * 120;
 
 var DEFAULT_BREAK_ACTS = [
-  {label:'Phone',   emoji:'📱'}, {label:'Food',      emoji:'🍽'},
-  {label:'Walk',    emoji:'🚶'}, {label:'Bathroom',  emoji:'🚿'},
-  {label:'Nap',     emoji:'😴'}, {label:'Reading',   emoji:'📖'},
-  {label:'Scrolling',emoji:'📲'},{label:'Stretch',   emoji:'🤸'},
-  {label:'Porn',    emoji:'🔞'}
+  {label:'Phone Call', emoji:'📱'}, {label:'Eating',    emoji:'🍽'},
+  {label:'Walk',       emoji:'🚶'}, {label:'Bathroom',  emoji:'🚿'},
+  {label:'Scrolling',  emoji:'📲'}, {label:'Pray',      emoji:'🤲'}
 ];
 var breakActsList = [];
 function loadBreakActs(){
   try{ var s=JSON.parse(localStorage.getItem('ft_break_acts')||'null'); breakActsList=s&&s.length?s:DEFAULT_BREAK_ACTS.slice(); }
   catch(e){ breakActsList=DEFAULT_BREAK_ACTS.slice(); }
   renderBreakChips(); renderBreakActSettings();
-  // also try to load from DB (overwrites local if DB has data)
   dbConfigGet('ft_break_acts').then(function(remote){
-    if(remote&&remote.length){ breakActsList=remote; localStorage.setItem('ft_break_acts',JSON.stringify(remote)); renderBreakChips(); renderBreakActSettings(); }
+    if(remote&&remote!==false&&remote.length){
+      // DB has data — always wins over local defaults
+      breakActsList=remote; localStorage.setItem('ft_break_acts',JSON.stringify(remote));
+      renderBreakChips(); renderBreakActSettings();
+    } else if(remote===false){
+      // DB connected but row doesn't exist yet — seed it with defaults
+      saveBreakActs();
+    }
+    // remote===null means DB not connected; keep local/default silently
   });
 }
 function saveBreakActs(){ localStorage.setItem('ft_break_acts',JSON.stringify(breakActsList)); dbConfigSet('ft_break_acts',breakActsList); }
@@ -825,11 +851,12 @@ function deleteBreakAct(i){ breakActsList.splice(i,1); saveBreakActs(); renderBr
 function updateBreakActLabel(i,val){ val=val.trim(); if(!val) return; breakActsList[i].label=val; saveBreakActs(); renderBreakChips(); }
 function updateBreakActEmoji(i,val){ breakActsList[i].emoji=val.trim(); saveBreakActs(); renderBreakChips(); }
 var DEFAULT_CATS = [
-  { name:'Learn',   emoji:'📚', col:'var(--info)'   },
-  { name:'Build',   emoji:'🔨', col:'var(--accent)' },
-  { name:'Refine',  emoji:'✨', col:'var(--purple)'  },
-  { name:'Network', emoji:'🤝', col:'var(--warn)'   },
-  { name:'Apply',   emoji:'📨', col:'var(--danger)'  }
+  { name:'Learn',  emoji:'📚', col:'var(--info)'   },
+  { name:'Build',  emoji:'🔨', col:'var(--accent)' },
+  { name:'Refine', emoji:'✨', col:'var(--purple)'  },
+  { name:'Work',   emoji:'🤝', col:'var(--warn)'   },
+  { name:'Islam',  emoji:'🤲', col:'var(--text)'   },
+  { name:'Apply',  emoji:'📨', col:'var(--danger)'  }
 ];
 var CAT = {};
 
@@ -849,6 +876,9 @@ var lastSavedSessionId = null, manualBreakActs = [], modalEnergy = null;
 if ('serviceWorker' in navigator)
   window.addEventListener('load', function(){ navigator.serviceWorker.register('./service-worker.js').catch(function(){}); });
 
+document.addEventListener('visibilitychange', function(){
+  if (document.hidden && sessionStart && running) saveRecoverySnapshot();
+});
 window.addEventListener('beforeinstallprompt', function(e){
   e.preventDefault(); deferredInstall = e;
   document.getElementById('install-banner').classList.add('show');
@@ -962,10 +992,11 @@ var CAT_COLORS = ['var(--info)','var(--accent)','var(--purple)','var(--warn)','v
 var CAT_COLOR_LABELS = ['Blue','Green','Purple','Orange','Red','White'];
 // ── app_config helpers ────────────────────────────────────────────────────────
 async function dbConfigGet(key){
-  if (!sb) return null;
+  if (!sb) return null;          // null = DB not connected
   var res=await sb.from('app_config').select('value').eq('key',key).maybeSingle();
-  if (res.error||!res.data) return null;
-  try{ return JSON.parse(res.data.value); }catch(e){ return null; }
+  if (res.error) return null;    // null = error (treat as not connected)
+  if (!res.data) return false;   // false = connected but row doesn't exist yet
+  try{ return JSON.parse(res.data.value); }catch(e){ return false; }
 }
 async function dbConfigSet(key,val){
   if (!sb) return;
@@ -975,13 +1006,17 @@ async function dbConfigSet(key,val){
 function loadCategories(){
   var stored=null; try{ stored=JSON.parse(localStorage.getItem('ft_categories')); }catch(e){}
   if (stored&&stored.length){ CAT={}; stored.forEach(function(c){ CAT[c.name]={emoji:c.emoji||'📌',col:c.col||'var(--muted)'}; }); }
+  else { rebuildCatMap(DEFAULT_CATS); }
   renderCategoryChips(); renderCategorySettings(); renderExcludeUI();
-  // try DB (overwrites local if DB has data)
   dbConfigGet('ft_categories').then(function(remote){
-    if(remote&&remote.length){
+    if(remote&&remote!==false&&remote.length){
+      // DB has data — wins
       CAT={}; remote.forEach(function(c){ CAT[c.name]={emoji:c.emoji||'📌',col:c.col||'var(--muted)'}; });
       localStorage.setItem('ft_categories',JSON.stringify(remote));
       renderCategoryChips(); renderCategorySettings(); renderExcludeUI();
+    } else if(remote===false){
+      // DB connected, no row yet — seed with current (default) categories
+      saveCategories();
     }
   });
 }
@@ -1249,7 +1284,7 @@ function toggleTimer(){
 function startTimer(){
   stopAlarm();
   if (mode!=='pomodoro'){ setMode('pomodoro'); setTimeout(startTimer,50); return; }
-  if (!sessionStart){ sessionStart=new Date(); pausedMs=0; pauseStartMs=null; seqToday++; }
+  if (!sessionStart){ sessionStart=new Date(); pausedMs=0; pauseStartMs=null; seqToday++; startRecoveryInterval(); }
   else if (pauseStartMs!==null){ pausedMs+=Date.now()-pauseStartMs; pauseStartMs=null; }
   running=true;
   document.getElementById('start-btn').textContent='PAUSE';
@@ -1257,10 +1292,11 @@ function startTimer(){
   document.getElementById('flow-hint').textContent='Running — hit "End Session" when ready';
   tickInterval=setInterval(doTick,500);
 }
-function pauseTimer(){ running=false; clearInterval(tickInterval); tickInterval=null; pauseStartMs=Date.now(); document.getElementById('start-btn').textContent='RESUME'; document.getElementById('flow-hint').textContent='Paused — resume or end the session'; }
-function resetTimer(){ clearInterval(tickInterval); tickInterval=null; running=false; sessionStart=null; pausedMs=0; pauseStartMs=null; inOvertime=false; pomodoroCount=Math.max(0,pomodoroCount-1); setMode('pomodoro'); }
+function pauseTimer(){ running=false; clearInterval(tickInterval); tickInterval=null; pauseStartMs=Date.now(); saveRecoverySnapshot(); document.getElementById('start-btn').textContent='RESUME'; document.getElementById('flow-hint').textContent='Paused — resume or end the session'; }
+function resetTimer(){ clearInterval(tickInterval); tickInterval=null; running=false; sessionStart=null; pausedMs=0; pauseStartMs=null; inOvertime=false; pomodoroCount=Math.max(0,pomodoroCount-1); clearRecoverySnapshot(); setMode('pomodoro'); }
 function endSession(keepAlarm){
   if (!keepAlarm) stopAlarm(); clearInterval(tickInterval); tickInterval=null;
+  clearRecoverySnapshot();
   running=false; pomodoroCount++;
   document.getElementById('start-btn').textContent='START';
   document.getElementById('end-btn').classList.remove('show');
@@ -1291,7 +1327,141 @@ function endSession(keepAlarm){
   else{ setMode('pomodoro'); }
 }
 function wallElapsedSecs(){ if (!sessionStart) return 0; return Math.floor(((Date.now()-sessionStart.getTime())-pausedMs)/1000); }
+
+// ── Session recovery ──────────────────────────────────────────
+var RECOVERY_KEY='ft_recovery';
+var recoveryInterval=null;
+
+function saveRecoverySnapshot(){
+  if (!sessionStart) return;
+  var snap={
+    v:2,
+    sessionStartMs: sessionStart.getTime(),
+    pausedMs:       pausedMs,
+    pauseStartMs:   pauseStartMs,
+    running:        running,
+    mode:           mode,
+    seqToday:       seqToday,
+    pomodoroCount:  pomodoroCount,
+    isoDate:        isoDate(),
+    currentCat:     currentCat,
+    currentEnergy:  currentEnergy,
+    currentProjectId: currentProject,
+    currentTaskId:    currentTask,
+    note:           (document.getElementById('session-note')||{}).value||'',
+    savedAt:        Date.now()
+  };
+  localStorage.setItem(RECOVERY_KEY, JSON.stringify(snap));
+}
+
+function clearRecoverySnapshot(){
+  localStorage.removeItem(RECOVERY_KEY);
+  if (recoveryInterval){ clearInterval(recoveryInterval); recoveryInterval=null; }
+}
+
+function startRecoveryInterval(){
+  clearRecoverySnapshot();
+  recoveryInterval=setInterval(saveRecoverySnapshot, 30000); // every 30s
+}
+
+// ── Check for crash recovery on page load ─────────────────────
+function checkRecovery(){
+  var raw=localStorage.getItem(RECOVERY_KEY);
+  if (!raw) return;
+  var snap; try{ snap=JSON.parse(raw); }catch(e){ localStorage.removeItem(RECOVERY_KEY); return; }
+  // Only surface if session started within last 8 hours
+  if (!snap.sessionStartMs||Date.now()-snap.sessionStartMs>8*3600*1000){ localStorage.removeItem(RECOVERY_KEY); return; }
+  var startDt=new Date(snap.sessionStartMs);
+  var elapsed=Math.floor((snap.savedAt-snap.sessionStartMs)/1000);
+  var elMin=Math.floor(elapsed/60), elSec=elapsed%60;
+  var proj='', task='';
+  if (snap.currentProjectId&&projects[snap.currentProjectId]) proj=projects[snap.currentProjectId].name;
+  if (snap.currentTaskId&&snap.currentProjectId&&projects[snap.currentProjectId]) task=projects[snap.currentProjectId].tasks[snap.currentTaskId]||'';
+  var energyLbl=['','🪫 Low','😐 Med','⚡ High'];
+  var detail=[
+    'Started: <b>'+snap.isoDate+' '+fmt24(startDt)+'</b>',
+    'Duration at crash: <b>'+elMin+'m '+elSec+'s</b>',
+    snap.currentCat?'Category: <b>'+snap.currentCat+'</b>':'',
+    proj?'Project: <b>'+proj+(task?' / '+task:'')+'</b>':'',
+    snap.currentEnergy?'Energy: <b>'+energyLbl[snap.currentEnergy]+'</b>':'',
+    snap.note?'Note: <b>'+snap.note+'</b>':''
+  ].filter(Boolean).join(' &nbsp;·&nbsp; ');
+  document.getElementById('recovery-detail').innerHTML=detail;
+  document.getElementById('recovery-banner').style.display='block';
+  // store snap globally for use by recover/save handlers
+  window._pendingRecovery=snap;
+}
+
+function recoverSession(){
+  var snap=window._pendingRecovery; if (!snap) return;
+  document.getElementById('recovery-banner').style.display='none';
+  // Restore all state
+  sessionStart=new Date(snap.sessionStartMs);
+  pausedMs=snap.pausedMs||0;
+  pauseStartMs=snap.pauseStartMs||null;
+  seqToday=snap.seqToday||1;
+  pomodoroCount=snap.pomodoroCount||0;
+  currentCat=snap.currentCat||null;
+  currentEnergy=snap.currentEnergy||null;
+  currentProject=snap.currentProjectId||null;
+  currentTask=snap.currentTaskId||null;
+  if (snap.note) document.getElementById('session-note').value=snap.note;
+  // Restore energy UI
+  if (currentEnergy) setSidebarEnergy(currentEnergy);
+  // Restore category UI
+  if (currentCat) renderCategoryChips();
+  // Restore project/task UI
+  renderProjects(); renderTasks(); updateTaskDisplay();
+  // Restore timer display and start ticking (paused state)
+  var elapsed=wallElapsedSecs();
+  running=false;
+  document.getElementById('start-btn').textContent='RESUME';
+  document.getElementById('end-btn').classList.add('show');
+  document.getElementById('flow-hint').textContent='⚡ Session recovered — resume or end';
+  document.getElementById('flow-hint').className='overtime';
+  // If it was past the target, enter overtime display
+  if (elapsed>=totalSecs){ inOvertime=true; document.getElementById('overtime-badge').classList.add('show'); document.getElementById('ring').style.stroke='var(--warn)'; document.getElementById('timer-display').style.color='var(--warn)'; }
+  doTick();
+  // Start saving again
+  startRecoveryInterval();
+  window._pendingRecovery=null;
+}
+
+async function saveRecoveredSession(){
+  var snap=window._pendingRecovery; if (!snap) return;
+  document.getElementById('recovery-banner').style.display='none';
+  var startDt=new Date(snap.sessionStartMs);
+  var savedAt=new Date(snap.savedAt);
+  var focusSec=Math.floor((snap.savedAt-snap.sessionStartMs)/1000)-(snap.pausedMs||0);
+  var spanSec=Math.floor((snap.savedAt-snap.sessionStartMs)/1000);
+  var ratio=Math.round(focusSec/Math.max(spanSec,1)*100);
+  var proj=snap.currentProjectId&&projects[snap.currentProjectId]?projects[snap.currentProjectId].name:null;
+  var task=snap.currentTaskId&&snap.currentProjectId&&projects[snap.currentProjectId]?projects[snap.currentProjectId].tasks[snap.currentTaskId]:null;
+  var sessRow={
+    session_date:snap.isoDate, start_time:fmt24(startDt), end_time:fmt24(savedAt),
+    span_sec:spanSec, focus_sec:focusSec, ratio:ratio,
+    project:proj||null, task:task||null, task_type:snap.currentCat||null,
+    seq:snap.seqToday||null, energy:snap.currentEnergy||null,
+    note:(snap.note||'')+(snap.note?' [recovered]':'[recovered — crash]')
+  };
+  clearRecoverySnapshot();
+  window._pendingRecovery=null;
+  var id=await dbInsertReturning(sessRow);
+  var hint=document.getElementById('flow-hint');
+  hint.textContent=id?'✓ Recovered session saved to DB':'✗ Save failed — check connection';
+  hint.className=id?'':'overtime';
+  refreshMetrics();
+}
+
+function dismissRecovery(){
+  document.getElementById('recovery-banner').style.display='none';
+  clearRecoverySnapshot();
+  window._pendingRecovery=null;
+}
+var _tickCount=0;
 function doTick(){
+  _tickCount++;
+  if (_tickCount%60===0) saveRecoverySnapshot(); // every ~30s (500ms × 60)
   var elapsed=wallElapsedSecs(), remaining=totalSecs-elapsed;
   if (remaining>0){ setRing(remaining/totalSecs); renderClock(remaining,false); }
   else{
@@ -1305,6 +1475,7 @@ function doTick(){
 function renderClock(secs,isOt){ var abs=Math.abs(secs), m=String(Math.floor(abs/60)).padStart(2,'0'), s=String(abs%60).padStart(2,'0'); document.getElementById('timer-display').textContent=(isOt?'+':'')+m+':'+s; document.title=(isOt?'+':'')+m+':'+s+' · Focus'; }
 function setRing(r){ var ring=document.getElementById('ring'); ring.style.strokeDasharray=CIRC; ring.style.strokeDashoffset=CIRC*(1-Math.max(0,Math.min(1,r))); }
 
+var breakTotalSecs=0, snoozeCount=0;
 function showBreakOverlay(type){
   clearInterval(breakTick); breakTick=null; stopAlarm();
   document.getElementById('break-overlay').classList.add('show');
@@ -1315,18 +1486,36 @@ function showBreakOverlay(type){
   document.getElementById('break-sub').innerHTML=sub;
   document.getElementById('break-note').value=''; document.getElementById('save-msg').textContent=''; document.getElementById('save-msg').className='save-msg';
   document.querySelectorAll('#break-chips-dynamic .break-chip').forEach(function(c){c.classList.remove('active');});
-  breakActs=[]; overdueShown=false; breakAlarmFired=false;
+  document.getElementById('snooze-log').textContent='';
+  document.querySelectorAll('.btn-snooze').forEach(function(b){b.classList.remove('snoozed');});
+  breakActs=[]; overdueShown=false; breakAlarmFired=false; snoozeCount=0;
   document.getElementById('overdue-warn').classList.remove('show');
   document.getElementById('break-clock').className='break-clock';
-  var bTotalSecs=(type==='long'?settings.long:settings.short)*60; breakStart=new Date();
+  breakTotalSecs=(type==='long'?settings.long:settings.short)*60; breakStart=new Date();
   function tickBreak(){
-    var el=Math.floor((Date.now()-breakStart.getTime())/1000), left=bTotalSecs-el;
+    var el=Math.floor((Date.now()-breakStart.getTime())/1000), left=breakTotalSecs-el;
     var abs=Math.abs(left), mm=String(Math.floor(abs/60)).padStart(2,'0'), ss=String(abs%60).padStart(2,'0');
     document.getElementById('break-clock').textContent=(left<0?'+':'')+mm+':'+ss;
     if (left<=0&&!breakAlarmFired){ breakAlarmFired=true; playAlarm(); document.getElementById('break-clock').className='break-clock ended'; }
     if (left<=-(settings.overdue*60)&&!overdueShown){ overdueShown=true; document.getElementById('overdue-warn').classList.add('show'); playAlarm(); }
   }
   tickBreak(); breakTick=setInterval(tickBreak,500);
+}
+function snoozeBreak(extraMin){
+  breakTotalSecs+=extraMin*60;          // extend the target
+  snoozeCount++;
+  breakAlarmFired=false;                 // allow alarm to re-fire at new target
+  stopAlarm();
+  document.getElementById('break-clock').className='break-clock'; // remove 'ended' red
+  // log the snooze activity
+  var label='Snooze +'+extraMin+'m';
+  if(!breakActs.includes(label)) breakActs.push(label);
+  // update snooze label
+  var baseMins=document.getElementById('break-title').textContent==='Long Break'?settings.long:settings.short;
+  var totalExtra=Math.round(breakTotalSecs/60)-baseMins;
+  document.getElementById('snooze-log').textContent='⏰ Snoozed '+snoozeCount+'× · +'+totalExtra+'m added';
+  // highlight the pressed button briefly
+  event.target.classList.add('snoozed');
 }
 async function saveManualBreak(){
   clearInterval(manualBreakTick); manualBreakTick=null; stopAlarm();
@@ -1575,7 +1764,11 @@ function saveSettings(){
   if (!running&&!overlayOpen&&!manualBreakTick){ timeLeft=totalSecs=settings.pomodoro*60; renderClock(timeLeft,false); setRing(1); }
 }
 function toggleSetting(key){ settings[key]=!settings[key]; document.getElementById('tog-'+key).classList.toggle('on',settings[key]); localStorage.setItem('ft_settings',JSON.stringify(settings)); }
-function clearLocalCache(){ if (!confirm('Clear local cache? Supabase data unaffected.')) return; ['ft_settings','ft_daymeta','ft_projects','ft_categories','ft_excluded','ft_break_acts'].forEach(function(k){localStorage.removeItem(k);}); location.reload(); }
+function clearLocalCache(){
+  if (!confirm('Clear local cache? Supabase data is unaffected — categories and break activities will reload from the database.')) return;
+  ['ft_settings','ft_daymeta','ft_projects','ft_categories','ft_excluded','ft_break_acts'].forEach(function(k){localStorage.removeItem(k);});
+  location.reload();
+}
 
 function setSidebarEnergy(e){ currentEnergy=e; document.querySelectorAll('.energy-btn[data-e]').forEach(function(b){b.classList.toggle('active',parseInt(b.dataset.e)===e);}); }
 function applyDefaultEnergy(){ if(settings.defEnergy>0) setSidebarEnergy(settings.defEnergy); else { currentEnergy=null; document.querySelectorAll('.energy-btn[data-e]').forEach(function(b){b.classList.remove('active');}); } }
@@ -1620,7 +1813,7 @@ window.addEventListener('keydown', function(event){
 
 (function init(){
   try{ var raw=JSON.parse(localStorage.getItem('ft_settings')||'{}'); if((raw.short&&raw.short>30)||(raw.long&&raw.long>60)) localStorage.removeItem('ft_settings'); }catch(e){ localStorage.removeItem('ft_settings'); }
-  buildAlarm(); loadSettings(); loadCategories(); loadExcluded(); loadProjects(); loadBreakActs(); applyDefaultEnergy();
+  buildAlarm(); loadSettings(); loadCategories(); loadExcluded(); loadProjects(); loadBreakActs(); applyDefaultEnergy(); checkRecovery();
   setRing(1); initSupabase(); checkDailyCheckin();
   if (!navigator.onLine) document.getElementById('offline-bar').classList.add('show');
 })();
