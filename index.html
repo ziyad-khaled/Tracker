@@ -529,7 +529,7 @@ td.dim{color:var(--muted);}
     <div class="chart-lbl">SQL Playground</div>
     <div class="sql-block"><pre>-- Weekly avg (Sat-Fri, div 7)
 SELECT date_trunc('week', session_date + interval '2 days') - interval '2 days' AS week_sat,
-  ROUND((SUM(focus_min)/7.0)::NUMERIC,1) AS avg_per_day_min
+  ROUND((SUM(focus_sec)/7.0)::NUMERIC,1) AS avg_per_day_min
 FROM focus_sessions GROUP BY week_sat ORDER BY week_sat DESC LIMIT 4;
 
 -- Break return rate by activity
@@ -540,7 +540,7 @@ GROUP BY break_activities ORDER BY n DESC;
 
 -- Sleep vs focus (join tables)
 SELECT ROUND(dc.sleep_hrs::NUMERIC,0) AS sleep_hrs,
-  COUNT(*) AS sessions, ROUND(AVG(fs.focus_min)::NUMERIC,1) AS avg_focus
+  COUNT(*) AS sessions, ROUND(AVG(fs.focus_sec)::NUMERIC,1) AS avg_focus
 FROM focus_sessions fs
 JOIN daily_checkins dc ON dc.date = fs.session_date
 WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div>
@@ -638,6 +638,7 @@ WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div
       <div class="setting-row" style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);">
         <div><div class="setting-name">Week starts on</div><div class="setting-sub">Used for weekly average calculation</div></div>
         <select class="input-field" style="width:90px;padding:6px 8px;" id="set-weekStart" onchange="saveSettings()">
+          <option value="5">Friday</option>
           <option value="6">Saturday</option>
           <option value="0">Sunday</option>
           <option value="1">Monday</option>
@@ -656,6 +657,10 @@ WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div
           <option value="actual">Actual date</option>
           <option value="prev">Previous day</option>
         </select>
+      </div>
+      <div class="setting-row" id="nightcutoff-row" style="display:none;">
+        <div><div class="setting-name">Cutoff hour (0–8)</div><div class="setting-sub">Sessions before this hour count as previous day</div></div>
+        <input type="number" class="input-field w70" id="set-nightCutoff" value="4" min="0" max="8" onchange="saveSettings()">
       </div>
       <div class="setting-row">
         <div><div class="setting-name">Default energy</div><div class="setting-sub">Pre-selected at session start</div></div>
@@ -807,14 +812,11 @@ function loadBreakActs(){
   renderBreakChips(); renderBreakActSettings();
   dbConfigGet('ft_break_acts').then(function(remote){
     if(remote&&remote!==false&&remote.length){
-      // DB has data — always wins over local defaults
       breakActsList=remote; localStorage.setItem('ft_break_acts',JSON.stringify(remote));
       renderBreakChips(); renderBreakActSettings();
     } else if(remote===false){
-      // DB connected but row doesn't exist yet — seed it with defaults
       saveBreakActs();
     }
-    // remote===null means DB not connected; keep local/default silently
   });
 }
 function saveBreakActs(){ localStorage.setItem('ft_break_acts',JSON.stringify(breakActsList)); dbConfigSet('ft_break_acts',breakActsList); }
@@ -861,7 +863,7 @@ var DEFAULT_CATS = [
 var CAT = {};
 
 var sb = null, offlineQueue = [], deferredInstall = null;
-var settings = { pomodoro:25, short:5, long:15, interval:4, overdue:3, flowMode:true, autoBreak:false, autoPomo:false };
+var settings = { pomodoro:25, short:5, long:15, interval:4, overdue:3, flowMode:true, autoBreak:false, autoPomo:false, nightCutoff:4 };
 var excludedFromAvg = {};
 var mode = 'pomodoro', timeLeft = 25*60, totalSecs = 25*60;
 var running = false, tickInterval = null, sessionStart = null;
@@ -990,12 +992,11 @@ function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
 
 var CAT_COLORS = ['var(--info)','var(--accent)','var(--purple)','var(--warn)','var(--danger)','var(--text)'];
 var CAT_COLOR_LABELS = ['Blue','Green','Purple','Orange','Red','White'];
-// ── app_config helpers ────────────────────────────────────────────────────────
 async function dbConfigGet(key){
-  if (!sb) return null;          // null = DB not connected
+  if (!sb) return null;
   var res=await sb.from('app_config').select('value').eq('key',key).maybeSingle();
-  if (res.error) return null;    // null = error (treat as not connected)
-  if (!res.data) return false;   // false = connected but row doesn't exist yet
+  if (res.error) return null;
+  if (!res.data) return false;
   try{ return JSON.parse(res.data.value); }catch(e){ return false; }
 }
 async function dbConfigSet(key,val){
@@ -1010,12 +1011,10 @@ function loadCategories(){
   renderCategoryChips(); renderCategorySettings(); renderExcludeUI();
   dbConfigGet('ft_categories').then(function(remote){
     if(remote&&remote!==false&&remote.length){
-      // DB has data — wins
       CAT={}; remote.forEach(function(c){ CAT[c.name]={emoji:c.emoji||'📌',col:c.col||'var(--muted)'}; });
       localStorage.setItem('ft_categories',JSON.stringify(remote));
       renderCategoryChips(); renderCategorySettings(); renderExcludeUI();
     } else if(remote===false){
-      // DB connected, no row yet — seed with current (default) categories
       saveCategories();
     }
   });
@@ -1100,9 +1099,6 @@ async function dbInsertReturning(sess){
   return res.data?res.data.id:null;
 }
 
-// ── breaks table columns: id, created_at, session_date, start_time, end_time,
-//    break_duration_min, break_activities, overdue, returned, break_note
-//    (NO span_min column — removed to match schema)
 async function dbSave(sess){
   if (!sb){ offlineQueue.push(Object.assign({_isBreak:true},sess)); return false; }
   var row={
@@ -1150,10 +1146,9 @@ async function fetchSessions(limit){
 }
 
 function getWeekBounds(offsetWeeks){
-  var ws=settings.weekStart; // 0=Sun,1=Mon,6=Sat
+  var ws=settings.weekStart;
   var date=new Date(); date.setDate(date.getDate()-(offsetWeeks*7));
   var day=date.getDay();
-  // how many days back to the start of the week
   var diff=((day - ws) + 7) % 7;
   var start=new Date(date); start.setDate(date.getDate()-diff); start.setHours(0,0,0,0);
   var end=new Date(start); end.setDate(start.getDate()+6); end.setHours(23,59,59,999);
@@ -1192,7 +1187,7 @@ async function refreshMetrics(){
   var twRes=await sb.from('focus_sessions').select('focus_sec,task_type').gte('session_date',thisWeek[0]).lte('session_date',thisWeek[1]);
   var twTotal=(twRes.data||[]).reduce(function(a,s){return !excludedFromAvg[s.task_type]?a+Math.floor((s.focus_sec||0)/60):a;},0);
   var twActiveDays=new Set((twRes.data||[]).filter(s=>!excludedFromAvg[s.task_type]).map(s=>s.session_date)).size;
-  var twAvg=Math.round(twTotal/(settings.avgMode==='active'?Math.max(1,twActiveDays):twEl));
+  var twAvg=Math.round(twTotal/(settings.avgMode==='active'?Math.max(1,twActiveDays):7));
   document.getElementById('m-thisweek').textContent=twTotal?twAvg+'m':'—';
   var twDivisor=settings.avgMode==='active'?twActiveDays:twEl;
   document.getElementById('m-thisweek-sub').textContent='day '+twEl+' of 7'+(twActiveDays?' · '+twActiveDays+' active':'');
@@ -1257,13 +1252,15 @@ function _runManualBreak(type){
   clearInterval(tickInterval); tickInterval=null;
   clearInterval(manualBreakTick); manualBreakTick=null; stopAlarm();
   document.querySelectorAll('.mode-btn').forEach(function(b,i){ b.classList.toggle('active',['pomodoro','short','long'][i]===type); });
-  var bTotalSecs=(type==='long'?settings.long:settings.short)*60, bStart=new Date(), bAlarm=false, bOver=false;
+  breakStart=new Date();
+  var bTotalSecs=(type==='long'?settings.long:settings.short)*60, bStart=breakStart, bAlarm=false, bOver=false;
   document.getElementById('timer-label').textContent=type==='long'?'LONG BREAK':'SHORT BREAK';
   document.getElementById('ring').style.stroke='var(--info)'; document.getElementById('timer-display').style.color='';
   document.getElementById('flow-hint').textContent='Break running — click Pomodoro to cancel';
   document.getElementById('start-btn').textContent='STOP BREAK';
   function tick(){
     var el=Math.floor((Date.now()-bStart.getTime())/1000), left=bTotalSecs-el;
+    if(el>0&&el%30===0)saveBreakSnapshot(type,manualBreakActs);
     var abs=Math.abs(left), mm=String(Math.floor(abs/60)).padStart(2,'0'), ss=String(abs%60).padStart(2,'0');
     document.getElementById('timer-display').textContent=(left<0?'+':'')+mm+':'+ss;
     document.title=(left<0?'+':'')+mm+':'+ss+' · Break';
@@ -1328,7 +1325,6 @@ function endSession(keepAlarm){
 }
 function wallElapsedSecs(){ if (!sessionStart) return 0; return Math.floor(((Date.now()-sessionStart.getTime())-pausedMs)/1000); }
 
-// ── Session recovery ──────────────────────────────────────────
 var RECOVERY_KEY='ft_recovery';
 var recoveryInterval=null;
 
@@ -1361,15 +1357,13 @@ function clearRecoverySnapshot(){
 
 function startRecoveryInterval(){
   clearRecoverySnapshot();
-  recoveryInterval=setInterval(saveRecoverySnapshot, 30000); // every 30s
+  recoveryInterval=setInterval(saveRecoverySnapshot, 30000);
 }
 
-// ── Check for crash recovery on page load ─────────────────────
 function checkRecovery(){
   var raw=localStorage.getItem(RECOVERY_KEY);
   if (!raw) return;
   var snap; try{ snap=JSON.parse(raw); }catch(e){ localStorage.removeItem(RECOVERY_KEY); return; }
-  // Only surface if session started within last 8 hours
   if (!snap.sessionStartMs||Date.now()-snap.sessionStartMs>8*3600*1000){ localStorage.removeItem(RECOVERY_KEY); return; }
   var startDt=new Date(snap.sessionStartMs);
   var elapsed=Math.floor((snap.savedAt-snap.sessionStartMs)/1000);
@@ -1388,14 +1382,12 @@ function checkRecovery(){
   ].filter(Boolean).join(' &nbsp;·&nbsp; ');
   document.getElementById('recovery-detail').innerHTML=detail;
   document.getElementById('recovery-banner').style.display='block';
-  // store snap globally for use by recover/save handlers
   window._pendingRecovery=snap;
 }
 
 function recoverSession(){
   var snap=window._pendingRecovery; if (!snap) return;
   document.getElementById('recovery-banner').style.display='none';
-  // Restore all state
   sessionStart=new Date(snap.sessionStartMs);
   pausedMs=snap.pausedMs||0;
   pauseStartMs=snap.pauseStartMs||null;
@@ -1406,23 +1398,17 @@ function recoverSession(){
   currentProject=snap.currentProjectId||null;
   currentTask=snap.currentTaskId||null;
   if (snap.note) document.getElementById('session-note').value=snap.note;
-  // Restore energy UI
   if (currentEnergy) setSidebarEnergy(currentEnergy);
-  // Restore category UI
   if (currentCat) renderCategoryChips();
-  // Restore project/task UI
   renderProjects(); renderTasks(); updateTaskDisplay();
-  // Restore timer display and start ticking (paused state)
   var elapsed=wallElapsedSecs();
   running=false;
   document.getElementById('start-btn').textContent='RESUME';
   document.getElementById('end-btn').classList.add('show');
   document.getElementById('flow-hint').textContent='⚡ Session recovered — resume or end';
   document.getElementById('flow-hint').className='overtime';
-  // If it was past the target, enter overtime display
   if (elapsed>=totalSecs){ inOvertime=true; document.getElementById('overtime-badge').classList.add('show'); document.getElementById('ring').style.stroke='var(--warn)'; document.getElementById('timer-display').style.color='var(--warn)'; }
   doTick();
-  // Start saving again
   startRecoveryInterval();
   window._pendingRecovery=null;
 }
@@ -1458,10 +1444,45 @@ function dismissRecovery(){
   clearRecoverySnapshot();
   window._pendingRecovery=null;
 }
+
+// ── Break snapshot for crash / tab-close recovery ─────────────
+var BREAK_REC_KEY='ft_break_rec';
+function saveBreakSnapshot(type,acts){
+  if(!breakStart)return;
+  try{localStorage.setItem(BREAK_REC_KEY,JSON.stringify({v:1,startMs:breakStart.getTime(),type:type||mode,acts:(acts||[]).slice(),savedAt:Date.now()}));}catch(e){}
+}
+function clearBreakSnapshot(){try{localStorage.removeItem(BREAK_REC_KEY);}catch(e){}}
+function checkBreakRecovery(){
+  var raw;try{raw=localStorage.getItem(BREAK_REC_KEY);}catch(e){return;}
+  if(!raw)return;
+  var snap;try{snap=JSON.parse(raw);}catch(e){clearBreakSnapshot();return;}
+  if(!snap||!snap.startMs||Date.now()-snap.startMs>2*3600*1000){clearBreakSnapshot();return;}
+  var dur=Math.floor((snap.savedAt-snap.startMs)/1000);
+  var mm=Math.floor(dur/60),ss=dur%60;
+  var hint=document.getElementById('flow-hint');
+  if(!hint)return;
+  hint.textContent='⚠ Interrupted break ('+mm+'m '+ss+'s) — click to save or dismiss';
+  hint.className='overtime'; hint.style.cursor='pointer';
+  var s2=snap;
+  hint.onclick=function(){
+    clearBreakSnapshot(); hint.style.cursor=''; hint.onclick=null;
+    var d2=Math.floor((s2.savedAt-s2.startMs)/1000);
+    if(confirm('Save interrupted break to database? Duration: '+Math.floor(d2/60)+'m '+Math.floor(d2%60)+'s. Activities: '+(s2.acts&&s2.acts.length?s2.acts.join(', '):'none'))){
+      var bS=new Date(s2.startMs),bE=new Date(s2.savedAt);
+      dbSave({session_date:bS.toISOString().slice(0,10),start_time:bS.toTimeString().slice(0,8),end_time:bE.toTimeString().slice(0,8),break_duration_min:Math.floor(d2/60),break_activities:s2.acts&&s2.acts.length?s2.acts.join('; '):null,break_note:'[recovered after close/crash]',overdue:false,returned:false}).then(function(ok){
+        hint.textContent=ok?'✓ Break recovered and saved':'✗ Recovery failed — check connection';
+        hint.className=ok?'':'overtime';
+        if(ok)setTimeout(function(){hint.textContent='Start a session to begin tracking';hint.className='';},3000);
+      });
+    }else{
+      hint.textContent='Start a session to begin tracking'; hint.className='';
+    }
+  };
+}
 var _tickCount=0;
 function doTick(){
   _tickCount++;
-  if (_tickCount%60===0) saveRecoverySnapshot(); // every ~30s (500ms × 60)
+  if (_tickCount%60===0) saveRecoverySnapshot();
   var elapsed=wallElapsedSecs(), remaining=totalSecs-elapsed;
   if (remaining>0){ setRing(remaining/totalSecs); renderClock(remaining,false); }
   else{
@@ -1491,9 +1512,10 @@ function showBreakOverlay(type){
   breakActs=[]; overdueShown=false; breakAlarmFired=false; snoozeCount=0;
   document.getElementById('overdue-warn').classList.remove('show');
   document.getElementById('break-clock').className='break-clock';
-  breakTotalSecs=(type==='long'?settings.long:settings.short)*60; breakStart=new Date();
+  breakTotalSecs=(type==='long'?settings.long:settings.short)*60; breakStart=new Date(); saveBreakSnapshot(type,[]);
   function tickBreak(){
     var el=Math.floor((Date.now()-breakStart.getTime())/1000), left=breakTotalSecs-el;
+    if(el>0&&el%30===0)saveBreakSnapshot(type,breakActs);
     var abs=Math.abs(left), mm=String(Math.floor(abs/60)).padStart(2,'0'), ss=String(abs%60).padStart(2,'0');
     document.getElementById('break-clock').textContent=(left<0?'+':'')+mm+':'+ss;
     if (left<=0&&!breakAlarmFired){ breakAlarmFired=true; playAlarm(); document.getElementById('break-clock').className='break-clock ended'; }
@@ -1502,19 +1524,16 @@ function showBreakOverlay(type){
   tickBreak(); breakTick=setInterval(tickBreak,500);
 }
 function snoozeBreak(extraMin){
-  breakTotalSecs+=extraMin*60;          // extend the target
+  breakTotalSecs+=extraMin*60;
   snoozeCount++;
-  breakAlarmFired=false;                 // allow alarm to re-fire at new target
+  breakAlarmFired=false;
   stopAlarm();
-  document.getElementById('break-clock').className='break-clock'; // remove 'ended' red
-  // log the snooze activity
+  document.getElementById('break-clock').className='break-clock';
   var label='Snooze +'+extraMin+'m';
   if(!breakActs.includes(label)) breakActs.push(label);
-  // update snooze label
   var baseMins=document.getElementById('break-title').textContent==='Long Break'?settings.long:settings.short;
   var totalExtra=Math.round(breakTotalSecs/60)-baseMins;
   document.getElementById('snooze-log').textContent='⏰ Snoozed '+snoozeCount+'× · +'+totalExtra+'m added';
-  // highlight the pressed button briefly
   event.target.classList.add('snoozed');
 }
 async function saveManualBreak(){
@@ -1533,10 +1552,12 @@ async function saveManualBreak(){
   }
   manualBreakActs=[];
   document.querySelectorAll('#manual-break-chips-dynamic .break-chip').forEach(function(c){c.classList.remove('active');});
+  clearBreakSnapshot();
+  setMode('pomodoro');
 }
 function toggleBreakAct(el,act){ var idx=breakActs.indexOf(act); if(idx>=0){breakActs.splice(idx,1);}else{breakActs.push(act);} el.classList.toggle('active',breakActs.includes(act)); }
 async function endBreak(returned){
-  stopAlarm(); clearInterval(breakTick); breakTick=null;
+  stopAlarm(); clearInterval(breakTick); breakTick=null; clearBreakSnapshot();
   var breakEnd=new Date(), bDurSec=breakStart?Math.floor((breakEnd.getTime()-breakStart.getTime())/1000):0, bDurMin=Math.floor(bDurSec/60);
   var breakRow={
     session_date:isoDate(), start_time:breakStart?fmt24(breakStart):fmt24(new Date()), end_time:fmt24(breakEnd),
@@ -1593,14 +1614,12 @@ async function saveEdit(){
   function parseMSS(raw){ if(!raw) return null; var p=raw.split(':'); if(p.length===2) return parseInt(p[0])*60+(parseInt(p[1])||0)||null; return parseInt(p[0])*60||null; }
   var startVal=fieldVal('edit-start'), endVal=fieldVal('edit-end'), dateVal=fieldVal('edit-date');
   var focusSec=parseMSS(fieldVal('edit-focus-sec'));
-  // span: use M:SS field if filled, else recalculate from start/end times
   var spanSecRaw=fieldVal('edit-span-sec');
   var spanSec=spanSecRaw?parseMSS(spanSecRaw):null;
   if (!spanSec&&startVal&&endVal){
-    // compute from times (handles same-day only; for cross-midnight add 86400)
     var s=startVal.split(':').map(Number), e=endVal.split(':').map(Number);
     var ss=s[0]*3600+(s[1]||0)*60+(s[2]||0), es=e[0]*3600+(e[1]||0)*60+(e[2]||0);
-    if (es<ss) es+=86400; // cross midnight
+    if (es<ss) es+=86400;
     spanSec=es-ss||null;
   }
   var ratio=(focusSec&&spanSec)?Math.round(focusSec/Math.max(spanSec,1)*100):null;
@@ -1609,7 +1628,6 @@ async function saveEdit(){
   if (editingTable==='focus_sessions'){
     Object.assign(updates,{ span_sec:spanSec, focus_sec:focusSec, ratio:ratio, seq:parseInt(fieldVal('edit-seq'))||null, project:fieldVal('edit-project')||null, task:fieldVal('edit-task')||null, task_type:fieldVal('edit-cat')||null, energy:parseInt(fieldVal('edit-energy'))||null, note:fieldVal('edit-note')||null });
   }else{
-    // breaks: duration is derived from start/end; don't touch span_sec (breaks have no such column)
     var bDurSec=spanSec||null, bDurMin=bDurSec?Math.floor(bDurSec/60):null;
     Object.assign(updates,{ break_duration_min:bDurMin, break_activities:fieldVal('edit-break-acts')||null, returned:retVal==='true'?true:retVal==='false'?false:null, break_note:fieldVal('edit-note')||null });
   }
@@ -1733,9 +1751,10 @@ function loadSettings(){
   settings.interval=Math.min(10,Math.max(2,parseInt(settings.interval)||4));
   settings.overdue=Math.min(20,Math.max(0,parseInt(settings.overdue)||3));
   settings.flowMode=settings.flowMode!==false; settings.autoBreak=settings.autoBreak===true; settings.autoPomo=settings.autoPomo===true;
-  settings.weekStart=[0,1,6].includes(parseInt(settings.weekStart))?parseInt(settings.weekStart):6;
+  settings.weekStart=[0,1,5,6].includes(parseInt(settings.weekStart))?parseInt(settings.weekStart):6;
   settings.avgMode=settings.avgMode==='7'?'7':'active';
   settings.nightDate=settings.nightDate==='prev'?'prev':'actual';
+  settings.nightCutoff=isNaN(parseInt(settings.nightCutoff))||parseInt(settings.nightCutoff)<0?4:Math.min(8,parseInt(settings.nightCutoff));
   settings.defEnergy=[0,1,2,3].includes(parseInt(settings.defEnergy))?parseInt(settings.defEnergy):0;
   localStorage.setItem('ft_settings',JSON.stringify(settings));
   document.getElementById('set-pomodoro').value=settings.pomodoro; document.getElementById('set-short').value=settings.short;
@@ -1747,6 +1766,8 @@ function loadSettings(){
   document.getElementById('set-weekStart').value=settings.weekStart;
   document.getElementById('set-avgMode').value=settings.avgMode;
   document.getElementById('set-nightDate').value=settings.nightDate;
+  var _ncr=document.getElementById('set-nightCutoff'); if(_ncr)_ncr.value=settings.nightCutoff;
+  var _ncrr=document.getElementById('nightcutoff-row'); if(_ncrr)_ncrr.style.display=settings.nightDate==='prev'?'flex':'none';
   document.getElementById('set-defEnergy').value=settings.defEnergy;
 }
 function saveSettings(){
@@ -1758,10 +1779,14 @@ function saveSettings(){
   settings.weekStart=parseInt(document.getElementById('set-weekStart').value)||6;
   settings.avgMode=document.getElementById('set-avgMode').value||'active';
   settings.nightDate=document.getElementById('set-nightDate').value||'actual';
+  settings.nightCutoff=Math.min(8,Math.max(0,parseInt(document.getElementById('set-nightCutoff').value)||4));
   settings.defEnergy=parseInt(document.getElementById('set-defEnergy').value)||0;
   localStorage.setItem('ft_settings',JSON.stringify(settings));
   var overlayOpen=document.getElementById('break-overlay').classList.contains('show');
   if (!running&&!overlayOpen&&!manualBreakTick){ timeLeft=totalSecs=settings.pomodoro*60; renderClock(timeLeft,false); setRing(1); }
+  var ncr=document.getElementById('nightcutoff-row'); if(ncr) ncr.style.display=settings.nightDate==='prev'?'flex':'none';
+  if(sb) refreshMetrics();
+  if(!running&&!sessionStart) applyDefaultEnergy();
 }
 function toggleSetting(key){ settings[key]=!settings[key]; document.getElementById('tog-'+key).classList.toggle('on',settings[key]); localStorage.setItem('ft_settings',JSON.stringify(settings)); }
 function clearLocalCache(){
@@ -1783,8 +1808,7 @@ function updateTaskDisplay(){
 }
 function isoDate(){
   var now=new Date();
-  // if nightDate==='prev' and current hour < 6, count as previous calendar day
-  if (settings.nightDate==='prev' && now.getHours()<6){
+  if (settings.nightDate==='prev' && now.getHours()<(settings.nightCutoff!=null?settings.nightCutoff:4)){
     var prev=new Date(now); prev.setDate(prev.getDate()-1);
     return prev.toISOString().slice(0,10);
   }
@@ -1813,14 +1837,11 @@ window.addEventListener('keydown', function(event){
 
 (function init(){
   try{ var raw=JSON.parse(localStorage.getItem('ft_settings')||'{}'); if((raw.short&&raw.short>30)||(raw.long&&raw.long>60)) localStorage.removeItem('ft_settings'); }catch(e){ localStorage.removeItem('ft_settings'); }
-  buildAlarm(); loadSettings(); loadCategories(); loadExcluded(); loadProjects(); loadBreakActs(); applyDefaultEnergy(); checkRecovery();
+  buildAlarm(); loadSettings(); loadCategories(); loadExcluded(); loadProjects(); loadBreakActs(); applyDefaultEnergy(); checkRecovery(); checkBreakRecovery();
   setRing(1); initSupabase(); checkDailyCheckin();
   if (!navigator.onLine) document.getElementById('offline-bar').classList.add('show');
 })();
 
-// ════════════════════════════════════════════════════════════════
-// CHECK-IN TAB + LOG TAB SHARED
-// ════════════════════════════════════════════════════════════════
 async function loadCheckinLogTab(){
   var tbody=document.getElementById('ci-log-body'); if (!tbody) return;
   if (!sb){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;padding:2rem;">Connect Supabase to load.</td></tr>'; return; }
@@ -1870,7 +1891,6 @@ function openCheckinForm(dateStr){
   document.getElementById('ci2-wake').value = new Date().toTimeString().slice(0,5);
   ci2Energy = null;
   document.querySelectorAll('[data-e2]').forEach(function(b){ b.classList.remove('active'); });
-  // pre-fill if existing row
   if (dateStr && sb){
     sb.from('daily_checkins').select('*').eq('date', dateStr).maybeSingle().then(function(r){
       if (r.data){
@@ -1889,7 +1909,6 @@ async function saveCheckinInline(){
   var d = document.getElementById('ci-inline-form').dataset.editDate || isoDate();
   var sleep = document.getElementById('ci2-sleep').value;
   var wake  = document.getElementById('ci2-wake').value;
-  // also sync the modal meta
   var meta = loadMeta(); meta[d] = Object.assign(meta[d]||{}, {sleep:sleep, wake:wake, energy:ci2Energy, done:true}); saveMeta(meta);
   if (d === isoDate()) updateCheckinSummary(meta[d]);
   document.getElementById('ci-inline-form').style.display = 'none';
@@ -1904,39 +1923,27 @@ async function loadCheckinHistory(){
   var tbody = document.getElementById('ci-history-body'); if (!tbody) return;
   if (!sb){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;padding:2rem;">Connect Supabase to load history.</td></tr>'; return; }
   tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;padding:1.5rem;">Loading…</td></tr>';
-
-  // fetch last 60 days of check-ins and sessions
   var since = new Date(); since.setDate(since.getDate()-60);
   var sinceStr = since.toISOString().slice(0,10);
-
   var [ciRes, sessRes] = await Promise.all([
     sb.from('daily_checkins').select('*').gte('date', sinceStr).order('date', {ascending:false}),
     sb.from('focus_sessions').select('session_date,focus_sec').gte('session_date', sinceStr)
   ]);
-
   var ciRows = ciRes.data || [];
   var sessRows = sessRes.data || [];
-
-  // aggregate sessions by date
   var sessMap = {};
   sessRows.forEach(function(s){
     if (!sessMap[s.session_date]) sessMap[s.session_date] = {count:0, focusSec:0};
     sessMap[s.session_date].count++;
     sessMap[s.session_date].focusSec += (s.focus_sec||0);
   });
-
-  // build a set of all dates that have either a check-in or sessions
   var allDates = new Set([...ciRows.map(function(r){return r.date;}), ...Object.keys(sessMap)]);
   var sortedDates = Array.from(allDates).sort().reverse();
-
   if (!sortedDates.length){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;padding:2rem;">No data yet.</td></tr>'; return; }
-
   var ciByDate = {};
   ciRows.forEach(function(r){ ciByDate[r.date] = r; });
-
   var energyLabel = ['','🪫 Low','😐 Med','⚡ High'];
   var energyColor = ['','#e57373','#9e9e9e','var(--accent)'];
-
   tbody.innerHTML = sortedDates.map(function(d){
     var ci = ciByDate[d] || {};
     var sd = sessMap[d] || {count:0, focusSec:0};
@@ -1954,7 +1961,6 @@ async function loadCheckinHistory(){
     '</tr>';
   }).join('');
 }
-
 </script>
 </body>
 </html>
