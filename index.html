@@ -863,6 +863,7 @@ var DEFAULT_CATS = [
 var CAT = {};
 
 var sb = null, offlineQueue = [], deferredInstall = null;
+var OFFLINE_QUEUE_KEY = 'ft_offline_queue';
 var settings = { pomodoro:25, short:5, long:15, interval:4, overdue:3, flowMode:true, autoBreak:false, autoPomo:false, nightCutoff:4 };
 var excludedFromAvg = {};
 var mode = 'pomodoro', timeLeft = 25*60, totalSecs = 25*60;
@@ -897,6 +898,20 @@ document.getElementById('dismiss-install').addEventListener('click', function(){
 });
 window.addEventListener('online',  function(){ document.getElementById('offline-bar').classList.remove('show'); flushQueue(); });
 window.addEventListener('offline', function(){ document.getElementById('offline-bar').classList.add('show'); });
+
+function loadOfflineQueue(){
+  try{
+    var saved=JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY)||'[]');
+    offlineQueue=Array.isArray(saved)?saved:[];
+  }catch(e){ offlineQueue=[]; }
+}
+function persistOfflineQueue(){
+  try{ localStorage.setItem(OFFLINE_QUEUE_KEY,JSON.stringify(offlineQueue)); }catch(e){ console.warn('offline queue persistence failed',e); }
+}
+function queueOffline(item){
+  offlineQueue.push(item);
+  persistOfflineQueue();
+}
 
 function showCheckinModal(){
   document.getElementById('checkin-date-sub').textContent = formatDisplayDate(isoDate());
@@ -1087,7 +1102,7 @@ function setPill(cls,label){ document.getElementById('db-pill').className='db-pi
 function showConn(cls,text){ var el=document.getElementById('conn-msg'); el.className='conn-msg show '+cls; el.textContent=text; }
 
 async function dbInsertReturning(sess){
-  if (!sb){ offlineQueue.push(sess); return null; }
+  if (!sb){ queueOffline(sess); return null; }
   var row={
     session_date:sess.session_date, start_time:sess.start_time, end_time:sess.end_time,
     span_sec:sess.span_sec, task_type:sess.task_type, focus_sec:sess.focus_sec,
@@ -1095,12 +1110,12 @@ async function dbInsertReturning(sess){
     seq:sess.seq, energy:sess.energy, note:sess.note
   };
   var res=await sb.from('focus_sessions').insert([row]).select('id').single();
-  if (res.error){ console.error('insert error:',res.error.message); offlineQueue.push(sess); return null; }
+  if (res.error){ console.error('insert error:',res.error.message); queueOffline(sess); return null; }
   return res.data?res.data.id:null;
 }
 
 async function dbSave(sess){
-  if (!sb){ offlineQueue.push(Object.assign({_isBreak:true},sess)); return false; }
+  if (!sb){ queueOffline(Object.assign({_isBreak:true},sess)); return false; }
   var row={
     session_date:       sess.session_date,
     start_time:         sess.start_time,
@@ -1112,22 +1127,23 @@ async function dbSave(sess){
     break_note:         sess.break_note          || null
   };
   var res=await sb.from('breaks').insert([row]);
-  if (res.error){ console.error('breaks insert error:',res.error.message); offlineQueue.push(Object.assign({_isBreak:true},sess)); return false; }
+  if (res.error){ console.error('breaks insert error:',res.error.message); queueOffline(Object.assign({_isBreak:true},sess)); return false; }
   return true;
 }
 
 async function flushQueue(){
   if (!sb||!offlineQueue.length) return;
-  var q=offlineQueue.slice(); offlineQueue=[];
-  for (var i=0;i<q.length;i++){
-    var item=q[i];
+  while (sb&&offlineQueue.length){
+    var item=offlineQueue[0], failed=false;
     if (item._isBreak){
       var brow={session_date:item.session_date,start_time:item.start_time,end_time:item.end_time,break_duration_min:item.break_duration_min,break_activities:item.break_activities,overdue:item.overdue||false,returned:item.returned,break_note:item.break_note||null};
-      var res=await sb.from('breaks').insert([brow]); if(res.error) offlineQueue.push(item);
+      var res=await sb.from('breaks').insert([brow]); failed=!!res.error;
     }else{
       var frow=Object.assign({},item); ['_otMin','_isBreak'].forEach(function(k){delete frow[k];});
-      var res2=await sb.from('focus_sessions').insert([frow]); if(res2.error) offlineQueue.push(item);
+      var res2=await sb.from('focus_sessions').insert([frow]); failed=!!res2.error;
     }
+    if (failed){ persistOfflineQueue(); return; }
+    offlineQueue.shift(); persistOfflineQueue();
   }
 }
 
@@ -1152,7 +1168,7 @@ function getWeekBounds(offsetWeeks){
   var diff=((day - ws) + 7) % 7;
   var start=new Date(date); start.setDate(date.getDate()-diff); start.setHours(0,0,0,0);
   var end=new Date(start); end.setDate(start.getDate()+6); end.setHours(23,59,59,999);
-  return [start.toISOString().slice(0,10), end.toISOString().slice(0,10)];
+  return [localDateKey(start), localDateKey(end)];
 }
 function daysElapsedInWeek(){
   var ws=settings.weekStart, day=new Date().getDay();
@@ -1205,9 +1221,9 @@ async function refreshMetrics(){
   else{ dEl.textContent='vs last week'; dEl.className='metric-cell-sub'; }
 }
 
-function setMode(m){
+function setMode(m,preserveAlarm){
   if (running) return;
-  stopAlarm(); mode=m; inOvertime=false; pausedMs=0; pauseStartMs=null;
+  if (!preserveAlarm) stopAlarm(); mode=m; inOvertime=false; pausedMs=0; pauseStartMs=null;
   clearInterval(tickInterval); tickInterval=null;
   clearInterval(manualBreakTick); manualBreakTick=null;
   running=false;
@@ -1320,8 +1336,8 @@ function endSession(keepAlarm){
     hint.className=savedId?'':'overtime';
     refreshMetrics();
   });
-  if (settings.autoBreak){ showBreakOverlay(pomodoroCount%settings.interval===0?'long':'short'); }
-  else{ setMode('pomodoro'); }
+  if (settings.autoBreak){ showBreakOverlay(pomodoroCount%settings.interval===0?'long':'short',keepAlarm); }
+  else{ setMode('pomodoro',keepAlarm); }
 }
 function wallElapsedSecs(){ if (!sessionStart) return 0; return Math.floor(((Date.now()-sessionStart.getTime())-pausedMs)/1000); }
 
@@ -1350,6 +1366,17 @@ function saveRecoverySnapshot(){
   localStorage.setItem(RECOVERY_KEY, JSON.stringify(snap));
 }
 
+function snapshotSpanSecs(snap){
+  if(!snap||!snap.sessionStartMs||!snap.savedAt) return 0;
+  return Math.max(0,Math.floor((snap.savedAt-snap.sessionStartMs)/1000));
+}
+function snapshotFocusSecs(snap){
+  if(!snap) return 0;
+  var paused=Math.max(0,Number(snap.pausedMs)||0);
+  if(snap.pauseStartMs&&snap.pauseStartMs<snap.savedAt) paused+=snap.savedAt-snap.pauseStartMs;
+  return Math.max(0,snapshotSpanSecs(snap)-Math.floor(paused/1000));
+}
+
 function clearRecoverySnapshot(){
   localStorage.removeItem(RECOVERY_KEY);
   if (recoveryInterval){ clearInterval(recoveryInterval); recoveryInterval=null; }
@@ -1366,7 +1393,7 @@ function checkRecovery(){
   var snap; try{ snap=JSON.parse(raw); }catch(e){ localStorage.removeItem(RECOVERY_KEY); return; }
   if (!snap.sessionStartMs||Date.now()-snap.sessionStartMs>8*3600*1000){ localStorage.removeItem(RECOVERY_KEY); return; }
   var startDt=new Date(snap.sessionStartMs);
-  var elapsed=Math.floor((snap.savedAt-snap.sessionStartMs)/1000);
+  var elapsed=snapshotFocusSecs(snap);
   var elMin=Math.floor(elapsed/60), elSec=elapsed%60;
   var proj='', task='';
   if (snap.currentProjectId&&projects[snap.currentProjectId]) proj=projects[snap.currentProjectId].name;
@@ -1374,7 +1401,7 @@ function checkRecovery(){
   var energyLbl=['','🪫 Low','😐 Med','⚡ High'];
   var detail=[
     'Started: <b>'+snap.isoDate+' '+fmt24(startDt)+'</b>',
-    'Duration at crash: <b>'+elMin+'m '+elSec+'s</b>',
+    'Verified focus at interruption: <b>'+elMin+'m '+elSec+'s</b>',
     snap.currentCat?'Category: <b>'+snap.currentCat+'</b>':'',
     proj?'Project: <b>'+proj+(task?' / '+task:'')+'</b>':'',
     snap.currentEnergy?'Energy: <b>'+energyLbl[snap.currentEnergy]+'</b>':'',
@@ -1389,8 +1416,9 @@ function recoverSession(){
   var snap=window._pendingRecovery; if (!snap) return;
   document.getElementById('recovery-banner').style.display='none';
   sessionStart=new Date(snap.sessionStartMs);
-  pausedMs=snap.pausedMs||0;
-  pauseStartMs=snap.pauseStartMs||null;
+  var verifiedFocus=snapshotFocusSecs(snap), nowMs=Date.now();
+  pausedMs=Math.max(0,nowMs-snap.sessionStartMs-(verifiedFocus*1000));
+  pauseStartMs=nowMs;
   seqToday=snap.seqToday||1;
   pomodoroCount=snap.pomodoroCount||0;
   currentCat=snap.currentCat||null;
@@ -1401,7 +1429,7 @@ function recoverSession(){
   if (currentEnergy) setSidebarEnergy(currentEnergy);
   if (currentCat) renderCategoryChips();
   renderProjects(); renderTasks(); updateTaskDisplay();
-  var elapsed=wallElapsedSecs();
+  var elapsed=verifiedFocus;
   running=false;
   document.getElementById('start-btn').textContent='RESUME';
   document.getElementById('end-btn').classList.add('show');
@@ -1418,8 +1446,8 @@ async function saveRecoveredSession(){
   document.getElementById('recovery-banner').style.display='none';
   var startDt=new Date(snap.sessionStartMs);
   var savedAt=new Date(snap.savedAt);
-  var focusSec=Math.floor((snap.savedAt-snap.sessionStartMs)/1000)-(snap.pausedMs||0);
-  var spanSec=Math.floor((snap.savedAt-snap.sessionStartMs)/1000);
+  var focusSec=snapshotFocusSecs(snap);
+  var spanSec=snapshotSpanSecs(snap);
   var ratio=Math.round(focusSec/Math.max(spanSec,1)*100);
   var proj=snap.currentProjectId&&projects[snap.currentProjectId]?projects[snap.currentProjectId].name:null;
   var task=snap.currentTaskId&&snap.currentProjectId&&projects[snap.currentProjectId]?projects[snap.currentProjectId].tasks[snap.currentTaskId]:null;
@@ -1469,7 +1497,7 @@ function checkBreakRecovery(){
     var d2=Math.floor((s2.savedAt-s2.startMs)/1000);
     if(confirm('Save interrupted break to database? Duration: '+Math.floor(d2/60)+'m '+Math.floor(d2%60)+'s. Activities: '+(s2.acts&&s2.acts.length?s2.acts.join(', '):'none'))){
       var bS=new Date(s2.startMs),bE=new Date(s2.savedAt);
-      dbSave({session_date:bS.toISOString().slice(0,10),start_time:bS.toTimeString().slice(0,8),end_time:bE.toTimeString().slice(0,8),break_duration_min:Math.floor(d2/60),break_activities:s2.acts&&s2.acts.length?s2.acts.join('; '):null,break_note:'[recovered after close/crash]',overdue:false,returned:false}).then(function(ok){
+      dbSave({session_date:localDateKey(bS),start_time:bS.toTimeString().slice(0,8),end_time:bE.toTimeString().slice(0,8),break_duration_min:Math.floor(d2/60),break_activities:s2.acts&&s2.acts.length?s2.acts.join('; '):null,break_note:'[recovered after close/crash]',overdue:false,returned:false}).then(function(ok){
         hint.textContent=ok?'✓ Break recovered and saved':'✗ Recovery failed — check connection';
         hint.className=ok?'':'overtime';
         if(ok)setTimeout(function(){hint.textContent='Start a session to begin tracking';hint.className='';},3000);
@@ -1497,8 +1525,8 @@ function renderClock(secs,isOt){ var abs=Math.abs(secs), m=String(Math.floor(abs
 function setRing(r){ var ring=document.getElementById('ring'); ring.style.strokeDasharray=CIRC; ring.style.strokeDashoffset=CIRC*(1-Math.max(0,Math.min(1,r))); }
 
 var breakTotalSecs=0, snoozeCount=0;
-function showBreakOverlay(type){
-  clearInterval(breakTick); breakTick=null; stopAlarm();
+function showBreakOverlay(type,preserveAlarm){
+  clearInterval(breakTick); breakTick=null; if (!preserveAlarm) stopAlarm();
   document.getElementById('break-overlay').classList.add('show');
   document.getElementById('break-title').textContent=type==='long'?'Long Break':'Short Break';
   var otMin=pending?(pending._otMin||0):0, focMin=pending?Math.floor((pending.focus_sec||0)/60):0, seq=pending?(pending.seq||0):0;
@@ -1574,7 +1602,7 @@ async function endBreak(returned){
     pending=null; running=false; sessionStart=null; pausedMs=0; pauseStartMs=null; inOvertime=false;
     timeLeft=settings.pomodoro*60; totalSecs=settings.pomodoro*60; mode='pomodoro';
     setMode('pomodoro'); applyDefaultEnergy(); refreshMetrics();
-    if (settings.autoPomo) setTimeout(startTimer,300);
+    if (settings.autoPomo && returned===true) setTimeout(startTimer,300);
   }, 800);
 }
 
@@ -1715,7 +1743,9 @@ async function exportCSV(){
 
 async function loadAnalytics(){
   if (!sb) return;
-  var sessions=await fetchSessions(10000); if (!sessions.length) return;
+  var allRows=await fetchSessions(10000); if (!allRows.length) return;
+  var sessions=allRows.filter(function(s){ return s.task_type!=='_break'; });
+  var breaks=allRows.filter(function(s){ return s.task_type==='_break'; });
   var totalFocus=sessions.reduce(function(a,s){return a+Math.floor((s.focus_sec||0)/60);},0);
   document.getElementById('an-sessions').textContent=sessions.length;
   document.getElementById('an-focus').textContent=totalFocus>=60?Math.floor(totalFocus/60)+'h '+(totalFocus%60)+'m':totalFocus+'m';
@@ -1738,7 +1768,7 @@ async function loadAnalytics(){
   document.getElementById('focus-bars').innerHTML=days.length?days.map(function(d){var h=Math.round(d[1]/maxM*100);return '<div class="bar-col"><div class="bar" style="height:'+h+'px" title="'+d[0]+': '+d[1]+'min"></div><div class="bar-lbl">'+d[0].slice(5)+'</div></div>';}).join(''):'<span style="color:var(--muted);font-family:var(--mono);font-size:11px;">No data</span>';
   var catMin={}; Object.keys(CAT).forEach(function(k){catMin[k]=0;}); sessions.forEach(function(s){if(s.task_type&&CAT[s.task_type])catMin[s.task_type]+=Math.floor((s.focus_sec||0)/60);});
   document.getElementById('cat-breakdown').innerHTML=Object.entries(catMin).map(function(e){var cat=e[0],min=e[1],h=min>=60?Math.floor(min/60)+'h '+(min%60)+'m':min+'m';return '<div class="cat-an-card"><div class="cat-an-icon">'+CAT[cat].emoji+'</div><div class="cat-an-lbl">'+cat+'</div><div class="cat-an-val" style="color:'+CAT[cat].col+'">'+h+'</div></div>';}).join('');
-  var acts={}; sessions.forEach(function(s){(s.break_activities||'').split('; ').filter(Boolean).forEach(function(a){acts[a]=(acts[a]||0)+1;});});
+  var acts={}; breaks.forEach(function(s){(s.break_activities||'').split('; ').filter(Boolean).forEach(function(a){acts[a]=(acts[a]||0)+1;});});
   var ae=Object.entries(acts).sort(function(a,b){return b[1]-a[1];});
   document.getElementById('break-breakdown').innerHTML=ae.length?ae.map(function(e){return '<div class="break-card"><div class="break-card-lbl">'+e[0]+'</div><div class="break-card-val">'+e[1]+'</div></div>';}).join(''):'<span style="color:var(--muted);font-family:var(--mono);font-size:11px;">No break data yet</span>';
 }
@@ -1806,13 +1836,14 @@ function updateTaskDisplay(){
   if (currentCat&&CAT[currentCat]){ var col=CAT[currentCat].col; pill.textContent=CAT[currentCat].emoji+' '+currentCat; pill.className='task-cat-pill'; pill.style.borderColor=catRgba(col,0.6); pill.style.color=catRgba(col,1); pill.style.background=catRgba(col,0.1); }
   else{ pill.textContent='no category'; pill.className='task-cat-pill'; pill.style.borderColor=''; pill.style.color=''; pill.style.background=''; }
 }
+function localDateKey(date){
+  var d=date||new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
 function isoDate(){
   var now=new Date();
-  if (settings.nightDate==='prev' && now.getHours()<(settings.nightCutoff!=null?settings.nightCutoff:4)){
-    var prev=new Date(now); prev.setDate(prev.getDate()-1);
-    return prev.toISOString().slice(0,10);
-  }
-  return now.toISOString().slice(0,10);
+  if (settings.nightDate==='prev' && now.getHours()<(settings.nightCutoff!=null?settings.nightCutoff:4)) now.setDate(now.getDate()-1);
+  return localDateKey(now);
 }
 function fmt24(d){ return d.toTimeString().slice(0,8); }
 function formatDisplayDate(iso){ var d=new Date(iso+'T12:00:00'); return d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}); }
@@ -1837,7 +1868,7 @@ window.addEventListener('keydown', function(event){
 
 (function init(){
   try{ var raw=JSON.parse(localStorage.getItem('ft_settings')||'{}'); if((raw.short&&raw.short>30)||(raw.long&&raw.long>60)) localStorage.removeItem('ft_settings'); }catch(e){ localStorage.removeItem('ft_settings'); }
-  buildAlarm(); loadSettings(); loadCategories(); loadExcluded(); loadProjects(); loadBreakActs(); applyDefaultEnergy(); checkRecovery(); checkBreakRecovery();
+  buildAlarm(); loadOfflineQueue(); loadSettings(); loadCategories(); loadExcluded(); loadProjects(); loadBreakActs(); applyDefaultEnergy(); checkRecovery(); checkBreakRecovery();
   setRing(1); initSupabase(); checkDailyCheckin();
   if (!navigator.onLine) document.getElementById('offline-bar').classList.add('show');
 })();
@@ -1847,7 +1878,7 @@ async function loadCheckinLogTab(){
   if (!sb){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;padding:2rem;">Connect Supabase to load.</td></tr>'; return; }
   tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;padding:1rem;">Loading…</td></tr>';
   var since=new Date(); since.setDate(since.getDate()-60);
-  var sinceStr=since.toISOString().slice(0,10);
+  var sinceStr=localDateKey(since);
   var [ciRes,sessRes]=await Promise.all([
     sb.from('daily_checkins').select('*').gte('date',sinceStr).order('date',{ascending:false}),
     sb.from('focus_sessions').select('session_date,focus_sec').gte('session_date',sinceStr)
@@ -1924,7 +1955,7 @@ async function loadCheckinHistory(){
   if (!sb){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;padding:2rem;">Connect Supabase to load history.</td></tr>'; return; }
   tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;padding:1.5rem;">Loading…</td></tr>';
   var since = new Date(); since.setDate(since.getDate()-60);
-  var sinceStr = since.toISOString().slice(0,10);
+  var sinceStr = localDateKey(since);
   var [ciRes, sessRes] = await Promise.all([
     sb.from('daily_checkins').select('*').gte('date', sinceStr).order('date', {ascending:false}),
     sb.from('focus_sessions').select('session_date,focus_sec').gte('session_date', sinceStr)
