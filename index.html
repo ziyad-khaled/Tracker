@@ -813,16 +813,42 @@ var CIRC = 2 * Math.PI * 120;
 var DEFAULT_BREAK_ACTS = [
   {label:'Phone Call', emoji:'📱'}, {label:'Eating',    emoji:'🍽'},
   {label:'Walk',       emoji:'🚶'}, {label:'Bathroom',  emoji:'🚿'},
-  {label:'Scrolling',  emoji:'📲'}, {label:'Pray',      emoji:'🤲'}
+  {label:'Scrolling',  emoji:'📲'}, {label:'Pray',      emoji:'🤲'},
+  {label:'YouTube',    emoji:'▶️'}, {label:'Anime',     emoji:'🎬'},
+  {label:'AI',         emoji:'🤖'}, {label:'Cleaning',  emoji:'🧹'},
+  {label:'Tea',        emoji:'🍵'}, {label:'Training',  emoji:'🏋️'},
+  {label:'Quran',      emoji:'📖'}, {label:'Family Time',emoji:'👨‍👩‍👧'},
+  {label:'Orders',     emoji:'📦'}, {label:'CV',        emoji:'📄'},
+  {label:'Getting Ready',emoji:'🧥'}, {label:'Gomla Market',emoji:'🛍️'},
+  {label:'Kamal',      emoji:'👤'}, {label:'Longer Break',emoji:'⏳'},
+  {label:'Match',      emoji:'⚽'}, {label:'Meal Prep', emoji:'🥘'},
+  {label:'PlayStation',emoji:'🎮'}, {label:'Salma',     emoji:'👤'},
+  {label:'Shower',     emoji:'🚿'}, {label:'WhatsApp',  emoji:'💬'},
+  {label:'Work Finish',emoji:'💼'}
 ];
 var breakActsList = [];
+function mergeDefaultBreakActs(list){
+  var merged=[], seen={};
+  (list||[]).concat(DEFAULT_BREAK_ACTS).forEach(function(activity){
+    if(!activity||!activity.label) return;
+    var key=activity.label.trim().toLowerCase();
+    if(!key||seen[key]) return;
+    seen[key]=true;
+    merged.push({label:activity.label.trim(),emoji:(activity.emoji||'').trim()});
+  });
+  return merged;
+}
 function loadBreakActs(){
-  try{ var s=JSON.parse(localStorage.getItem('ft_break_acts')||'null'); breakActsList=s&&s.length?s:DEFAULT_BREAK_ACTS.slice(); }
-  catch(e){ breakActsList=DEFAULT_BREAK_ACTS.slice(); }
+  var s=null;
+  try{ s=JSON.parse(localStorage.getItem('ft_break_acts')||'null'); }catch(e){}
+  breakActsList=mergeDefaultBreakActs(s&&s.length?s:[]);
+  if(!s||breakActsList.length!==s.length) localStorage.setItem('ft_break_acts',JSON.stringify(breakActsList));
   renderBreakChips(); renderBreakActSettings();
   dbConfigGet('ft_break_acts').then(function(remote){
     if(remote&&remote!==false&&remote.length){
-      breakActsList=remote; localStorage.setItem('ft_break_acts',JSON.stringify(remote));
+      var remoteMerged=mergeDefaultBreakActs(remote);
+      breakActsList=remoteMerged; localStorage.setItem('ft_break_acts',JSON.stringify(remoteMerged));
+      if(remoteMerged.length!==remote.length) saveBreakActs();
       renderBreakChips(); renderBreakActSettings();
     } else if(remote===false){
       saveBreakActs();
