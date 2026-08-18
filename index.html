@@ -790,13 +790,23 @@ ALTER TABLE focus_sessions DROP COLUMN span_min;</pre></div>
 <script>
 'use strict';
 
-var alarmAudio = null;
+var alarmAudio = null, alarmStopTimer = null;
 function buildAlarm() {
   try { alarmAudio = new Audio('./alarm.mp3'); alarmAudio.volume = 0.8; alarmAudio.loop = true; alarmAudio.load(); }
   catch(e) { alarmAudio = null; }
 }
-function playAlarm() { if (!alarmAudio) return; if (alarmAudio.paused) { alarmAudio.currentTime = 0; alarmAudio.play().catch(function(){}); } }
-function stopAlarm() { if (!alarmAudio) return; alarmAudio.pause(); alarmAudio.currentTime = 0; }
+function playAlarm(durationMs) {
+  if (!alarmAudio) return;
+  if (alarmStopTimer) { clearTimeout(alarmStopTimer); alarmStopTimer=null; }
+  alarmAudio.currentTime = 0;
+  alarmAudio.play().catch(function(){});
+  if (durationMs&&durationMs>0) alarmStopTimer=setTimeout(stopAlarm,durationMs);
+}
+function stopAlarm() {
+  if (alarmStopTimer) { clearTimeout(alarmStopTimer); alarmStopTimer=null; }
+  if (!alarmAudio) return;
+  alarmAudio.pause(); alarmAudio.currentTime = 0;
+}
 
 var CIRC = 2 * Math.PI * 120;
 
@@ -1268,34 +1278,14 @@ function toggleManualBreakAct(el,act){
   el.classList.toggle('active',manualBreakActs.includes(act));
 }
 function _runManualBreak(type){
-  manualBreakActs=[]; document.querySelectorAll('#manual-break-chips-dynamic .break-chip').forEach(function(c){c.classList.remove('active');});
-  document.getElementById('manual-break-panel').style.display='block';
-  if (running) pauseTimer();
+  clearInterval(manualBreakTick); manualBreakTick=null;
   clearInterval(tickInterval); tickInterval=null;
-  clearInterval(manualBreakTick); manualBreakTick=null; stopAlarm();
-  document.querySelectorAll('.mode-btn').forEach(function(b,i){ b.classList.toggle('active',['pomodoro','short','long'][i]===type); });
-  breakStart=new Date();
-  var bTotalSecs=(type==='long'?settings.long:settings.short)*60, bStart=breakStart, bAlarm=false, bOver=false;
-  document.getElementById('timer-label').textContent=type==='long'?'LONG BREAK':'SHORT BREAK';
-  document.getElementById('ring').style.stroke='var(--info)'; document.getElementById('timer-display').style.color='';
-  document.getElementById('flow-hint').textContent='Break running — click Pomodoro to cancel';
-  document.getElementById('start-btn').textContent='STOP BREAK';
-  function tick(){
-    var el=Math.floor((Date.now()-bStart.getTime())/1000), left=bTotalSecs-el;
-    if(el>0&&el%30===0)saveBreakSnapshot(type,manualBreakActs);
-    var abs=Math.abs(left), mm=String(Math.floor(abs/60)).padStart(2,'0'), ss=String(abs%60).padStart(2,'0');
-    document.getElementById('timer-display').textContent=(left<0?'+':'')+mm+':'+ss;
-    document.title=(left<0?'+':'')+mm+':'+ss+' · Break';
-    setRing(Math.max(0,left/bTotalSecs));
-    if (left<=0&&!bAlarm){ bAlarm=true; playAlarm(); document.getElementById('flow-hint').textContent='Break over! Click Pomodoro to start next session'; }
-    if (left<=-(settings.overdue*60)&&!bOver){ bOver=true; playAlarm(); }
-  }
-  tick(); manualBreakTick=setInterval(tick,500);
+  running=false;
+  showBreakOverlay(type,false,true);
 }
 function toggleTimer(){
   if (mode==='short'||mode==='long'){
-    if (manualBreakTick){ saveManualBreak(); }
-    else { _runManualBreak(mode); }
+    _runManualBreak(mode);
     return;
   }
   if (running){ pauseTimer(); }else{ startTimer(); }
@@ -1522,7 +1512,7 @@ function doTick(){
   else{
     if (!inOvertime){
       if (settings.flowMode){ inOvertime=true; document.getElementById('overtime-badge').classList.add('show'); document.getElementById('ring').style.stroke='var(--warn)'; document.getElementById('timer-display').style.color='var(--warn)'; document.getElementById('flow-hint').textContent='Target reached — keep going or end when ready'; document.getElementById('flow-hint').className='overtime'; }
-      else{ playAlarm(); endSession(true); return; }
+      else{ endSession(false); playAlarm(2000); return; }
     }
     var ot=elapsed-totalSecs; setRing(Math.min(1,ot/totalSecs)); renderClock(ot,true);
   }
@@ -1531,13 +1521,13 @@ function renderClock(secs,isOt){ var abs=Math.abs(secs), m=String(Math.floor(abs
 function setRing(r){ var ring=document.getElementById('ring'); ring.style.strokeDasharray=CIRC; ring.style.strokeDashoffset=CIRC*(1-Math.max(0,Math.min(1,r))); }
 
 var breakTotalSecs=0, snoozeCount=0;
-function showBreakOverlay(type,preserveAlarm){
+function showBreakOverlay(type,preserveAlarm,isManual){
   clearInterval(breakTick); breakTick=null; if (!preserveAlarm) stopAlarm();
   document.getElementById('break-overlay').classList.add('show');
-  document.getElementById('break-title').textContent=type==='long'?'Long Break':'Short Break';
+  document.getElementById('break-title').textContent=(isManual?'Manual ':'')+(type==='long'?'Long Break':'Short Break');
   var otMin=pending?(pending._otMin||0):0, focMin=pending?Math.floor((pending.focus_sec||0)/60):0, seq=pending?(pending.seq||0):0;
-  var sub='Session #'+seq+' · <b>'+focMin+'</b> min focused';
-  if (otMin>0) sub+=' <span class="ot">(+'+otMin+'m flow)</span>';
+  var sub=isManual?'Manual break · choose activities and log your return outcome':'Session #'+seq+' · <b>'+focMin+'</b> min focused';
+  if (!isManual&&otMin>0) sub+=' <span class="ot">(+'+otMin+'m flow)</span>';
   document.getElementById('break-sub').innerHTML=sub;
   document.getElementById('break-note').value=''; document.getElementById('save-msg').textContent=''; document.getElementById('save-msg').className='save-msg';
   document.querySelectorAll('#break-chips-dynamic .break-chip').forEach(function(c){c.classList.remove('active');});
