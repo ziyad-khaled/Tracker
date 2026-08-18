@@ -817,22 +817,20 @@ var DEFAULT_BREAK_ACTS = [
   {label:'YouTube',    emoji:'▶️'}, {label:'Anime',     emoji:'🎬'},
   {label:'AI',         emoji:'🤖'}, {label:'Cleaning',  emoji:'🧹'},
   {label:'Tea',        emoji:'🍵'}, {label:'Training',  emoji:'🏋️'},
-  {label:'Quran',      emoji:'📖'}, {label:'Family Time',emoji:'👨‍👩‍👧'},
-  {label:'Orders',     emoji:'📦'}, {label:'CV',        emoji:'📄'},
-  {label:'Getting Ready',emoji:'🧥'}, {label:'Gomla Market',emoji:'🛍️'},
-  {label:'Kamal',      emoji:'👤'}, {label:'Longer Break',emoji:'⏳'},
-  {label:'Match',      emoji:'⚽'}, {label:'Meal Prep', emoji:'🥘'},
-  {label:'PlayStation',emoji:'🎮'}, {label:'Salma',     emoji:'👤'},
-  {label:'Shower',     emoji:'🚿'}, {label:'WhatsApp',  emoji:'💬'},
-  {label:'Work Finish',emoji:'💼'}
+  {label:'Quran',      emoji:'📖'}
 ];
+var RETIRED_ONE_OFF_BREAK_ACTS = new Set([
+  'family time','orders','cv','getting ready','gomla market','kamal',
+  'longer break','match','meal prep','playstation','salma','shower',
+  'whatsapp','work finish'
+]);
 var breakActsList = [];
 function mergeDefaultBreakActs(list){
   var merged=[], seen={};
   (list||[]).concat(DEFAULT_BREAK_ACTS).forEach(function(activity){
     if(!activity||!activity.label) return;
     var key=activity.label.trim().toLowerCase();
-    if(!key||seen[key]) return;
+    if(!key||seen[key]||RETIRED_ONE_OFF_BREAK_ACTS.has(key)) return;
     seen[key]=true;
     merged.push({label:activity.label.trim(),emoji:(activity.emoji||'').trim()});
   });
