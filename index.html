@@ -1174,6 +1174,12 @@ function daysElapsedInWeek(){
   var ws=settings.weekStart, day=new Date().getDay();
   return ((day - ws) + 7) % 7 + 1;
 }
+function weeklyAverageDivisor(activeDays){
+  return settings.avgMode==='active'?Math.max(1,activeDays):7;
+}
+function weeklyAverageLabel(divisor,activeDays){
+  return 'avg ÷'+divisor+' · '+activeDays+' active day'+(activeDays!==1?'s':'');
+}
 function weekTotal(sessions,bounds,exclude){
   var total=0;
   sessions.forEach(function(s){ if(s.session_date>=bounds[0]&&s.session_date<=bounds[1]){ if(!exclude||!exclude[s.task_type]) total+=Math.floor((s.focus_sec||0)/60); } });
@@ -1203,19 +1209,19 @@ async function refreshMetrics(){
   var twRes=await sb.from('focus_sessions').select('focus_sec,task_type').gte('session_date',thisWeek[0]).lte('session_date',thisWeek[1]);
   var twTotal=(twRes.data||[]).reduce(function(a,s){return !excludedFromAvg[s.task_type]?a+Math.floor((s.focus_sec||0)/60):a;},0);
   var twActiveDays=new Set((twRes.data||[]).filter(s=>!excludedFromAvg[s.task_type]).map(s=>s.session_date)).size;
-  var twAvg=Math.round(twTotal/(settings.avgMode==='active'?Math.max(1,twActiveDays):7));
+  var twDivisor=weeklyAverageDivisor(twActiveDays);
+  var twAvg=Math.round(twTotal/twDivisor);
   document.getElementById('m-thisweek').textContent=twTotal?twAvg+'m':'—';
-  var twDivisor=settings.avgMode==='active'?twActiveDays:twEl;
-  document.getElementById('m-thisweek-sub').textContent='day '+twEl+' of 7'+(twActiveDays?' · '+twActiveDays+' active':'');
+  document.getElementById('m-thisweek-sub').textContent='day '+twEl+' of 7 · '+weeklyAverageLabel(twDivisor,twActiveDays);
   var lwRes=await sb.from('focus_sessions').select('focus_sec,session_date,task_type').gte('session_date',lastWeek[0]).lte('session_date',lastWeek[1]);
   var lwData=lwRes.data||[];
   var lwTotal=lwData.reduce(function(a,s){return !excludedFromAvg[s.task_type]?a+Math.floor((s.focus_sec||0)/60):a;},0);
   var lwDays={}; lwData.forEach(function(s){if(!excludedFromAvg[s.task_type])lwDays[s.session_date]=1;});
   var lwActiveDays=Object.keys(lwDays).length;
-  var lwAvg=Math.round(lwTotal/(settings.avgMode==='active'?Math.max(1,lwActiveDays):7));
-  var lwCount=Object.keys(lwDays).length;
+  var lwDivisor=weeklyAverageDivisor(lwActiveDays);
+  var lwAvg=Math.round(lwTotal/lwDivisor);
   document.getElementById('m-lastweek').textContent=lwTotal?lwAvg+'m':'—';
-  document.getElementById('m-lastweek-sub').textContent=lwCount?(lwCount+' active day'+(lwCount!==1?'s':'')+' (÷'+(settings.avgMode==='active'?lwActiveDays:7)+')'):'no sessions';
+  document.getElementById('m-lastweek-sub').textContent=lwTotal?weeklyAverageLabel(lwDivisor,lwActiveDays):'no sessions';
   var dEl=document.getElementById('m-week-delta');
   if (twAvg&&lwAvg){ var diff=twAvg-lwAvg; if(diff>0){dEl.textContent='▲ '+diff+'m vs last week';dEl.className='metric-cell-sub metric-up';}else if(diff<0){dEl.textContent='▼ '+Math.abs(diff)+'m vs last week';dEl.className='metric-cell-sub metric-down';}else{dEl.textContent='= same as last week';dEl.className='metric-cell-sub metric-same';} }
   else{ dEl.textContent='vs last week'; dEl.className='metric-cell-sub'; }
@@ -1754,14 +1760,16 @@ async function loadAnalytics(){
   var twEl=daysElapsedInWeek();
   var twActiveDays2=new Set(sessions.filter(s=>s.session_date>=thisWeek[0]&&s.session_date<=thisWeek[1]&&!excludedFromAvg[s.task_type]).map(s=>s.session_date)).size;
   var lwActiveDays2=new Set(sessions.filter(s=>s.session_date>=lastWeek[0]&&s.session_date<=lastWeek[1]&&!excludedFromAvg[s.task_type]).map(s=>s.session_date)).size;
-  var twAvg=Math.round(twTotal/(settings.avgMode==='active'?Math.max(1,twActiveDays2):twEl));
-  var lwAvg=Math.round(lwTotal/(settings.avgMode==='active'?Math.max(1,lwActiveDays2):7));
+  var twDivisor=weeklyAverageDivisor(twActiveDays2);
+  var lwDivisor=weeklyAverageDivisor(lwActiveDays2);
+  var twAvg=Math.round(twTotal/twDivisor);
+  var lwAvg=Math.round(lwTotal/lwDivisor);
   var twDays={}, lwDays={};
   sessions.forEach(function(s){ if(s.session_date>=thisWeek[0]&&s.session_date<=thisWeek[1]) twDays[s.session_date]=1; if(s.session_date>=lastWeek[0]&&s.session_date<=lastWeek[1]) lwDays[s.session_date]=1; });
   document.getElementById('an-thisweek').textContent=twAvg?twAvg+'m':'—';
-  document.getElementById('an-thisweek-sub').textContent='day '+twEl+' of 7 · '+Object.keys(twDays).length+' active';
+  document.getElementById('an-thisweek-sub').textContent='day '+twEl+' of 7 · '+weeklyAverageLabel(twDivisor,Object.keys(twDays).length);
   document.getElementById('an-lastweek').textContent=lwAvg?lwAvg+'m':'—';
-  document.getElementById('an-lastweek-sub').textContent=Object.keys(lwDays).length+' active days (÷7)';
+  document.getElementById('an-lastweek-sub').textContent=weeklyAverageLabel(lwDivisor,Object.keys(lwDays).length);
   var daily={}; sessions.forEach(function(s){if(s.session_date)daily[s.session_date]=(daily[s.session_date]||0)+Math.floor((s.focus_sec||0)/60);});
   var days=Object.entries(daily).sort(function(a,b){return a[0]<b[0]?-1:1;}).slice(-14);
   var maxM=Math.max.apply(null,days.map(function(d){return d[1];}).concat([1]));
