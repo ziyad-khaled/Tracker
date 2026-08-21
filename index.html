@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
+<!-- saved from url=(0102)https://files.manuscdn.com/user_upload_by_module/session_file/310519663892874820/LiHBckTVxYScvXeI.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0a0a0a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Focus">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="https://files.manuscdn.com/user_upload_by_module/session_file/310519663892874820/icons/icon-192.png">
 <title>Focus Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="./Focus Tracker_files/css2" rel="stylesheet">
 <style>
 :root {
   --bg:#0a0a0a; --surface:#111; --surface2:#1a1a1a; --border:#222;
@@ -232,10 +232,10 @@ td.dim{color:var(--muted);}
 <body>
 <div id="offline-bar">You are offline — sessions will sync when connection is restored</div>
 
-<div id="checkin-modal">
+<div id="checkin-modal" class="show">
   <div class="checkin-box">
     <div class="checkin-heading">Good day 👋</div>
-    <div class="checkin-sub" id="checkin-date-sub">Today's check-in</div>
+    <div class="checkin-sub" id="checkin-date-sub">Saturday, August 22</div>
     <div class="checkin-field"><label>Sleep last night (hours)</label><input type="number" class="input-field" id="ci-sleep" placeholder="7.5" min="0" max="24" step="0.5"></div>
     <div class="checkin-field"><label>Wake time</label><input type="time" class="input-field" id="ci-wake"></div>
     <div class="checkin-field"><label>Energy level</label>
@@ -253,20 +253,20 @@ td.dim{color:var(--muted);}
 <nav>
   <div class="logo">
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <polygon points="10,2 18,10 10,18 2,10" fill="#c8f04a"/>
-      <polygon points="10,6 14,10 10,14 6,10" fill="#0a0a0a"/>
-      <circle cx="10" cy="10" r="2" fill="#c8f04a"/>
+      <polygon points="10,2 18,10 10,18 2,10" fill="#c8f04a"></polygon>
+      <polygon points="10,6 14,10 10,14 6,10" fill="#0a0a0a"></polygon>
+      <circle cx="10" cy="10" r="2" fill="#c8f04a"></circle>
     </svg>
     FOCUS TRACKER
   </div>
   <div class="nav-right">
     <div class="db-pill" id="db-pill"><div class="db-dot"></div><span id="db-label">not connected</span></div>
     <div class="nav-tabs">
-      <button class="nav-tab active" onclick="showPage('timer')">Timer</button>
-      <button class="nav-tab" onclick="showPage('log')">Log</button>
-      <button class="nav-tab" onclick="showPage('analytics')">Analytics</button>
-      <button class="nav-tab" onclick="showPage('checkins')">Check-in</button>
-      <button class="nav-tab" onclick="showPage('settings')">Settings</button>
+      <button class="nav-tab active" onclick="showPage(&#39;timer&#39;)">Timer</button>
+      <button class="nav-tab" onclick="showPage(&#39;log&#39;)">Log</button>
+      <button class="nav-tab" onclick="showPage(&#39;analytics&#39;)">Analytics</button>
+      <button class="nav-tab" onclick="showPage(&#39;checkins&#39;)">Check-in</button>
+      <button class="nav-tab" onclick="showPage(&#39;settings&#39;)">Settings</button>
     </div>
   </div>
 </nav>
@@ -290,9 +290,9 @@ td.dim{color:var(--muted);}
     <button class="dismiss-btn" id="dismiss-install">✕</button>
   </div>
 </div>
-<div class="setup-banner hidden" id="setup-banner">
+<div class="setup-banner" id="setup-banner">
   <p>⚠ Supabase not connected — sessions won't be saved</p>
-  <button class="btn-ghost" style="padding:6px 14px;font-size:11px;" onclick="showPage('settings')">Settings →</button>
+  <button class="btn-ghost" style="padding:6px 14px;font-size:11px;" onclick="showPage(&#39;settings&#39;)">Settings →</button>
 </div>
 
 <!-- TIMER PAGE -->
@@ -300,15 +300,15 @@ td.dim{color:var(--muted);}
   <div class="timer-layout">
     <div>
       <div class="mode-tabs">
-        <button class="mode-btn active" onclick="setMode('pomodoro')">Pomodoro</button>
-        <button class="mode-btn" onclick="setBreakMode('short')">Short Break</button>
-        <button class="mode-btn" onclick="setBreakMode('long')">Long Break</button>
+        <button class="mode-btn active" onclick="setMode(&#39;pomodoro&#39;)">Pomodoro</button>
+        <button class="mode-btn" onclick="setBreakMode(&#39;short&#39;)">Short Break</button>
+        <button class="mode-btn" onclick="setBreakMode(&#39;long&#39;)">Long Break</button>
       </div>
       <div class="ring-wrap">
         <div class="ring-container">
           <svg viewBox="0 0 260 260" width="260" height="260">
-            <circle class="ring-bg" cx="130" cy="130" r="120"/>
-            <circle class="ring-fg" id="ring" cx="130" cy="130" r="120"/>
+            <circle class="ring-bg" cx="130" cy="130" r="120"></circle>
+            <circle class="ring-fg" id="ring" cx="130" cy="130" r="120" style="stroke-dasharray: 753.982; stroke-dashoffset: 0;"></circle>
           </svg>
           <div class="ring-center">
             <div id="overtime-badge">IN FLOW +</div>
@@ -330,7 +330,7 @@ td.dim{color:var(--muted);}
         <div id="flow-hint">Start a session to begin tracking</div>
         <div id="manual-break-panel" style="display:none;margin-top:10px;width:100%;max-width:360px;text-align:center;">
           <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Break Activity</div>
-          <div id="manual-break-chips-dynamic" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:8px;"></div>
+          <div id="manual-break-chips-dynamic" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:8px;"><button class="break-chip" data-act="Phone Call" data-fn="toggleManualBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">📱 Phone Call</button><button class="break-chip" data-act="Eating" data-fn="toggleManualBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">🍽 Eating</button><button class="break-chip" data-act="Walk" data-fn="toggleManualBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">🚶 Walk</button><button class="break-chip" data-act="Bathroom" data-fn="toggleManualBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">🚿 Bathroom</button><button class="break-chip" data-act="Scrolling" data-fn="toggleManualBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">📲 Scrolling</button><button class="break-chip" data-act="Pray" data-fn="toggleManualBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">🤲 Pray</button><button class="break-chip" data-act="YouTube" data-fn="toggleManualBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">▶️ YouTube</button><button class="break-chip" data-act="Anime" data-fn="toggleManualBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">🎬 Anime</button><button class="break-chip" data-act="AI" data-fn="toggleManualBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">🤖 AI</button><button class="break-chip" data-act="Cleaning" data-fn="toggleManualBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">🧹 Cleaning</button><button class="break-chip" data-act="Tea" data-fn="toggleManualBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">🍵 Tea</button><button class="break-chip" data-act="Training" data-fn="toggleManualBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">🏋️ Training</button><button class="break-chip" data-act="Quran" data-fn="toggleManualBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">📖 Quran</button></div>
         </div>
         <div class="metrics-row">
           <div class="metric-cell">
@@ -339,14 +339,14 @@ td.dim{color:var(--muted);}
             <div class="metric-cell-sub" id="m-today-sub">0 sessions</div>
           </div>
           <div class="metric-cell">
-            <div class="metric-cell-lbl">This Week avg/day</div>
+            <div class="metric-cell-lbl">Last 7 days avg/day</div>
             <div class="metric-cell-val" id="m-thisweek">—</div>
-            <div class="metric-cell-sub" id="m-thisweek-sub">Sat → Fri</div>
+            <div class="metric-cell-sub" id="m-thisweek-sub">moving window</div>
           </div>
           <div class="metric-cell">
-            <div class="metric-cell-lbl">Last Week avg/day</div>
+            <div class="metric-cell-lbl">Previous 7 days avg/day</div>
             <div class="metric-cell-val" id="m-lastweek">—</div>
-            <div class="metric-cell-sub" id="m-lastweek-sub">÷ 7 days</div>
+            <div class="metric-cell-sub" id="m-lastweek-sub">moving window</div>
             <div class="metric-cell-sub" id="m-week-delta" style="margin-top:2px;">—</div>
           </div>
         </div>
@@ -355,9 +355,9 @@ td.dim{color:var(--muted);}
     <div>
       <div class="sb-section">
         <div class="sb-label">Project</div>
-        <div class="proj-list" id="proj-list"></div>
+        <div class="proj-list" id="proj-list"><div style="font-family:var(--mono);font-size:10px;color:var(--muted);padding:4px 0;">No projects yet</div></div>
         <div class="add-row">
-          <input type="text" class="input-field" id="new-proj-input" placeholder="New project..." onkeydown="if(event.key==='Enter')addProject()">
+          <input type="text" class="input-field" id="new-proj-input" placeholder="New project..." onkeydown="if(event.key===&#39;Enter&#39;)addProject()">
           <button class="btn-add" onclick="addProject()">+ Add</button>
         </div>
       </div>
@@ -365,13 +365,13 @@ td.dim{color:var(--muted);}
         <div class="sb-label">Task <span id="proj-name-lbl" style="color:var(--accent);"></span></div>
         <div class="task-list" id="task-list"></div>
         <div class="add-row">
-          <input type="text" class="input-field" id="new-task-input" placeholder="New task..." onkeydown="if(event.key==='Enter')addTask()">
+          <input type="text" class="input-field" id="new-task-input" placeholder="New task..." onkeydown="if(event.key===&#39;Enter&#39;)addTask()">
           <button class="btn-add" onclick="addTask()">+ Add</button>
         </div>
       </div>
       <div class="sb-section">
         <div class="sb-label">Category</div>
-        <div class="cat-grid" id="cat-grid-dynamic"></div>
+        <div class="cat-grid" id="cat-grid-dynamic"><button class="cat-chip" data-cat="Learn" onclick="setCategory(&#39;Learn&#39;)" style="border-color:rgba(95,180,255,0.25);color:rgba(95,180,255,0.55);"><span class="cat-emoji">📚</span>Learn</button><button class="cat-chip" data-cat="Build" onclick="setCategory(&#39;Build&#39;)" style="border-color:rgba(200,240,74,0.25);color:rgba(200,240,74,0.55);"><span class="cat-emoji">🔨</span>Build</button><button class="cat-chip" data-cat="Refine" onclick="setCategory(&#39;Refine&#39;)" style="border-color:rgba(181,123,255,0.25);color:rgba(181,123,255,0.55);"><span class="cat-emoji">✨</span>Refine</button><button class="cat-chip" data-cat="Work" onclick="setCategory(&#39;Work&#39;)" style="border-color:rgba(255,170,68,0.25);color:rgba(255,170,68,0.55);"><span class="cat-emoji">🤝</span>Work</button><button class="cat-chip" data-cat="Islam" onclick="setCategory(&#39;Islam&#39;)" style="border-color:rgba(232,232,226,0.25);color:rgba(232,232,226,0.55);"><span class="cat-emoji">🤲</span>Islam</button><button class="cat-chip" data-cat="Apply" onclick="setCategory(&#39;Apply&#39;)" style="border-color:rgba(255,95,95,0.25);color:rgba(255,95,95,0.55);"><span class="cat-emoji">📨</span>Apply</button></div>
       </div>
       <div class="sb-section">
         <div class="sb-label">Energy this session</div>
@@ -390,7 +390,7 @@ td.dim{color:var(--muted);}
         <div style="font-family:var(--mono);font-size:11px;color:var(--muted);line-height:1.9;">
           <span id="cs-sleep"></span><br><span id="cs-wake"></span><br><span id="cs-energy"></span>
         </div>
-        <button onclick="document.getElementById('checkin-modal').classList.add('show')" style="margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;">Edit check-in</button>
+        <button onclick="document.getElementById(&#39;checkin-modal&#39;).classList.add(&#39;show&#39;)" style="margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;">Edit check-in</button>
       </div>
     </div>
   </div>
@@ -442,7 +442,7 @@ td.dim{color:var(--muted);}
   <div class="break-clock" id="break-clock">05:00</div>
   <div class="overdue-warn" id="overdue-warn">⚠ Break is running over — still coming back?</div>
   <div class="bo-lbl">What are you doing?</div>
-  <div class="break-chips" id="break-chips-dynamic"></div>
+  <div class="break-chips" id="break-chips-dynamic"><button class="break-chip" data-act="Phone Call" data-fn="toggleBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">📱 Phone Call</button><button class="break-chip" data-act="Eating" data-fn="toggleBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">🍽 Eating</button><button class="break-chip" data-act="Walk" data-fn="toggleBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">🚶 Walk</button><button class="break-chip" data-act="Bathroom" data-fn="toggleBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">🚿 Bathroom</button><button class="break-chip" data-act="Scrolling" data-fn="toggleBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">📲 Scrolling</button><button class="break-chip" data-act="Pray" data-fn="toggleBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">🤲 Pray</button><button class="break-chip" data-act="YouTube" data-fn="toggleBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">▶️ YouTube</button><button class="break-chip" data-act="Anime" data-fn="toggleBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">🎬 Anime</button><button class="break-chip" data-act="AI" data-fn="toggleBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">🤖 AI</button><button class="break-chip" data-act="Cleaning" data-fn="toggleBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">🧹 Cleaning</button><button class="break-chip" data-act="Tea" data-fn="toggleBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">🍵 Tea</button><button class="break-chip" data-act="Training" data-fn="toggleBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">🏋️ Training</button><button class="break-chip" data-act="Quran" data-fn="toggleBreakAct" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f===&#39;toggleBreakAct&#39;)toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">📖 Quran</button></div>
   <textarea class="input-field break-note-field" id="break-note" placeholder="Break note (optional)..." rows="2"></textarea>
   <div style="display:flex;gap:8px;justify-content:center;margin-bottom:10px;">
     <button class="btn-snooze" onclick="snoozeBreak(5)">+5 min</button>
@@ -461,9 +461,9 @@ td.dim{color:var(--muted);}
 <!-- LOG PAGE -->
 <div class="page" id="page-log">
   <div class="log-tabs">
-    <button class="log-tab active" id="tab-sessions" onclick="switchLogTab('sessions')">📚 Focus Sessions</button>
-    <button class="log-tab break-tab" id="tab-breaks" onclick="switchLogTab('breaks')">⏸ Breaks</button>
-    <button class="log-tab" id="tab-checkins-log" onclick="switchLogTab('checkins')">🌙 Check-ins</button>
+    <button class="log-tab active" id="tab-sessions" onclick="switchLogTab(&#39;sessions&#39;)">📚 Focus Sessions</button>
+    <button class="log-tab break-tab" id="tab-breaks" onclick="switchLogTab(&#39;breaks&#39;)">⏸ Breaks</button>
+    <button class="log-tab" id="tab-checkins-log" onclick="switchLogTab(&#39;checkins&#39;)">🌙 Check-ins</button>
   </div>
   <div class="log-toolbar">
     <button class="btn-primary" style="padding:8px 20px;font-size:11px;" onclick="exportCSV()">↓ CSV</button>
@@ -510,8 +510,8 @@ td.dim{color:var(--muted);}
   <div class="stats-grid">
     <div class="stat-card"><div class="stat-lbl">Total Sessions</div><div class="stat-val" id="an-sessions">—</div></div>
     <div class="stat-card"><div class="stat-lbl">Total Focus</div><div class="stat-val" id="an-focus">—</div></div>
-    <div class="stat-card"><div class="stat-lbl">This Week avg/day</div><div class="stat-val" id="an-thisweek">—</div><div class="stat-sub" id="an-thisweek-sub"></div></div>
-    <div class="stat-card"><div class="stat-lbl">Last Week avg/day</div><div class="stat-val" id="an-lastweek">—</div><div class="stat-sub" id="an-lastweek-sub"></div></div>
+    <div class="stat-card"><div class="stat-lbl">Last 7 days avg/day</div><div class="stat-val" id="an-thisweek">—</div><div class="stat-sub" id="an-thisweek-sub"></div></div>
+    <div class="stat-card"><div class="stat-lbl">Previous 7 days avg/day</div><div class="stat-val" id="an-lastweek">—</div><div class="stat-sub" id="an-lastweek-sub"></div></div>
   </div>
   <div class="chart-section">
     <div class="chart-lbl">Daily Focus — last 14 days</div>
@@ -579,7 +579,7 @@ WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div
       </div>
       <div style="display:flex;gap:8px;">
         <button class="btn-success" onclick="saveCheckinInline()">Save</button>
-        <button style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:11px;padding:8px 14px;border-radius:var(--r);cursor:pointer;" onclick="document.getElementById('ci-inline-form').style.display='none'">Cancel</button>
+        <button style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:11px;padding:8px 14px;border-radius:var(--r);cursor:pointer;" onclick="document.getElementById(&#39;ci-inline-form&#39;).style.display=&#39;none&#39;">Cancel</button>
       </div>
     </div>
     <div class="table-wrap">
@@ -625,34 +625,29 @@ WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div
       <div class="setting-row"><span class="setting-name">Overdue warn (extra min)</span><input type="number" class="input-field w70" id="set-overdue" value="3" min="0" max="20" onchange="saveSettings()"></div>
       <div class="setting-row">
         <div><div class="setting-name">Flow mode</div><div class="setting-sub">Timer counts past target; end manually</div></div>
-        <div class="toggle on" id="tog-flowMode" onclick="toggleSetting('flowMode')"></div>
+        <div class="toggle on" id="tog-flowMode" onclick="toggleSetting(&#39;flowMode&#39;)"></div>
       </div>
       <div class="setting-row">
         <div><div class="setting-name">Auto-start breaks</div><div class="setting-sub">Break overlay opens after session</div></div>
-        <div class="toggle" id="tog-autoBreak" onclick="toggleSetting('autoBreak')"></div>
+        <div class="toggle" id="tog-autoBreak" onclick="toggleSetting(&#39;autoBreak&#39;)"></div>
       </div>
       <div class="setting-row">
         <div><div class="setting-name">Auto-start Pomodoro</div><div class="setting-sub">Timer starts after break ends</div></div>
-        <div class="toggle" id="tog-autoPomo" onclick="toggleSetting('autoPomo')"></div>
+        <div class="toggle" id="tog-autoPomo" onclick="toggleSetting(&#39;autoPomo&#39;)"></div>
       </div>
-      <div class="setting-row" style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);">
-        <div><div class="setting-name">Week starts on</div><div class="setting-sub">Used for weekly average calculation</div></div>
-        <select class="input-field" style="width:90px;padding:6px 8px;" id="set-weekStart" onchange="saveSettings()">
-          <option value="5">Friday</option>
-          <option value="6">Saturday</option>
-          <option value="0">Sunday</option>
-          <option value="1">Monday</option>
+      <div class="setting-row">
+        <div><div class="setting-name">7-day moving average</div><div class="setting-sub">Always uses today and the previous 6 dates</div></div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--accent);">7 days</div>
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-name">Inactive days in average</div><div class="setting-sub">You decide whether no-focus days count as zero</div></div>
+        <select class="input-field" style="width:118px;padding:6px 8px;" id="set-avgMode" onchange="saveSettings()">
+          <option value="include">Count as zero</option>
+          <option value="exclude">Ignore them</option>
         </select>
       </div>
       <div class="setting-row">
-        <div><div class="setting-name">Weekly avg divisor</div><div class="setting-sub">Divide by active days or full 7</div></div>
-        <select class="input-field" style="width:100px;padding:6px 8px;" id="set-avgMode" onchange="saveSettings()">
-          <option value="active">Active days</option>
-          <option value="7">Full 7 days</option>
-        </select>
-      </div>
-      <div class="setting-row">
-        <div><div class="setting-name">Midnight sessions</div><div class="setting-sub">Sessions after midnight count as</div></div>
+        <div><div class="setting-name">Overnight sessions</div><div class="setting-sub">Uses the session’s start time, never its save time</div></div>
         <select class="input-field" style="width:110px;padding:6px 8px;" id="set-nightDate" onchange="saveSettings()">
           <option value="actual">Actual date</option>
           <option value="prev">Previous day</option>
@@ -674,10 +669,10 @@ WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div
     </div>
     <div class="full-col">
       <div class="settings-title">Session Categories</div>
-      <div id="cat-settings-list" style="margin-bottom:10px;"></div>
+      <div id="cat-settings-list" style="margin-bottom:10px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><input type="text" class="input-field" value="📚" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;" onchange="updateCatEmoji(&#39;Learn&#39;,this.value)"><input type="text" class="input-field" value="Learn" style="flex:1;" onchange="renameCat(&#39;Learn&#39;,this.value)"><select class="input-field" style="width:90px;" onchange="updateCatColor(&#39;Learn&#39;,this.value)"><option value="var(--info)" selected="">Blue</option><option value="var(--accent)">Green</option><option value="var(--purple)">Purple</option><option value="var(--warn)">Orange</option><option value="var(--danger)">Red</option><option value="var(--text)">White</option></select><button class="proj-del" style="font-size:13px;" onclick="deleteCategory(&#39;Learn&#39;)">✕</button></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><input type="text" class="input-field" value="🔨" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;" onchange="updateCatEmoji(&#39;Build&#39;,this.value)"><input type="text" class="input-field" value="Build" style="flex:1;" onchange="renameCat(&#39;Build&#39;,this.value)"><select class="input-field" style="width:90px;" onchange="updateCatColor(&#39;Build&#39;,this.value)"><option value="var(--info)">Blue</option><option value="var(--accent)" selected="">Green</option><option value="var(--purple)">Purple</option><option value="var(--warn)">Orange</option><option value="var(--danger)">Red</option><option value="var(--text)">White</option></select><button class="proj-del" style="font-size:13px;" onclick="deleteCategory(&#39;Build&#39;)">✕</button></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><input type="text" class="input-field" value="✨" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;" onchange="updateCatEmoji(&#39;Refine&#39;,this.value)"><input type="text" class="input-field" value="Refine" style="flex:1;" onchange="renameCat(&#39;Refine&#39;,this.value)"><select class="input-field" style="width:90px;" onchange="updateCatColor(&#39;Refine&#39;,this.value)"><option value="var(--info)">Blue</option><option value="var(--accent)">Green</option><option value="var(--purple)" selected="">Purple</option><option value="var(--warn)">Orange</option><option value="var(--danger)">Red</option><option value="var(--text)">White</option></select><button class="proj-del" style="font-size:13px;" onclick="deleteCategory(&#39;Refine&#39;)">✕</button></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><input type="text" class="input-field" value="🤝" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;" onchange="updateCatEmoji(&#39;Work&#39;,this.value)"><input type="text" class="input-field" value="Work" style="flex:1;" onchange="renameCat(&#39;Work&#39;,this.value)"><select class="input-field" style="width:90px;" onchange="updateCatColor(&#39;Work&#39;,this.value)"><option value="var(--info)">Blue</option><option value="var(--accent)">Green</option><option value="var(--purple)">Purple</option><option value="var(--warn)" selected="">Orange</option><option value="var(--danger)">Red</option><option value="var(--text)">White</option></select><button class="proj-del" style="font-size:13px;" onclick="deleteCategory(&#39;Work&#39;)">✕</button></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><input type="text" class="input-field" value="🤲" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;" onchange="updateCatEmoji(&#39;Islam&#39;,this.value)"><input type="text" class="input-field" value="Islam" style="flex:1;" onchange="renameCat(&#39;Islam&#39;,this.value)"><select class="input-field" style="width:90px;" onchange="updateCatColor(&#39;Islam&#39;,this.value)"><option value="var(--info)">Blue</option><option value="var(--accent)">Green</option><option value="var(--purple)">Purple</option><option value="var(--warn)">Orange</option><option value="var(--danger)">Red</option><option value="var(--text)" selected="">White</option></select><button class="proj-del" style="font-size:13px;" onclick="deleteCategory(&#39;Islam&#39;)">✕</button></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><input type="text" class="input-field" value="📨" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;" onchange="updateCatEmoji(&#39;Apply&#39;,this.value)"><input type="text" class="input-field" value="Apply" style="flex:1;" onchange="renameCat(&#39;Apply&#39;,this.value)"><select class="input-field" style="width:90px;" onchange="updateCatColor(&#39;Apply&#39;,this.value)"><option value="var(--info)">Blue</option><option value="var(--accent)">Green</option><option value="var(--purple)">Purple</option><option value="var(--warn)">Orange</option><option value="var(--danger)" selected="">Red</option><option value="var(--text)">White</option></select><button class="proj-del" style="font-size:13px;" onclick="deleteCategory(&#39;Apply&#39;)">✕</button></div></div>
       <div style="display:flex;gap:6px;align-items:center;">
         <input type="text" class="input-field" id="new-cat-emoji" placeholder="📌" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;">
-        <input type="text" class="input-field" id="new-cat-name" placeholder="Category name..." onkeydown="if(event.key==='Enter')addCategory()">
+        <input type="text" class="input-field" id="new-cat-name" placeholder="Category name..." onkeydown="if(event.key===&#39;Enter&#39;)addCategory()">
         <button class="btn-add" onclick="addCategory()">+ Add</button>
       </div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:8px;">Changes apply immediately.</div>
@@ -685,15 +680,15 @@ WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div
     <div class="full-col">
       <div class="settings-title">Average Calculation — Excluded Categories</div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:10px;">Crossed-out categories excluded from weekly averages.</div>
-      <div id="cat-exclude-chips" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+      <div id="cat-exclude-chips" style="display:flex;flex-wrap:wrap;gap:6px;"><button onclick="toggleExcluded(&#39;Learn&#39;)" style="font-family:var(--mono);font-size:10px;padding:5px 10px;border-radius:var(--r);cursor:pointer;border:1px solid rgba(95,180,255,1);color:rgba(95,180,255,1);background:rgba(95,180,255,0.12);text-decoration:none;transition:all .15s;">📚 Learn</button><button onclick="toggleExcluded(&#39;Build&#39;)" style="font-family:var(--mono);font-size:10px;padding:5px 10px;border-radius:var(--r);cursor:pointer;border:1px solid rgba(200,240,74,1);color:rgba(200,240,74,1);background:rgba(200,240,74,0.12);text-decoration:none;transition:all .15s;">🔨 Build</button><button onclick="toggleExcluded(&#39;Refine&#39;)" style="font-family:var(--mono);font-size:10px;padding:5px 10px;border-radius:var(--r);cursor:pointer;border:1px solid rgba(181,123,255,1);color:rgba(181,123,255,1);background:rgba(181,123,255,0.12);text-decoration:none;transition:all .15s;">✨ Refine</button><button onclick="toggleExcluded(&#39;Work&#39;)" style="font-family:var(--mono);font-size:10px;padding:5px 10px;border-radius:var(--r);cursor:pointer;border:1px solid rgba(255,170,68,1);color:rgba(255,170,68,1);background:rgba(255,170,68,0.12);text-decoration:none;transition:all .15s;">🤝 Work</button><button onclick="toggleExcluded(&#39;Islam&#39;)" style="font-family:var(--mono);font-size:10px;padding:5px 10px;border-radius:var(--r);cursor:pointer;border:1px solid rgba(232,232,226,1);color:rgba(232,232,226,1);background:rgba(232,232,226,0.12);text-decoration:none;transition:all .15s;">🤲 Islam</button><button onclick="toggleExcluded(&#39;Apply&#39;)" style="font-family:var(--mono);font-size:10px;padding:5px 10px;border-radius:var(--r);cursor:pointer;border:1px solid rgba(255,95,95,1);color:rgba(255,95,95,1);background:rgba(255,95,95,0.12);text-decoration:none;transition:all .15s;">📨 Apply</button></div>
     </div>
     <div class="full-col">
       <div class="settings-title">Break Activity Categories</div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:10px;">Customise the chips shown during breaks. Changes apply immediately.</div>
-      <div id="break-acts-settings-list" style="margin-bottom:10px;"></div>
+      <div id="break-acts-settings-list" style="margin-bottom:10px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><input type="text" class="input-field" value="📱" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;" onchange="updateBreakActEmoji(0,this.value)"><input type="text" class="input-field" value="Phone Call" style="flex:1;" onchange="updateBreakActLabel(0,this.value)"><button class="proj-del" style="font-size:13px;" onclick="deleteBreakAct(0)">✕</button></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><input type="text" class="input-field" value="🍽" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;" onchange="updateBreakActEmoji(1,this.value)"><input type="text" class="input-field" value="Eating" style="flex:1;" onchange="updateBreakActLabel(1,this.value)"><button class="proj-del" style="font-size:13px;" onclick="deleteBreakAct(1)">✕</button></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><input type="text" class="input-field" value="🚶" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;" onchange="updateBreakActEmoji(2,this.value)"><input type="text" class="input-field" value="Walk" style="flex:1;" onchange="updateBreakActLabel(2,this.value)"><button class="proj-del" style="font-size:13px;" onclick="deleteBreakAct(2)">✕</button></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><input type="text" class="input-field" value="🚿" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;" onchange="updateBreakActEmoji(3,this.value)"><input type="text" class="input-field" value="Bathroom" style="flex:1;" onchange="updateBreakActLabel(3,this.value)"><button class="proj-del" style="font-size:13px;" onclick="deleteBreakAct(3)">✕</button></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><input type="text" class="input-field" value="📲" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;" onchange="updateBreakActEmoji(4,this.value)"><input type="text" class="input-field" value="Scrolling" style="flex:1;" onchange="updateBreakActLabel(4,this.value)"><button class="proj-del" style="font-size:13px;" onclick="deleteBreakAct(4)">✕</button></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><input type="text" class="input-field" value="🤲" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;" onchange="updateBreakActEmoji(5,this.value)"><input type="text" class="input-field" value="Pray" style="flex:1;" onchange="updateBreakActLabel(5,this.value)"><button class="proj-del" style="font-size:13px;" onclick="deleteBreakAct(5)">✕</button></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><input type="text" class="input-field" value="▶️" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;" onchange="updateBreakActEmoji(6,this.value)"><input type="text" class="input-field" value="YouTube" style="flex:1;" onchange="updateBreakActLabel(6,this.value)"><button class="proj-del" style="font-size:13px;" onclick="deleteBreakAct(6)">✕</button></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><input type="text" class="input-field" value="🎬" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;" onchange="updateBreakActEmoji(7,this.value)"><input type="text" class="input-field" value="Anime" style="flex:1;" onchange="updateBreakActLabel(7,this.value)"><button class="proj-del" style="font-size:13px;" onclick="deleteBreakAct(7)">✕</button></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><input type="text" class="input-field" value="🤖" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;" onchange="updateBreakActEmoji(8,this.value)"><input type="text" class="input-field" value="AI" style="flex:1;" onchange="updateBreakActLabel(8,this.value)"><button class="proj-del" style="font-size:13px;" onclick="deleteBreakAct(8)">✕</button></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><input type="text" class="input-field" value="🧹" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;" onchange="updateBreakActEmoji(9,this.value)"><input type="text" class="input-field" value="Cleaning" style="flex:1;" onchange="updateBreakActLabel(9,this.value)"><button class="proj-del" style="font-size:13px;" onclick="deleteBreakAct(9)">✕</button></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><input type="text" class="input-field" value="🍵" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;" onchange="updateBreakActEmoji(10,this.value)"><input type="text" class="input-field" value="Tea" style="flex:1;" onchange="updateBreakActLabel(10,this.value)"><button class="proj-del" style="font-size:13px;" onclick="deleteBreakAct(10)">✕</button></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><input type="text" class="input-field" value="🏋️" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;" onchange="updateBreakActEmoji(11,this.value)"><input type="text" class="input-field" value="Training" style="flex:1;" onchange="updateBreakActLabel(11,this.value)"><button class="proj-del" style="font-size:13px;" onclick="deleteBreakAct(11)">✕</button></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><input type="text" class="input-field" value="📖" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;" onchange="updateBreakActEmoji(12,this.value)"><input type="text" class="input-field" value="Quran" style="flex:1;" onchange="updateBreakActLabel(12,this.value)"><button class="proj-del" style="font-size:13px;" onclick="deleteBreakAct(12)">✕</button></div></div>
       <div style="display:flex;gap:6px;align-items:center;">
         <input type="text" class="input-field" id="new-break-act-emoji" placeholder="🏃" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;">
-        <input type="text" class="input-field" id="new-break-act-name" placeholder="Activity name..." onkeydown="if(event.key==='Enter')addBreakAct()">
+        <input type="text" class="input-field" id="new-break-act-name" placeholder="Activity name..." onkeydown="if(event.key===&#39;Enter&#39;)addBreakAct()">
         <button class="btn-add" onclick="addBreakAct()">+ Add</button>
       </div>
     </div>
@@ -729,19 +724,19 @@ SELECT id, session_date, start_time,
   focus_min - ROUND(focus_sec / 60.0, 0) AS drift_min
 FROM focus_sessions
 WHERE focus_sec IS NOT NULL AND focus_min IS NOT NULL
-  AND ABS(focus_min - ROUND(focus_sec / 60.0, 0)) > 1
+  AND ABS(focus_min - ROUND(focus_sec / 60.0, 0)) &gt; 1
 ORDER BY ABS(focus_min - ROUND(focus_sec / 60.0, 0)) DESC;
 
 -- A3 — fix drifted rows: trust focus_min (your manual edits)
 UPDATE focus_sessions
 SET focus_sec = focus_min * 60
 WHERE focus_sec IS NOT NULL AND focus_min IS NOT NULL
-  AND ABS(focus_min - ROUND(focus_sec / 60.0, 0)) > 1;
+  AND ABS(focus_min - ROUND(focus_sec / 60.0, 0)) &gt; 1;
 
 -- A4 — verify (should return 0)
 SELECT COUNT(*) AS out_of_sync FROM focus_sessions
 WHERE focus_sec IS NOT NULL AND focus_min IS NOT NULL
-  AND ABS(focus_min - ROUND(focus_sec / 60.0, 0)) > 1;
+  AND ABS(focus_min - ROUND(focus_sec / 60.0, 0)) &gt; 1;
 
 -- A5 — drop focus_min — IRREVERSIBLE, run only after A4 = 0
 ALTER TABLE focus_sessions DROP COLUMN focus_min;
@@ -771,13 +766,13 @@ SELECT id, session_date, start_time, end_time,
   span_min - ROUND(span_sec / 60.0, 0)  AS drift_min
 FROM focus_sessions
 WHERE span_sec IS NOT NULL AND span_min IS NOT NULL
-  AND ABS(span_min - ROUND(span_sec / 60.0, 0)) > 1
+  AND ABS(span_min - ROUND(span_sec / 60.0, 0)) &gt; 1
 ORDER BY ABS(span_min - ROUND(span_sec / 60.0, 0)) DESC;
 
 -- B4 — verify everything looks clean (should return 0 after review)
 SELECT COUNT(*) AS out_of_sync FROM focus_sessions
 WHERE span_sec IS NOT NULL AND span_min IS NOT NULL
-  AND ABS(span_min - ROUND(span_sec / 60.0, 0)) > 1;
+  AND ABS(span_min - ROUND(span_sec / 60.0, 0)) &gt; 1;
 
 -- B5 — drop span_min — IRREVERSIBLE, run only after B4 = 0
 ALTER TABLE focus_sessions DROP COLUMN span_min;</pre></div>
@@ -786,7 +781,7 @@ ALTER TABLE focus_sessions DROP COLUMN span_min;</pre></div>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="./Focus Tracker_files/supabase.min.js.download"></script>
 <script>
 'use strict';
 
@@ -898,7 +893,7 @@ var CAT = {};
 
 var sb = null, offlineQueue = [], deferredInstall = null;
 var OFFLINE_QUEUE_KEY = 'ft_offline_queue';
-var settings = { pomodoro:25, short:5, long:15, interval:4, overdue:3, flowMode:true, autoBreak:false, autoPomo:false, nightCutoff:4 };
+var settings = { pomodoro:25, short:5, long:15, interval:4, overdue:3, flowMode:true, autoBreak:false, autoPomo:false, avgMode:'include', nightDate:'actual', nightCutoff:4 };
 var excludedFromAvg = {};
 var mode = 'pomodoro', timeLeft = 25*60, totalSecs = 25*60;
 var running = false, tickInterval = null, sessionStart = null;
@@ -1195,24 +1190,16 @@ async function fetchSessions(limit){
   return all;
 }
 
-function getWeekBounds(offsetWeeks){
-  var ws=settings.weekStart;
-  var date=new Date(); date.setDate(date.getDate()-(offsetWeeks*7));
-  var day=date.getDay();
-  var diff=((day - ws) + 7) % 7;
-  var start=new Date(date); start.setDate(date.getDate()-diff); start.setHours(0,0,0,0);
-  var end=new Date(start); end.setDate(start.getDate()+6); end.setHours(23,59,59,999);
-  return [localDateKey(start), localDateKey(end)];
+function movingWindowBounds(daysBack){
+  var end=new Date(); end.setHours(0,0,0,0); end.setDate(end.getDate()-(daysBack||0));
+  var start=new Date(end); start.setDate(start.getDate()-6);
+  return [localDateKey(start),localDateKey(end)];
 }
-function daysElapsedInWeek(){
-  var ws=settings.weekStart, day=new Date().getDay();
-  return ((day - ws) + 7) % 7 + 1;
+function movingAverageDivisor(activeDays){
+  return settings.avgMode==='exclude'?Math.max(1,activeDays):7;
 }
-function weeklyAverageDivisor(activeDays){
-  return settings.avgMode==='active'?Math.max(1,activeDays):7;
-}
-function weeklyAverageLabel(divisor,activeDays){
-  return 'avg ÷'+divisor+' · '+activeDays+' active day'+(activeDays!==1?'s':'');
+function movingAverageLabel(divisor,activeDays){
+  return settings.avgMode==='exclude'?'inactive days ignored · '+activeDays+' active':'inactive days count as zero · ÷7';
 }
 function weekTotal(sessions,bounds,exclude){
   var total=0;
@@ -1222,7 +1209,11 @@ function weekTotal(sessions,bounds,exclude){
 
 function loadExcluded(){ try{ excludedFromAvg=JSON.parse(localStorage.getItem('ft_excluded')||'{}'); }catch(e){ excludedFromAvg={}; } renderExcludeUI(); }
 function saveExcluded(){ localStorage.setItem('ft_excluded',JSON.stringify(excludedFromAvg)); }
-function toggleExcluded(cat){ if(excludedFromAvg[cat]){delete excludedFromAvg[cat];}else{excludedFromAvg[cat]=true;} saveExcluded(); renderExcludeUI(); refreshMetrics(); }
+function toggleExcluded(cat){
+  if(excludedFromAvg[cat]){delete excludedFromAvg[cat];}else{excludedFromAvg[cat]=true;}
+  saveExcluded(); renderExcludeUI(); refreshMetrics();
+  if(document.getElementById('page-analytics').classList.contains('active')) loadAnalytics();
+}
 function renderExcludeUI(){
   var el=document.getElementById('cat-exclude-chips'); if (!el) return;
   el.innerHTML=Object.keys(CAT).map(function(k){
@@ -1233,29 +1224,28 @@ function renderExcludeUI(){
 
 async function refreshMetrics(){
   if (!sb) return;
-  var today=isoDate(), thisWeek=getWeekBounds(0), lastWeek=getWeekBounds(1);
+  var today=isoDate(), thisWindow=movingWindowBounds(0), previousWindow=movingWindowBounds(7);
   var todayRes=await sb.from('focus_sessions').select('focus_sec').eq('session_date',today);
   var todaySess=todayRes.data||[], todayMin=todaySess.reduce(function(a,s){return a+Math.floor((s.focus_sec||0)/60);},0);
   seqToday=todaySess.length;
   document.getElementById('m-today').textContent=todayMin+'m';
   document.getElementById('m-today-sub').textContent=seqToday+' session'+(seqToday!==1?'s':'');
-  var twEl=daysElapsedInWeek();
-  var twRes=await sb.from('focus_sessions').select('focus_sec,task_type').gte('session_date',thisWeek[0]).lte('session_date',thisWeek[1]);
+  var twRes=await sb.from('focus_sessions').select('focus_sec,session_date,task_type').gte('session_date',thisWindow[0]).lte('session_date',thisWindow[1]);
   var twTotal=(twRes.data||[]).reduce(function(a,s){return !excludedFromAvg[s.task_type]?a+Math.floor((s.focus_sec||0)/60):a;},0);
   var twActiveDays=new Set((twRes.data||[]).filter(s=>!excludedFromAvg[s.task_type]).map(s=>s.session_date)).size;
-  var twDivisor=weeklyAverageDivisor(twActiveDays);
+  var twDivisor=movingAverageDivisor(twActiveDays);
   var twAvg=Math.round(twTotal/twDivisor);
   document.getElementById('m-thisweek').textContent=twTotal?twAvg+'m':'—';
-  document.getElementById('m-thisweek-sub').textContent='day '+twEl+' of 7 · '+weeklyAverageLabel(twDivisor,twActiveDays);
-  var lwRes=await sb.from('focus_sessions').select('focus_sec,session_date,task_type').gte('session_date',lastWeek[0]).lte('session_date',lastWeek[1]);
+  document.getElementById('m-thisweek-sub').textContent=thisWindow[0].slice(5)+' → '+thisWindow[1].slice(5)+' · '+movingAverageLabel(twDivisor,twActiveDays);
+  var lwRes=await sb.from('focus_sessions').select('focus_sec,session_date,task_type').gte('session_date',previousWindow[0]).lte('session_date',previousWindow[1]);
   var lwData=lwRes.data||[];
   var lwTotal=lwData.reduce(function(a,s){return !excludedFromAvg[s.task_type]?a+Math.floor((s.focus_sec||0)/60):a;},0);
   var lwDays={}; lwData.forEach(function(s){if(!excludedFromAvg[s.task_type])lwDays[s.session_date]=1;});
   var lwActiveDays=Object.keys(lwDays).length;
-  var lwDivisor=weeklyAverageDivisor(lwActiveDays);
+  var lwDivisor=movingAverageDivisor(lwActiveDays);
   var lwAvg=Math.round(lwTotal/lwDivisor);
   document.getElementById('m-lastweek').textContent=lwTotal?lwAvg+'m':'—';
-  document.getElementById('m-lastweek-sub').textContent=lwTotal?weeklyAverageLabel(lwDivisor,lwActiveDays):'no sessions';
+  document.getElementById('m-lastweek-sub').textContent=lwTotal?previousWindow[0].slice(5)+' → '+previousWindow[1].slice(5)+' · '+movingAverageLabel(lwDivisor,lwActiveDays):'no sessions';
   var dEl=document.getElementById('m-week-delta');
   if (twAvg&&lwAvg){ var diff=twAvg-lwAvg; if(diff>0){dEl.textContent='▲ '+diff+'m vs last week';dEl.className='metric-cell-sub metric-up';}else if(diff<0){dEl.textContent='▼ '+Math.abs(diff)+'m vs last week';dEl.className='metric-cell-sub metric-down';}else{dEl.textContent='= same as last week';dEl.className='metric-cell-sub metric-same';} }
   else{ dEl.textContent='vs last week'; dEl.className='metric-cell-sub'; }
@@ -1341,7 +1331,7 @@ function endSession(keepAlarm){
   var focusMin=Math.max(1,Math.floor(focusSec/60)), spanMin=Math.max(focusMin,Math.floor(spanSec/60));
   var ratio=Math.round(focusSec/Math.max(spanSec,1)*100), otMin=Math.max(0,focusMin-settings.pomodoro);
   var sessNow={
-    session_date:isoDate(), start_time:sessionStart?fmt24(sessionStart):fmt24(end), end_time:fmt24(end),
+    session_date:focusDateKey(sessionStart||end), start_time:sessionStart?fmt24(sessionStart):fmt24(end), end_time:fmt24(end),
     span_sec:spanSec, task_type:currentCat||null, focus_sec:focusSec, ratio:ratio,
     project:currentProject&&projects[currentProject]?projects[currentProject].name:null,
     task:currentTask&&currentProject&&projects[currentProject]?projects[currentProject].tasks[currentTask]:null,
@@ -1375,7 +1365,7 @@ function saveRecoverySnapshot(){
     mode:           mode,
     seqToday:       seqToday,
     pomodoroCount:  pomodoroCount,
-    isoDate:        isoDate(),
+    sessionDate:    focusDateKey(sessionStart),
     currentCat:     currentCat,
     currentEnergy:  currentEnergy,
     currentProjectId: currentProject,
@@ -1420,7 +1410,7 @@ function checkRecovery(){
   if (snap.currentTaskId&&snap.currentProjectId&&projects[snap.currentProjectId]) task=projects[snap.currentProjectId].tasks[snap.currentTaskId]||'';
   var energyLbl=['','🪫 Low','😐 Med','⚡ High'];
   var detail=[
-    'Started: <b>'+snap.isoDate+' '+fmt24(startDt)+'</b>',
+    'Started: <b>'+(snap.sessionDate||snap.isoDate||focusDateKey(startDt))+' '+fmt24(startDt)+'</b>',
     'Verified focus at interruption: <b>'+elMin+'m '+elSec+'s</b>',
     snap.currentCat?'Category: <b>'+snap.currentCat+'</b>':'',
     proj?'Project: <b>'+proj+(task?' / '+task:'')+'</b>':'',
@@ -1472,7 +1462,7 @@ async function saveRecoveredSession(){
   var proj=snap.currentProjectId&&projects[snap.currentProjectId]?projects[snap.currentProjectId].name:null;
   var task=snap.currentTaskId&&snap.currentProjectId&&projects[snap.currentProjectId]?projects[snap.currentProjectId].tasks[snap.currentTaskId]:null;
   var sessRow={
-    session_date:snap.isoDate, start_time:fmt24(startDt), end_time:fmt24(savedAt),
+    session_date:snap.sessionDate||snap.isoDate||focusDateKey(startDt), start_time:fmt24(startDt), end_time:fmt24(savedAt),
     span_sec:spanSec, focus_sec:focusSec, ratio:ratio,
     project:proj||null, task:task||null, task_type:snap.currentCat||null,
     seq:snap.seqToday||null, energy:snap.currentEnergy||null,
@@ -1517,7 +1507,7 @@ function checkBreakRecovery(){
     var d2=Math.floor((s2.savedAt-s2.startMs)/1000);
     if(confirm('Save interrupted break to database? Duration: '+Math.floor(d2/60)+'m '+Math.floor(d2%60)+'s. Activities: '+(s2.acts&&s2.acts.length?s2.acts.join(', '):'none'))){
       var bS=new Date(s2.startMs),bE=new Date(s2.savedAt);
-      dbSave({session_date:localDateKey(bS),start_time:bS.toTimeString().slice(0,8),end_time:bE.toTimeString().slice(0,8),break_duration_min:Math.floor(d2/60),break_activities:s2.acts&&s2.acts.length?s2.acts.join('; '):null,break_note:'[recovered after close/crash]',overdue:false,returned:false}).then(function(ok){
+      dbSave({session_date:focusDateKey(bS),start_time:bS.toTimeString().slice(0,8),end_time:bE.toTimeString().slice(0,8),break_duration_min:Math.floor(d2/60),break_activities:s2.acts&&s2.acts.length?s2.acts.join('; '):null,break_note:'[recovered after close/crash]',overdue:false,returned:false}).then(function(ok){
         hint.textContent=ok?'✓ Break recovered and saved':'✗ Recovery failed — check connection';
         hint.className=ok?'':'overtime';
         if(ok)setTimeout(function(){hint.textContent='Start a session to begin tracking';hint.className='';},3000);
@@ -1592,7 +1582,7 @@ async function saveManualBreak(){
   document.getElementById('manual-break-panel').style.display='none';
   if (bDurSec>5){
     var breakRow={
-      session_date:isoDate(), start_time:breakStart?fmt24(breakStart):fmt24(new Date()), end_time:fmt24(breakEnd),
+      session_date:focusDateKey(breakStart||breakEnd), start_time:breakStart?fmt24(breakStart):fmt24(new Date()), end_time:fmt24(breakEnd),
       break_activities:manualBreakActs.length?manualBreakActs.join('; '):null,
       break_note:null, break_duration_min:bDurMin, overdue:false, returned:true
     };
@@ -1608,7 +1598,7 @@ async function endBreak(returned){
   stopAlarm(); clearInterval(breakTick); breakTick=null; clearBreakSnapshot();
   var breakEnd=new Date(), bDurSec=breakStart?Math.floor((breakEnd.getTime()-breakStart.getTime())/1000):0, bDurMin=Math.floor(bDurSec/60);
   var breakRow={
-    session_date:isoDate(), start_time:breakStart?fmt24(breakStart):fmt24(new Date()), end_time:fmt24(breakEnd),
+    session_date:focusDateKey(breakStart||breakEnd), start_time:breakStart?fmt24(breakStart):fmt24(new Date()), end_time:fmt24(breakEnd),
     break_activities:breakActs.length?breakActs.join('; '):null,
     break_note:document.getElementById('break-note').value.trim()||null,
     break_duration_min:bDurMin, overdue:overdueShown, returned:returned
@@ -1769,21 +1759,18 @@ async function loadAnalytics(){
   var totalFocus=sessions.reduce(function(a,s){return a+Math.floor((s.focus_sec||0)/60);},0);
   document.getElementById('an-sessions').textContent=sessions.length;
   document.getElementById('an-focus').textContent=totalFocus>=60?Math.floor(totalFocus/60)+'h '+(totalFocus%60)+'m':totalFocus+'m';
-  var thisWeek=getWeekBounds(0), lastWeek=getWeekBounds(1);
-  var twTotal=weekTotal(sessions,thisWeek), lwTotal=weekTotal(sessions,lastWeek);
-  var twEl=daysElapsedInWeek();
-  var twActiveDays2=new Set(sessions.filter(s=>s.session_date>=thisWeek[0]&&s.session_date<=thisWeek[1]&&!excludedFromAvg[s.task_type]).map(s=>s.session_date)).size;
-  var lwActiveDays2=new Set(sessions.filter(s=>s.session_date>=lastWeek[0]&&s.session_date<=lastWeek[1]&&!excludedFromAvg[s.task_type]).map(s=>s.session_date)).size;
-  var twDivisor=weeklyAverageDivisor(twActiveDays2);
-  var lwDivisor=weeklyAverageDivisor(lwActiveDays2);
+  var thisWindow=movingWindowBounds(0), previousWindow=movingWindowBounds(7);
+  var twTotal=weekTotal(sessions,thisWindow), lwTotal=weekTotal(sessions,previousWindow);
+  var twActiveDays2=new Set(sessions.filter(s=>s.session_date>=thisWindow[0]&&s.session_date<=thisWindow[1]&&!excludedFromAvg[s.task_type]).map(s=>s.session_date)).size;
+  var lwActiveDays2=new Set(sessions.filter(s=>s.session_date>=previousWindow[0]&&s.session_date<=previousWindow[1]&&!excludedFromAvg[s.task_type]).map(s=>s.session_date)).size;
+  var twDivisor=movingAverageDivisor(twActiveDays2);
+  var lwDivisor=movingAverageDivisor(lwActiveDays2);
   var twAvg=Math.round(twTotal/twDivisor);
   var lwAvg=Math.round(lwTotal/lwDivisor);
-  var twDays={}, lwDays={};
-  sessions.forEach(function(s){ if(s.session_date>=thisWeek[0]&&s.session_date<=thisWeek[1]) twDays[s.session_date]=1; if(s.session_date>=lastWeek[0]&&s.session_date<=lastWeek[1]) lwDays[s.session_date]=1; });
   document.getElementById('an-thisweek').textContent=twAvg?twAvg+'m':'—';
-  document.getElementById('an-thisweek-sub').textContent='day '+twEl+' of 7 · '+weeklyAverageLabel(twDivisor,Object.keys(twDays).length);
+  document.getElementById('an-thisweek-sub').textContent=thisWindow[0].slice(5)+' → '+thisWindow[1].slice(5)+' · '+movingAverageLabel(twDivisor,twActiveDays2);
   document.getElementById('an-lastweek').textContent=lwAvg?lwAvg+'m':'—';
-  document.getElementById('an-lastweek-sub').textContent=weeklyAverageLabel(lwDivisor,Object.keys(lwDays).length);
+  document.getElementById('an-lastweek-sub').textContent=previousWindow[0].slice(5)+' → '+previousWindow[1].slice(5)+' · '+movingAverageLabel(lwDivisor,lwActiveDays2);
   var daily={}; sessions.forEach(function(s){if(s.session_date)daily[s.session_date]=(daily[s.session_date]||0)+Math.floor((s.focus_sec||0)/60);});
   var days=Object.entries(daily).sort(function(a,b){return a[0]<b[0]?-1:1;}).slice(-14);
   var maxM=Math.max.apply(null,days.map(function(d){return d[1];}).concat([1]));
@@ -1803,8 +1790,7 @@ function loadSettings(){
   settings.interval=Math.min(10,Math.max(2,parseInt(settings.interval)||4));
   settings.overdue=Math.min(20,Math.max(0,parseInt(settings.overdue)||3));
   settings.flowMode=settings.flowMode!==false; settings.autoBreak=settings.autoBreak===true; settings.autoPomo=settings.autoPomo===true;
-  settings.weekStart=[0,1,5,6].includes(parseInt(settings.weekStart))?parseInt(settings.weekStart):6;
-  settings.avgMode=settings.avgMode==='7'?'7':'active';
+  settings.avgMode=(settings.avgMode==='exclude'||settings.avgMode==='active')?'exclude':'include';
   settings.nightDate=settings.nightDate==='prev'?'prev':'actual';
   settings.nightCutoff=isNaN(parseInt(settings.nightCutoff))||parseInt(settings.nightCutoff)<0?4:Math.min(8,parseInt(settings.nightCutoff));
   settings.defEnergy=[0,1,2,3].includes(parseInt(settings.defEnergy))?parseInt(settings.defEnergy):0;
@@ -1815,7 +1801,6 @@ function loadSettings(){
   document.getElementById('tog-flowMode').classList.toggle('on',settings.flowMode);
   document.getElementById('tog-autoBreak').classList.toggle('on',settings.autoBreak);
   document.getElementById('tog-autoPomo').classList.toggle('on',settings.autoPomo);
-  document.getElementById('set-weekStart').value=settings.weekStart;
   document.getElementById('set-avgMode').value=settings.avgMode;
   document.getElementById('set-nightDate').value=settings.nightDate;
   var _ncr=document.getElementById('set-nightCutoff'); if(_ncr)_ncr.value=settings.nightCutoff;
@@ -1828,8 +1813,7 @@ function saveSettings(){
   settings.long=parseInt(document.getElementById('set-long').value)||15;
   settings.interval=parseInt(document.getElementById('set-interval').value)||4;
   settings.overdue=parseInt(document.getElementById('set-overdue').value)||3;
-  settings.weekStart=parseInt(document.getElementById('set-weekStart').value)||6;
-  settings.avgMode=document.getElementById('set-avgMode').value||'active';
+  settings.avgMode=document.getElementById('set-avgMode').value||'include';
   settings.nightDate=document.getElementById('set-nightDate').value||'actual';
   settings.nightCutoff=Math.min(8,Math.max(0,parseInt(document.getElementById('set-nightCutoff').value)||4));
   settings.defEnergy=parseInt(document.getElementById('set-defEnergy').value)||0;
@@ -1837,7 +1821,10 @@ function saveSettings(){
   var overlayOpen=document.getElementById('break-overlay').classList.contains('show');
   if (!running&&!overlayOpen&&!manualBreakTick){ timeLeft=totalSecs=settings.pomodoro*60; renderClock(timeLeft,false); setRing(1); }
   var ncr=document.getElementById('nightcutoff-row'); if(ncr) ncr.style.display=settings.nightDate==='prev'?'flex':'none';
-  if(sb) refreshMetrics();
+  if(sb){
+    refreshMetrics();
+    if(document.getElementById('page-analytics').classList.contains('active')) loadAnalytics();
+  }
   if(!running&&!sessionStart) applyDefaultEnergy();
 }
 function toggleSetting(key){ settings[key]=!settings[key]; document.getElementById('tog-'+key).classList.toggle('on',settings[key]); localStorage.setItem('ft_settings',JSON.stringify(settings)); }
@@ -1862,10 +1849,13 @@ function localDateKey(date){
   var d=date||new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
+function focusDateKey(date){
+  var d=new Date((date||new Date()).getTime());
+  if (settings.nightDate==='prev' && d.getHours()<(settings.nightCutoff!=null?settings.nightCutoff:4)) d.setDate(d.getDate()-1);
+  return localDateKey(d);
+}
 function isoDate(){
-  var now=new Date();
-  if (settings.nightDate==='prev' && now.getHours()<(settings.nightCutoff!=null?settings.nightCutoff:4)) now.setDate(now.getDate()-1);
-  return localDateKey(now);
+  return focusDateKey(new Date());
 }
 function fmt24(d){ return d.toTimeString().slice(0,8); }
 function formatDisplayDate(iso){ var d=new Date(iso+'T12:00:00'); return d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}); }
@@ -2015,5 +2005,20 @@ async function loadCheckinHistory(){
   }).join('');
 }
 </script>
-</body>
-</html>
+
+
+<audio class="audio-output" style="display: none;"></audio><div id="volume-booster-visusalizer">
+                    <div class="sound">
+                        <div class="sound-icon"></div>
+                        <div class="sound-wave sound-wave_one"></div>
+                        <div class="sound-wave sound-wave_two"></div>
+                        <div class="sound-wave sound-wave_three"></div>
+                    </div>
+                    <div class="segments-box">
+                        <div data-range="1-20" class="segment"><span></span></div>
+                        <div data-range="21-40" class="segment"><span></span></div>
+                        <div data-range="41-60" class="segment"><span></span></div>
+                        <div data-range="61-80" class="segment"><span></span></div>
+                        <div data-range="81-100" class="segment"><span></span></div>
+                    </div>
+                </div></body></html>
