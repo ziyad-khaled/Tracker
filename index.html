@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="Focus">
 <link rel="apple-touch-icon" href="https://files.manuscdn.com/user_upload_by_module/session_file/310519663892874820/icons/icon-192.png">
 <title>Focus Tracker</title>
-<link href="./Focus Tracker_files/css2" rel="stylesheet">
+<link href="./index_files/css2" rel="stylesheet">
 <style>
 :root {
   --bg:#0a0a0a; --surface:#111; --surface2:#1a1a1a; --border:#222;
@@ -232,7 +232,7 @@ td.dim{color:var(--muted);}
 <body>
 <div id="offline-bar">You are offline — sessions will sync when connection is restored</div>
 
-<div id="checkin-modal" class="show">
+<div id="checkin-modal" class="">
   <div class="checkin-box">
     <div class="checkin-heading">Good day 👋</div>
     <div class="checkin-sub" id="checkin-date-sub">Saturday, August 22</div>
@@ -262,11 +262,11 @@ td.dim{color:var(--muted);}
   <div class="nav-right">
     <div class="db-pill" id="db-pill"><div class="db-dot"></div><span id="db-label">not connected</span></div>
     <div class="nav-tabs">
-      <button class="nav-tab active" onclick="showPage(&#39;timer&#39;)">Timer</button>
+      <button class="nav-tab" onclick="showPage(&#39;timer&#39;)">Timer</button>
       <button class="nav-tab" onclick="showPage(&#39;log&#39;)">Log</button>
       <button class="nav-tab" onclick="showPage(&#39;analytics&#39;)">Analytics</button>
       <button class="nav-tab" onclick="showPage(&#39;checkins&#39;)">Check-in</button>
-      <button class="nav-tab" onclick="showPage(&#39;settings&#39;)">Settings</button>
+      <button class="nav-tab active" onclick="showPage(&#39;settings&#39;)">Settings</button>
     </div>
   </div>
 </nav>
@@ -296,7 +296,7 @@ td.dim{color:var(--muted);}
 </div>
 
 <!-- TIMER PAGE -->
-<div class="page active" id="page-timer">
+<div class="page" id="page-timer">
   <div class="timer-layout">
     <div>
       <div class="mode-tabs">
@@ -596,7 +596,7 @@ WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div
 </div>
 
 <!-- SETTINGS PAGE -->
-<div class="page" id="page-settings">
+<div class="page active" id="page-settings">
   <div class="settings-cols">
     <div>
       <div class="settings-title">Supabase Connection</div>
@@ -781,7 +781,7 @@ ALTER TABLE focus_sessions DROP COLUMN span_min;</pre></div>
   </div>
 </div>
 
-<script src="./Focus Tracker_files/supabase.min.js.download"></script>
+<script src="./index_files/supabase.min.js.download"></script>
 <script>
 'use strict';
 
