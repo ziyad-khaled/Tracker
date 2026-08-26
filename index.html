@@ -339,14 +339,14 @@ td.dim{color:var(--muted);}
             <div class="metric-cell-sub" id="m-today-sub">0 sessions</div>
           </div>
           <div class="metric-cell">
-            <div class="metric-cell-lbl">Last 7 days avg/day</div>
+            <div class="metric-cell-lbl">This Week avg/day</div>
             <div class="metric-cell-val" id="m-thisweek">—</div>
-            <div class="metric-cell-sub" id="m-thisweek-sub">moving window</div>
+            <div class="metric-cell-sub" id="m-thisweek-sub">Mon → today</div>
           </div>
           <div class="metric-cell">
-            <div class="metric-cell-lbl">Previous 7 days avg/day</div>
+            <div class="metric-cell-lbl">Last Week avg/day</div>
             <div class="metric-cell-val" id="m-lastweek">—</div>
-            <div class="metric-cell-sub" id="m-lastweek-sub">moving window</div>
+            <div class="metric-cell-sub" id="m-lastweek-sub">previous Mon → Sun</div>
             <div class="metric-cell-sub" id="m-week-delta" style="margin-top:2px;">—</div>
           </div>
         </div>
@@ -510,8 +510,8 @@ td.dim{color:var(--muted);}
   <div class="stats-grid">
     <div class="stat-card"><div class="stat-lbl">Total Sessions</div><div class="stat-val" id="an-sessions">—</div></div>
     <div class="stat-card"><div class="stat-lbl">Total Focus</div><div class="stat-val" id="an-focus">—</div></div>
-    <div class="stat-card"><div class="stat-lbl">Last 7 days avg/day</div><div class="stat-val" id="an-thisweek">—</div><div class="stat-sub" id="an-thisweek-sub"></div></div>
-    <div class="stat-card"><div class="stat-lbl">Previous 7 days avg/day</div><div class="stat-val" id="an-lastweek">—</div><div class="stat-sub" id="an-lastweek-sub"></div></div>
+    <div class="stat-card"><div class="stat-lbl">This Week avg/day</div><div class="stat-val" id="an-thisweek">—</div><div class="stat-sub" id="an-thisweek-sub"></div></div>
+    <div class="stat-card"><div class="stat-lbl">Last Week avg/day</div><div class="stat-val" id="an-lastweek">—</div><div class="stat-sub" id="an-lastweek-sub"></div></div>
   </div>
   <div class="chart-section">
     <div class="chart-lbl">Daily Focus — last 14 days</div>
@@ -636,8 +636,8 @@ WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div
         <div class="toggle" id="tog-autoPomo" onclick="toggleSetting('autoPomo')"></div>
       </div>
       <div class="setting-row">
-        <div><div class="setting-name">7-day moving average</div><div class="setting-sub">Always uses today and the previous 6 dates</div></div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--accent);">7 days</div>
+        <div><div class="setting-name">Week starts on</div><div class="setting-sub">This Week runs Monday through today; Last Week stays fixed Monday–Sunday</div></div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--accent);">Monday</div>
       </div>
       <div class="setting-row">
         <div><div class="setting-name">Inactive days in average</div><div class="setting-sub">You decide whether no-focus days count as zero</div></div>
@@ -1190,16 +1190,26 @@ async function fetchSessions(limit){
   return all;
 }
 
-function movingWindowBounds(daysBack){
-  var end=new Date(); end.setHours(0,0,0,0); end.setDate(end.getDate()-(daysBack||0));
-  var start=new Date(end); start.setDate(start.getDate()-6);
+function startOfMonday(date){
+  var d=new Date((date||new Date()).getTime()); d.setHours(0,0,0,0);
+  d.setDate(d.getDate()-((d.getDay()+6)%7));
+  return d;
+}
+function weekBounds(offsetWeeks){
+  var start=startOfMonday(new Date()); start.setDate(start.getDate()-(offsetWeeks||0)*7);
+  var end=new Date(start); end.setDate(end.getDate()+6);
   return [localDateKey(start),localDateKey(end)];
 }
-function movingAverageDivisor(activeDays){
-  return settings.avgMode==='exclude'?Math.max(1,activeDays):7;
+function currentWeekBounds(){
+  return [localDateKey(startOfMonday(new Date())),localDateKey(new Date())];
 }
-function movingAverageLabel(divisor,activeDays){
-  return settings.avgMode==='exclude'?'inactive days ignored · '+activeDays+' active':'inactive days count as zero · ÷7';
+function daysInCurrentWeek(){ return ((new Date().getDay()+6)%7)+1; }
+function weeklyAverageDivisor(activeDays,isCurrentWeek){
+  if(settings.avgMode==='exclude') return Math.max(1,activeDays);
+  return isCurrentWeek?daysInCurrentWeek():7;
+}
+function weeklyAverageLabel(divisor,activeDays){
+  return settings.avgMode==='exclude'?'inactive days ignored · '+activeDays+' active':'inactive days count as zero · ÷'+divisor;
 }
 function weekTotal(sessions,bounds,exclude){
   var total=0;
@@ -1224,28 +1234,28 @@ function renderExcludeUI(){
 
 async function refreshMetrics(){
   if (!sb) return;
-  var today=isoDate(), thisWindow=movingWindowBounds(0), previousWindow=movingWindowBounds(7);
+  var today=isoDate(), thisWeek=currentWeekBounds(), lastWeek=weekBounds(1);
   var todayRes=await sb.from('focus_sessions').select('focus_sec').eq('session_date',today);
   var todaySess=todayRes.data||[], todayMin=todaySess.reduce(function(a,s){return a+Math.floor((s.focus_sec||0)/60);},0);
   seqToday=todaySess.length;
   document.getElementById('m-today').textContent=todayMin+'m';
   document.getElementById('m-today-sub').textContent=seqToday+' session'+(seqToday!==1?'s':'');
-  var twRes=await sb.from('focus_sessions').select('focus_sec,session_date,task_type').gte('session_date',thisWindow[0]).lte('session_date',thisWindow[1]);
+  var twRes=await sb.from('focus_sessions').select('focus_sec,session_date,task_type').gte('session_date',thisWeek[0]).lte('session_date',thisWeek[1]);
   var twTotal=(twRes.data||[]).reduce(function(a,s){return !excludedFromAvg[s.task_type]?a+Math.floor((s.focus_sec||0)/60):a;},0);
   var twActiveDays=new Set((twRes.data||[]).filter(s=>!excludedFromAvg[s.task_type]).map(s=>s.session_date)).size;
-  var twDivisor=movingAverageDivisor(twActiveDays);
+  var twDivisor=weeklyAverageDivisor(twActiveDays,true);
   var twAvg=Math.round(twTotal/twDivisor);
   document.getElementById('m-thisweek').textContent=twTotal?twAvg+'m':'—';
-  document.getElementById('m-thisweek-sub').textContent=thisWindow[0].slice(5)+' → '+thisWindow[1].slice(5)+' · '+movingAverageLabel(twDivisor,twActiveDays);
-  var lwRes=await sb.from('focus_sessions').select('focus_sec,session_date,task_type').gte('session_date',previousWindow[0]).lte('session_date',previousWindow[1]);
+  document.getElementById('m-thisweek-sub').textContent=thisWeek[0].slice(5)+' → '+thisWeek[1].slice(5)+' · total '+twTotal+'m · '+weeklyAverageLabel(twDivisor,twActiveDays);
+  var lwRes=await sb.from('focus_sessions').select('focus_sec,session_date,task_type').gte('session_date',lastWeek[0]).lte('session_date',lastWeek[1]);
   var lwData=lwRes.data||[];
   var lwTotal=lwData.reduce(function(a,s){return !excludedFromAvg[s.task_type]?a+Math.floor((s.focus_sec||0)/60):a;},0);
   var lwDays={}; lwData.forEach(function(s){if(!excludedFromAvg[s.task_type])lwDays[s.session_date]=1;});
   var lwActiveDays=Object.keys(lwDays).length;
-  var lwDivisor=movingAverageDivisor(lwActiveDays);
+  var lwDivisor=weeklyAverageDivisor(lwActiveDays,false);
   var lwAvg=Math.round(lwTotal/lwDivisor);
   document.getElementById('m-lastweek').textContent=lwTotal?lwAvg+'m':'—';
-  document.getElementById('m-lastweek-sub').textContent=lwTotal?previousWindow[0].slice(5)+' → '+previousWindow[1].slice(5)+' · '+movingAverageLabel(lwDivisor,lwActiveDays):'no sessions';
+  document.getElementById('m-lastweek-sub').textContent=lwTotal?lastWeek[0].slice(5)+' → '+lastWeek[1].slice(5)+' · total '+lwTotal+'m · '+weeklyAverageLabel(lwDivisor,lwActiveDays):'no sessions';
   var dEl=document.getElementById('m-week-delta');
   if (twAvg&&lwAvg){ var diff=twAvg-lwAvg; if(diff>0){dEl.textContent='▲ '+diff+'m vs last week';dEl.className='metric-cell-sub metric-up';}else if(diff<0){dEl.textContent='▼ '+Math.abs(diff)+'m vs last week';dEl.className='metric-cell-sub metric-down';}else{dEl.textContent='= same as last week';dEl.className='metric-cell-sub metric-same';} }
   else{ dEl.textContent='vs last week'; dEl.className='metric-cell-sub'; }
@@ -1759,18 +1769,18 @@ async function loadAnalytics(){
   var totalFocus=sessions.reduce(function(a,s){return a+Math.floor((s.focus_sec||0)/60);},0);
   document.getElementById('an-sessions').textContent=sessions.length;
   document.getElementById('an-focus').textContent=totalFocus>=60?Math.floor(totalFocus/60)+'h '+(totalFocus%60)+'m':totalFocus+'m';
-  var thisWindow=movingWindowBounds(0), previousWindow=movingWindowBounds(7);
-  var twTotal=weekTotal(sessions,thisWindow), lwTotal=weekTotal(sessions,previousWindow);
-  var twActiveDays2=new Set(sessions.filter(s=>s.session_date>=thisWindow[0]&&s.session_date<=thisWindow[1]&&!excludedFromAvg[s.task_type]).map(s=>s.session_date)).size;
-  var lwActiveDays2=new Set(sessions.filter(s=>s.session_date>=previousWindow[0]&&s.session_date<=previousWindow[1]&&!excludedFromAvg[s.task_type]).map(s=>s.session_date)).size;
-  var twDivisor=movingAverageDivisor(twActiveDays2);
-  var lwDivisor=movingAverageDivisor(lwActiveDays2);
+  var thisWeek=currentWeekBounds(), lastWeek=weekBounds(1);
+  var twTotal=weekTotal(sessions,thisWeek,excludedFromAvg), lwTotal=weekTotal(sessions,lastWeek,excludedFromAvg);
+  var twActiveDays2=new Set(sessions.filter(s=>s.session_date>=thisWeek[0]&&s.session_date<=thisWeek[1]&&!excludedFromAvg[s.task_type]).map(s=>s.session_date)).size;
+  var lwActiveDays2=new Set(sessions.filter(s=>s.session_date>=lastWeek[0]&&s.session_date<=lastWeek[1]&&!excludedFromAvg[s.task_type]).map(s=>s.session_date)).size;
+  var twDivisor=weeklyAverageDivisor(twActiveDays2,true);
+  var lwDivisor=weeklyAverageDivisor(lwActiveDays2,false);
   var twAvg=Math.round(twTotal/twDivisor);
   var lwAvg=Math.round(lwTotal/lwDivisor);
   document.getElementById('an-thisweek').textContent=twAvg?twAvg+'m':'—';
-  document.getElementById('an-thisweek-sub').textContent=thisWindow[0].slice(5)+' → '+thisWindow[1].slice(5)+' · '+movingAverageLabel(twDivisor,twActiveDays2);
+  document.getElementById('an-thisweek-sub').textContent=thisWeek[0].slice(5)+' → '+thisWeek[1].slice(5)+' · total '+twTotal+'m · '+weeklyAverageLabel(twDivisor,twActiveDays2);
   document.getElementById('an-lastweek').textContent=lwAvg?lwAvg+'m':'—';
-  document.getElementById('an-lastweek-sub').textContent=previousWindow[0].slice(5)+' → '+previousWindow[1].slice(5)+' · '+movingAverageLabel(lwDivisor,lwActiveDays2);
+  document.getElementById('an-lastweek-sub').textContent=lastWeek[0].slice(5)+' → '+lastWeek[1].slice(5)+' · total '+lwTotal+'m · '+weeklyAverageLabel(lwDivisor,lwActiveDays2);
   var daily={}; sessions.forEach(function(s){if(s.session_date)daily[s.session_date]=(daily[s.session_date]||0)+Math.floor((s.focus_sec||0)/60);});
   var days=Object.entries(daily).sort(function(a,b){return a[0]<b[0]?-1:1;}).slice(-14);
   var maxM=Math.max.apply(null,days.map(function(d){return d[1];}).concat([1]));
