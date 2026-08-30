@@ -480,7 +480,7 @@ td.dim{color:var(--muted);}
     <div class="cycle-card" id="shift-card-1">
       <div class="cycle-card-head"><div class="cycle-card-title">Cycle 1</div><span class="cycle-status" id="shift1-status">—</span></div>
       <div class="cycle-window" id="shift1-window">Window: —</div>
-      <div class="cycle-target">Target 41m focus · cap 45m</div>
+      <div class="cycle-target" id="shift1-target">Target 41m focus · cap 45m</div>
       <div class="cycle-min" id="shift1-min">0<span> min focused</span></div>
       <div class="cycle-rule" id="shift1-rule">Stop at the 45-minute hard cap even mid-task — past this your data shows wasted time jumps sharply.</div>
     </div>
@@ -488,7 +488,7 @@ td.dim{color:var(--muted);}
     <div class="cycle-card" id="shift-card-2">
       <div class="cycle-card-head"><div class="cycle-card-title">Cycle 2</div><span class="cycle-status" id="shift2-status">—</span></div>
       <div class="cycle-window" id="shift2-window">Window: —</div>
-      <div class="cycle-target">Target 41m focus · cap 45m</div>
+      <div class="cycle-target" id="shift2-target">Target 41m focus · cap 45m</div>
       <div class="cycle-min" id="shift2-min">0<span> min focused</span></div>
       <div class="cycle-rule" id="shift2-rule">Take a real 15-minute break first — screens off, away from the desk.</div>
     </div>
@@ -496,7 +496,7 @@ td.dim{color:var(--muted);}
     <div class="cycle-card" id="shift-card-3">
       <div class="cycle-card-head"><div class="cycle-card-title">Cycle 3</div><span class="cycle-status" id="shift3-status">—</span></div>
       <div class="cycle-window" id="shift3-window">Window: —</div>
-      <div class="cycle-target">Target 41m focus · cap 45m</div>
+      <div class="cycle-target" id="shift3-target">Target 41m focus · cap 45m</div>
       <div class="cycle-min" id="shift3-min">0<span> min focused</span></div>
       <div class="cycle-rule" id="shift3-rule">Finishing this cycle completes a full ~3-hour, ~123-minute-focus chain.</div>
     </div>
@@ -1588,18 +1588,20 @@ function clearKillSwitchHint(){
   var el=document.getElementById('kill-switch-hint'); if(!el) return;
   el.textContent=''; el.className='';
 }
+var killSwitchDeadPersisted=false;
 function killSwitchMonitorTick(){
   var el=document.getElementById('kill-switch-hint'); if(!el) return;
-  if(running||sessionStart){ el.textContent=''; el.className=''; return; }
+  if(running||sessionStart){ el.textContent=''; el.className=''; killSwitchDeadPersisted=false; return; }
   var overlayOpen=document.getElementById('break-overlay').classList.contains('show');
   if(overlayOpen){ el.textContent=''; el.className=''; return; } // break overlay has its own warning
-  var lastEnd=getLastFocusEndMs(); if(!lastEnd){ el.textContent=''; el.className=''; return; }
+  var lastEnd=getLastFocusEndMs(); if(!lastEnd){ el.textContent=''; el.className=''; killSwitchDeadPersisted=false; return; }
   var gapMin=(Date.now()-lastEnd)/60000;
   var kMin=settings.killSwitch||17;
   if(gapMin<1){ el.textContent=''; el.className=''; return; }
   if(gapMin>=kMin){
     el.textContent='⚠ '+Math.floor(gapMin)+'m gap — this block is dead. Log it and start fresh, don\'t try to resume.';
     el.className='dead';
+    if(!killSwitchDeadPersisted){ killSwitchDeadPersisted=true; refreshRoutine(); } // write the dead flag to the DB right away, don't wait for you to come back
   }else{
     el.textContent='Gap since last focus: '+Math.floor(gapMin)+'m (kill-switch at '+kMin+'m)';
     el.className='';
@@ -2450,14 +2452,14 @@ async function computeRoutineState(){
   state.currentChain=chains.length?chains[chains.length-1]:null;
   state.interruptions=interruptions;
 
-  persistChains(today,chains);
-
   // live kill-switch check: gap since the very last focus session ended, if no session running right now
   if(withTimes.length && !sessionStart){
     var lastEnd=withTimes[withTimes.length-1].end;
     var liveGapMin=(Date.now()-lastEnd.getTime())/60000;
     if(liveGapMin>=kMin){ state.killSwitchActive=true; state.killSwitchGapMin=Math.round(liveGapMin); if(state.currentChain) state.currentChain.dead=true; }
   }
+
+  persistChains(today,chains);
 
   return state;
 }
@@ -2530,6 +2532,7 @@ function renderRoutinePage(state){
     var statusEl=document.getElementById('shift'+i+'-status');
     var winEl=document.getElementById('shift'+i+'-window');
     var minEl=document.getElementById('shift'+i+'-min');
+    var targetEl=document.getElementById('shift'+i+'-target');
     var sess=chain&&chain.sessions[i-1];
     var min=sess?sess.focusMin:0;
     var cls='locked', label='Pending', windowTxt='—';
@@ -2544,6 +2547,7 @@ function renderRoutinePage(state){
     card.className='cycle-card'+(cls==='active'?' active':cls==='dead'?' dead':cls==='locked'?' locked':'');
     statusEl.outerHTML='<span class="cycle-status '+cls+'" id="shift'+i+'-status">'+label+'</span>';
     winEl.textContent='Window: '+windowTxt;
+    if(targetEl) targetEl.textContent='Target '+cycleTarget+'m focus · cap '+cycleCap+'m';
     minEl.innerHTML=min+'<span> / '+cycleTarget+'m target (cap '+cycleCap+'m)</span>';
   }
 
