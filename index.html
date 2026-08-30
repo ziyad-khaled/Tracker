@@ -751,8 +751,12 @@ WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div
       <div class="setting-row"><span class="setting-name">Long Break every N</span><input type="number" class="input-field w70" id="set-interval" value="4" min="2" max="10" onchange="saveSettings()"></div>
       <div class="setting-row"><span class="setting-name">Overdue warn (extra min)</span><input type="number" class="input-field w70" id="set-overdue" value="3" min="0" max="20" onchange="saveSettings()"></div>
       <div class="setting-row">
-        <div><div class="setting-name">Flow mode</div><div class="setting-sub">Timer counts past target; end manually</div></div>
-        <div class="toggle on" id="tog-flowMode" onclick="toggleSetting('flowMode')"></div>
+        <div><div class="setting-name">Timer behavior</div><div class="setting-sub">Strict: alarms + auto-ends at target. Flow: counts up forever, ends manually. Hybrid: alarms at target but keeps running until the cap, then auto-ends.</div></div>
+        <select class="input-field" style="width:100px;" id="set-timerMode" onchange="saveSettings()">
+          <option value="strict">Strict</option>
+          <option value="flow">Flow</option>
+          <option value="hybrid">Hybrid</option>
+        </select>
       </div>
       <div class="setting-row">
         <div><div class="setting-name">Auto-start breaks</div><div class="setting-sub">Break overlay opens after session</div></div>
@@ -820,20 +824,32 @@ WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div
       </div>
     </div>
     <div class="full-col">
-      <div class="settings-title">Sweet-Spot Cycle System</div>
+      <div class="settings-title">Cycle Profiles</div>
+      <div class="setting-row">
+        <div><div class="setting-name">Active profile</div><div class="setting-sub">Which profile the Cycles tab, cap warnings, and hybrid timer mode use right now</div></div>
+        <select class="input-field" style="width:150px;" id="set-cycleProfile" onchange="saveSettings()">
+          <option value="sweetspot">Sweet Spot (41/15)</option>
+          <option value="baseline">Baseline (25/10)</option>
+        </select>
+      </div>
       <div class="settings-cols" style="gap:1.5rem;">
         <div>
+          <div class="setting-row" style="margin-bottom:6px;"><span class="setting-name" style="color:var(--accent);">Sweet Spot</span></div>
           <div class="setting-row"><span class="setting-name">Daily focus ceiling (min)</span><input type="number" class="input-field w70" id="set-ceilingMin" value="260" min="60" max="600" onchange="saveSettings()"></div>
           <div class="setting-row"><span class="setting-name">Cycle focus target (min)</span><input type="number" class="input-field w70" id="set-cycleTarget" value="41" min="10" max="90" onchange="saveSettings()"></div>
           <div class="setting-row"><span class="setting-name">Cycle focus hard cap (min)</span><input type="number" class="input-field w70" id="set-cycleCap" value="45" min="10" max="120" onchange="saveSettings()"></div>
+          <div class="setting-row"><span class="setting-name">Break target per cycle (min)</span><input type="number" class="input-field w70" id="set-cycleBreak" value="15" min="1" max="60" onchange="saveSettings()"></div>
         </div>
         <div>
-          <div class="setting-row"><span class="setting-name">Break target per cycle (min)</span><input type="number" class="input-field w70" id="set-cycleBreak" value="15" min="1" max="60" onchange="saveSettings()"></div>
-          <div class="setting-row"><span class="setting-name">Kill-switch gap (min)</span><input type="number" class="input-field w70" id="set-killSwitch" value="17" min="1" max="60" onchange="saveSettings()"></div>
-          <div class="setting-row"><span class="setting-name">Cycles per chain</span><input type="number" class="input-field w70" id="set-cyclesPerChain" value="3" min="1" max="8" onchange="saveSettings()"></div>
+          <div class="setting-row" style="margin-bottom:6px;"><span class="setting-name" style="color:var(--info);">Baseline (your normal — ~72% ratio)</span></div>
+          <div class="setting-row"><span class="setting-name">Cycle focus target (min)</span><input type="number" class="input-field w70" id="set-baselineTarget" value="25" min="5" max="60" onchange="saveSettings()"></div>
+          <div class="setting-row"><span class="setting-name">Cycle focus hard cap (min)</span><input type="number" class="input-field w70" id="set-baselineCap" value="30" min="5" max="90" onchange="saveSettings()"></div>
+          <div class="setting-row"><span class="setting-name">Break target per cycle (min)</span><input type="number" class="input-field w70" id="set-baselineBreak" value="10" min="1" max="60" onchange="saveSettings()"></div>
         </div>
       </div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px;">Based on your data: 41m focus / 15m break is the sustainable sweet spot; a gap over the kill-switch threshold breaks the chain — log it and start fresh instead of resuming.</div>
+      <div class="setting-row"><span class="setting-name">Kill-switch gap (min)</span><input type="number" class="input-field w70" id="set-killSwitch" value="17" min="1" max="60" onchange="saveSettings()"></div>
+      <div class="setting-row"><span class="setting-name">Cycles per chain</span><input type="number" class="input-field w70" id="set-cyclesPerChain" value="3" min="1" max="8" onchange="saveSettings()"></div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px;">Sweet Spot (41m/15m) is your data's top-of-sustainable zone; Baseline (25m/10m, ~35m per cycle, ~72% focus ratio) is your comfortable everyday zone. The kill-switch and cycles-per-chain apply to whichever profile is active. Tip: set your Pomodoro target above to match the active profile's focus target so hybrid mode aligns with it.</div>
     </div>
     <div class="full-col">
       <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:.75rem;padding-bottom:8px;border-bottom:1px solid var(--border);">Migration — Run in Supabase SQL Editor</div>
@@ -918,7 +934,39 @@ WHERE span_sec IS NOT NULL AND span_min IS NOT NULL
   AND ABS(span_min - ROUND(span_sec / 60.0, 0)) > 1;
 
 -- B5 — drop span_min — IRREVERSIBLE, run only after B4 = 0
-ALTER TABLE focus_sessions DROP COLUMN span_min;</pre></div>
+ALTER TABLE focus_sessions DROP COLUMN span_min;
+
+
+-- ╔═══════════════════════════════════════════════════════════════╗
+-- ║  manual_interruptions — kill-switch gaps logged by hand      ║
+-- ╚═══════════════════════════════════════════════════════════════╝
+CREATE TABLE IF NOT EXISTS manual_interruptions (
+  id           bigint generated by default as identity primary key,
+  session_date date NOT NULL,
+  minutes      integer NOT NULL,
+  logged_at    timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE manual_interruptions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow all" ON manual_interruptions FOR ALL USING (true) WITH CHECK (true);
+-- Settings need no new table — they reuse app_config (key = 'ft_settings'),
+-- the same pattern already used for ft_categories / ft_break_acts.
+
+-- ╔═══════════════════════════════════════════════════════════════╗
+-- ║  chains — persisted Cycle-tab chain/cycle history            ║
+-- ╚═══════════════════════════════════════════════════════════════╝
+CREATE TABLE IF NOT EXISTS chains (
+  id               bigint generated by default as identity primary key,
+  session_date     date NOT NULL,
+  chain_start      time NOT NULL,
+  chain_end        time,
+  cycles_completed integer NOT NULL DEFAULT 0,
+  focus_min        integer NOT NULL DEFAULT 0,
+  dead             boolean NOT NULL DEFAULT false,
+  updated_at       timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(session_date, chain_start)
+);
+ALTER TABLE chains ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow all" ON chains FOR ALL USING (true) WITH CHECK (true);</pre></div>
       <div style="margin-top:1rem;"><button class="btn-danger" onclick="clearLocalCache()">Clear Local Cache</button></div>
     </div>
   </div>
@@ -1036,8 +1084,8 @@ var CAT = {};
 
 var sb = null, offlineQueue = [], deferredInstall = null;
 var OFFLINE_QUEUE_KEY = 'ft_offline_queue';
-var settings = { pomodoro:25, short:5, long:15, interval:4, overdue:3, flowMode:true, autoBreak:false, autoPomo:false, avgMode:'include', nightDate:'actual', nightCutoff:4,
-  ceilingMin:260, cycleTarget:41, cycleCap:45, cycleBreak:15, killSwitch:17, cyclesPerChain:3 };
+var settings = { pomodoro:25, short:5, long:15, interval:4, overdue:3, timerMode:'flow', autoBreak:false, autoPomo:false, avgMode:'include', nightDate:'actual', nightCutoff:4,
+  ceilingMin:260, cycleProfile:'sweetspot', cycleTarget:41, cycleCap:45, cycleBreak:15, baselineTarget:25, baselineBreak:10, baselineCap:30, killSwitch:17, cyclesPerChain:3 };
 var excludedFromAvg = {};
 var mode = 'pomodoro', timeLeft = 25*60, totalSecs = 25*60;
 var running = false, tickInterval = null, sessionStart = null;
@@ -1406,6 +1454,11 @@ async function refreshMetrics(){
   else{ dEl.textContent='vs last week'; dEl.className='metric-cell-sub'; }
 }
 
+function activeCycleTarget(){ return settings.cycleProfile==='baseline' ? (settings.baselineTarget||25) : (settings.cycleTarget||41); }
+function activeCycleBreak(){ return settings.cycleProfile==='baseline' ? (settings.baselineBreak||10) : (settings.cycleBreak||15); }
+function activeCycleCap(){ return settings.cycleProfile==='baseline' ? (settings.baselineCap||30) : (settings.cycleCap||45); }
+function activeProfileLabel(){ return settings.cycleProfile==='baseline' ? 'Baseline' : 'Sweet Spot'; }
+
 function setMode(m,preserveAlarm){
   if (running) return;
   if (!preserveAlarm) stopAlarm(); mode=m; inOvertime=false; pausedMs=0; pauseStartMs=null;
@@ -1730,17 +1783,34 @@ function doTick(){
   _tickCount++;
   if (_tickCount%60===0) saveRecoverySnapshot();
   var elapsed=wallElapsedSecs(), remaining=totalSecs-elapsed;
+  var capSec=activeCycleCap()*60;
   if (remaining>0){ setRing(remaining/totalSecs); renderClock(remaining,false); }
   else{
     if (!inOvertime){
-      if (settings.flowMode){ inOvertime=true; document.getElementById('overtime-badge').classList.add('show'); document.getElementById('ring').style.stroke='var(--warn)'; document.getElementById('timer-display').style.color='var(--warn)'; document.getElementById('flow-hint').textContent='Target reached — keep going or end when ready'; document.getElementById('flow-hint').className='overtime'; }
-      else{ endSession(false); playAlarm(2000); return; }
+      inOvertime=true;
+      if (settings.timerMode==='strict'){ endSession(false); playAlarm(2000); return; }
+      else if (settings.timerMode==='hybrid'){
+        playAlarm(2000);
+        document.getElementById('overtime-badge').classList.add('show');
+        document.getElementById('ring').style.stroke='var(--warn)';
+        document.getElementById('timer-display').style.color='var(--warn)';
+        document.getElementById('flow-hint').textContent='🔔 Target reached — still in flow? Keep going, it will auto-stop at the cap.';
+        document.getElementById('flow-hint').className='overtime';
+      }
+      else{ document.getElementById('overtime-badge').classList.add('show'); document.getElementById('ring').style.stroke='var(--warn)'; document.getElementById('timer-display').style.color='var(--warn)'; document.getElementById('flow-hint').textContent='Target reached — keep going or end when ready'; document.getElementById('flow-hint').className='overtime'; }
+    }
+    if (settings.timerMode==='hybrid' && elapsed>=capSec){
+      document.getElementById('flow-hint').textContent='🛑 Cap reached — ending session automatically.';
+      document.getElementById('flow-hint').className='overtime';
+      playAlarm(2500);
+      endSession(false);
+      return;
     }
     var ot=elapsed-totalSecs; setRing(Math.min(1,ot/totalSecs)); renderClock(ot,true);
   }
   var focusMin=Math.floor(elapsed/60);
-  var capMin=settings.cycleCap||45;
-  if (focusMin>=capMin){
+  var capMin=activeCycleCap();
+  if (focusMin>=capMin && settings.timerMode!=='hybrid'){
     document.getElementById('flow-hint').textContent='🛑 '+capMin+'m cap reached — end this block now, your data shows wasted time jumps sharply past this.';
     document.getElementById('flow-hint').className='overtime';
     document.getElementById('ring').style.stroke='var(--danger)';
@@ -2015,7 +2085,8 @@ function loadSettings(){
   settings.long=Math.min(60,Math.max(1,parseInt(settings.long)||15));
   settings.interval=Math.min(10,Math.max(2,parseInt(settings.interval)||4));
   settings.overdue=Math.min(20,Math.max(0,parseInt(settings.overdue)||3));
-  settings.flowMode=settings.flowMode!==false; settings.autoBreak=settings.autoBreak===true; settings.autoPomo=settings.autoPomo===true;
+  settings.timerMode=['strict','flow','hybrid'].includes(settings.timerMode)?settings.timerMode:(settings.flowMode===false?'strict':'flow');
+  settings.autoBreak=settings.autoBreak===true; settings.autoPomo=settings.autoPomo===true;
   settings.avgMode=(settings.avgMode==='exclude'||settings.avgMode==='active')?'exclude':'include';
   settings.nightDate=settings.nightDate==='prev'?'prev':'actual';
   settings.nightCutoff=isNaN(parseInt(settings.nightCutoff))||parseInt(settings.nightCutoff)<0?4:Math.min(8,parseInt(settings.nightCutoff));
@@ -2024,7 +2095,7 @@ function loadSettings(){
   document.getElementById('set-pomodoro').value=settings.pomodoro; document.getElementById('set-short').value=settings.short;
   document.getElementById('set-long').value=settings.long; document.getElementById('set-interval').value=settings.interval;
   document.getElementById('set-overdue').value=settings.overdue;
-  document.getElementById('tog-flowMode').classList.toggle('on',settings.flowMode);
+  document.getElementById('set-timerMode').value=settings.timerMode;
   document.getElementById('tog-autoBreak').classList.toggle('on',settings.autoBreak);
   document.getElementById('tog-autoPomo').classList.toggle('on',settings.autoPomo);
   document.getElementById('set-avgMode').value=settings.avgMode;
@@ -2033,13 +2104,47 @@ function loadSettings(){
   var _ncrr=document.getElementById('nightcutoff-row'); if(_ncrr)_ncrr.style.display=settings.nightDate==='prev'?'flex':'none';
   document.getElementById('set-defEnergy').value=settings.defEnergy;
   settings.ceilingMin=parseInt(settings.ceilingMin)||260;
+  settings.cycleProfile=settings.cycleProfile==='baseline'?'baseline':'sweetspot';
   settings.cycleTarget=parseInt(settings.cycleTarget)||41;
   settings.cycleCap=parseInt(settings.cycleCap)||45;
   settings.cycleBreak=parseInt(settings.cycleBreak)||15;
+  settings.baselineTarget=parseInt(settings.baselineTarget)||25;
+  settings.baselineCap=parseInt(settings.baselineCap)||30;
+  settings.baselineBreak=parseInt(settings.baselineBreak)||10;
   settings.killSwitch=parseInt(settings.killSwitch)||17;
   settings.cyclesPerChain=parseInt(settings.cyclesPerChain)||3;
-  var _idMap={'set-ceilingMin':settings.ceilingMin,'set-cycleTarget':settings.cycleTarget,'set-cycleCap':settings.cycleCap,'set-cycleBreak':settings.cycleBreak,'set-killSwitch':settings.killSwitch,'set-cyclesPerChain':settings.cyclesPerChain};
+  document.getElementById('set-cycleProfile').value=settings.cycleProfile;
+  var _idMap={'set-ceilingMin':settings.ceilingMin,'set-cycleTarget':settings.cycleTarget,'set-cycleCap':settings.cycleCap,'set-cycleBreak':settings.cycleBreak,'set-baselineTarget':settings.baselineTarget,'set-baselineCap':settings.baselineCap,'set-baselineBreak':settings.baselineBreak,'set-killSwitch':settings.killSwitch,'set-cyclesPerChain':settings.cyclesPerChain};
   Object.keys(_idMap).forEach(function(id){ var el=document.getElementById(id); if(el) el.value=_idMap[id]; });
+  dbConfigGet('ft_settings').then(function(remote){
+    if(remote&&remote!==false&&typeof remote==='object'){
+      settings=Object.assign(settings,remote);
+      localStorage.setItem('ft_settings',JSON.stringify(settings));
+      renderSettingsFields();
+      refreshRoutine();
+      if(!running&&!document.getElementById('break-overlay').classList.contains('show')&&!manualBreakTick){
+        timeLeft=totalSecs=settings.pomodoro*60; renderClock(timeLeft,false); setRing(1);
+      }
+    } else if(remote===false){
+      dbConfigSet('ft_settings',settings); // first run on this DB — seed it with local values
+    }
+  });
+}
+function renderSettingsFields(){
+  document.getElementById('set-pomodoro').value=settings.pomodoro; document.getElementById('set-short').value=settings.short;
+  document.getElementById('set-long').value=settings.long; document.getElementById('set-interval').value=settings.interval;
+  document.getElementById('set-overdue').value=settings.overdue;
+  document.getElementById('set-timerMode').value=settings.timerMode;
+  document.getElementById('tog-autoBreak').classList.toggle('on',settings.autoBreak);
+  document.getElementById('tog-autoPomo').classList.toggle('on',settings.autoPomo);
+  document.getElementById('set-avgMode').value=settings.avgMode;
+  document.getElementById('set-nightDate').value=settings.nightDate;
+  var _ncr=document.getElementById('set-nightCutoff'); if(_ncr)_ncr.value=settings.nightCutoff;
+  var _ncrr=document.getElementById('nightcutoff-row'); if(_ncrr)_ncrr.style.display=settings.nightDate==='prev'?'flex':'none';
+  document.getElementById('set-defEnergy').value=settings.defEnergy;
+  document.getElementById('set-cycleProfile').value=settings.cycleProfile;
+  var _idMap2={'set-ceilingMin':settings.ceilingMin,'set-cycleTarget':settings.cycleTarget,'set-cycleCap':settings.cycleCap,'set-cycleBreak':settings.cycleBreak,'set-baselineTarget':settings.baselineTarget,'set-baselineCap':settings.baselineCap,'set-baselineBreak':settings.baselineBreak,'set-killSwitch':settings.killSwitch,'set-cyclesPerChain':settings.cyclesPerChain};
+  Object.keys(_idMap2).forEach(function(id){ var el=document.getElementById(id); if(el) el.value=_idMap2[id]; });
 }
 function saveSettings(){
   settings.pomodoro=parseInt(document.getElementById('set-pomodoro').value)||25;
@@ -2051,12 +2156,15 @@ function saveSettings(){
   settings.nightDate=document.getElementById('set-nightDate').value||'actual';
   settings.nightCutoff=Math.min(8,Math.max(0,parseInt(document.getElementById('set-nightCutoff').value)||4));
   settings.defEnergy=parseInt(document.getElementById('set-defEnergy').value)||0;
-  var _rtIds=['set-ceilingMin','set-cycleTarget','set-cycleCap','set-cycleBreak','set-killSwitch','set-cyclesPerChain'];
+  settings.timerMode=document.getElementById('set-timerMode').value||'flow';
+  settings.cycleProfile=document.getElementById('set-cycleProfile').value==='baseline'?'baseline':'sweetspot';
+  var _rtIds=['set-ceilingMin','set-cycleTarget','set-cycleCap','set-cycleBreak','set-baselineTarget','set-baselineCap','set-baselineBreak','set-killSwitch','set-cyclesPerChain'];
   _rtIds.forEach(function(id){ var el=document.getElementById(id); if(!el) return;
     var key=id.replace('set-','');
     settings[key]=parseInt(el.value)||0;
   });
   localStorage.setItem('ft_settings',JSON.stringify(settings));
+  dbConfigSet('ft_settings',settings);
   refreshRoutine();
   var overlayOpen=document.getElementById('break-overlay').classList.contains('show');
   if (!running&&!overlayOpen&&!manualBreakTick){ timeLeft=totalSecs=settings.pomodoro*60; renderClock(timeLeft,false); setRing(1); }
@@ -2067,7 +2175,7 @@ function saveSettings(){
   }
   if(!running&&!sessionStart) applyDefaultEnergy();
 }
-function toggleSetting(key){ settings[key]=!settings[key]; document.getElementById('tog-'+key).classList.toggle('on',settings[key]); localStorage.setItem('ft_settings',JSON.stringify(settings)); }
+function toggleSetting(key){ settings[key]=!settings[key]; document.getElementById('tog-'+key).classList.toggle('on',settings[key]); localStorage.setItem('ft_settings',JSON.stringify(settings)); dbConfigSet('ft_settings',settings); }
 function clearLocalCache(){
   if (!confirm('Clear local cache? Supabase data is unaffected — categories and break activities will reload from the database.')) return;
   ['ft_settings','ft_daymeta','ft_projects','ft_categories','ft_excluded','ft_break_acts'].forEach(function(k){localStorage.removeItem(k);});
@@ -2286,20 +2394,22 @@ function rtFmtWindow(win){ return win?rtFmtTime(win.start)+' → '+rtFmtTime(win
  */
 async function computeRoutineState(){
   var today=isoDate();
-  var manual=rtLoadManual(today);
   var kMin=settings.killSwitch||17;
-  var cycleTarget=settings.cycleTarget||41;
-  var cycleCap=settings.cycleCap||45;
+  var cycleTarget=activeCycleTarget();
+  var cycleCap=activeCycleCap();
   var cyclesPerChain=settings.cyclesPerChain||3;
-  var state={ today:today, manual:manual, totalFocusMin:0, chains:[], currentChain:null, interruptions:[], killSwitchActive:false, killSwitchGapMin:0 };
-  if(!sb) return state;
+  var state={ today:today, manual:{manualInterruptions:[]}, totalFocusMin:0, chains:[], currentChain:null, interruptions:[], killSwitchActive:false, killSwitchGapMin:0 };
+  if(!sb){ state.manual.manualInterruptions=(rtLoadManual(today).manualInterruptions||[]); return state; }
 
-  var [sessRes,breakRes]=await Promise.all([
+  var [sessRes,breakRes,manualRes]=await Promise.all([
     sb.from('focus_sessions').select('id,start_time,end_time,focus_sec').eq('session_date',today).order('start_time',{ascending:true}),
-    sb.from('breaks').select('start_time,end_time,break_duration_min').eq('session_date',today).order('start_time',{ascending:true})
+    sb.from('breaks').select('start_time,end_time,break_duration_min').eq('session_date',today).order('start_time',{ascending:true}),
+    sb.from('manual_interruptions').select('minutes,logged_at').eq('session_date',today).order('logged_at',{ascending:true})
   ]);
   var sessions=sessRes.error?[]:(sessRes.data||[]);
   var breaks=breakRes.error?[]:(breakRes.data||[]);
+  var manual={ manualInterruptions: manualRes.error?[]:(manualRes.data||[]).map(function(r){ return {min:r.minutes,ts:new Date(r.logged_at).getTime()}; }) };
+  state.manual=manual;
   state.totalFocusMin=sessions.reduce(function(a,s){return a+Math.floor((s.focus_sec||0)/60);},0);
 
   // annotate each session with parsed start/end
@@ -2340,6 +2450,8 @@ async function computeRoutineState(){
   state.currentChain=chains.length?chains[chains.length-1]:null;
   state.interruptions=interruptions;
 
+  persistChains(today,chains);
+
   // live kill-switch check: gap since the very last focus session ended, if no session running right now
   if(withTimes.length && !sessionStart){
     var lastEnd=withTimes[withTimes.length-1].end;
@@ -2348,6 +2460,24 @@ async function computeRoutineState(){
   }
 
   return state;
+}
+
+function persistChains(today,chains){
+  if(!sb||!chains||!chains.length) return;
+  var rows=chains.map(function(c){
+    return {
+      session_date: today,
+      chain_start: c.start.toTimeString().slice(0,8),
+      chain_end: c.end?c.end.toTimeString().slice(0,8):null,
+      cycles_completed: c.cyclesCompleted,
+      focus_min: c.focusMin,
+      dead: !!c.dead,
+      updated_at: new Date().toISOString()
+    };
+  });
+  sb.from('chains').upsert(rows,{onConflict:'session_date,chain_start'}).then(function(res){
+    if(res.error) console.warn('chains upsert:',res.error.message);
+  });
 }
 
 async function refreshRoutine(){
@@ -2376,8 +2506,8 @@ function renderRoutineSummary(state){
 
 function renderRoutinePage(state){
   var kMin=settings.killSwitch||17;
-  var cycleTarget=settings.cycleTarget||41;
-  var cycleCap=settings.cycleCap||45;
+  var cycleTarget=activeCycleTarget();
+  var cycleCap=activeCycleCap();
   var cyclesPerChain=settings.cyclesPerChain||3;
   var chain=state.currentChain;
 
@@ -2393,7 +2523,7 @@ function renderRoutinePage(state){
   document.getElementById('rt-ceil-val').textContent=state.totalFocusMin;
   document.getElementById('rt-ceil-max').textContent=' / '+ceil+' min ceiling';
   var cfill=document.getElementById('rt-ceil-fill'); cfill.style.width=pct+'%'; cfill.style.background=pct>=100?'var(--danger)':pct>=85?'var(--warn)':'var(--accent)';
-  document.getElementById('rt-anchor-lbl').textContent=chain?('Current chain started at '+rtFmtTime(chain.start)):'No chain started yet today';
+  document.getElementById('rt-anchor-lbl').textContent=(chain?('Current chain started at '+rtFmtTime(chain.start)):'No chain started yet today')+' · '+activeProfileLabel()+' profile ('+cycleTarget+'m/'+activeCycleBreak()+'m, cap '+cycleCap+'m)';
 
   for(var i=1;i<=3;i++){
     var card=document.getElementById('shift-card-'+i);
@@ -2454,9 +2584,16 @@ function renderRoutinePage(state){
   }).join('');
 }
 
-function rtLogManualInterruption(){
+async function rtLogManualInterruption(){
   var inp=document.getElementById('rt-manual-interrupt-min'), min=parseInt(inp.value)||0; if(min<=0) return;
-  var m=rtLoadManual(isoDate()); m.manualInterruptions.push({min:min,ts:Date.now()}); rtSaveManual(isoDate(),m); inp.value=''; refreshRoutine();
+  inp.value='';
+  if(sb){
+    var res=await sb.from('manual_interruptions').insert([{session_date:isoDate(),minutes:min}]);
+    if(res.error){ console.error('manual_interruptions insert error:',res.error.message); var m=rtLoadManual(isoDate()); m.manualInterruptions.push({min:min,ts:Date.now()}); rtSaveManual(isoDate(),m); }
+  } else {
+    var m2=rtLoadManual(isoDate()); m2.manualInterruptions.push({min:min,ts:Date.now()}); rtSaveManual(isoDate(),m2);
+  }
+  refreshRoutine();
 }
 </script>
 </body>
