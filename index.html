@@ -133,8 +133,11 @@ textarea.input-field{resize:vertical;}
 .break-sub b{color:var(--accent);}.break-sub .ot{color:var(--warn);}
 .break-clock{font-family:var(--mono);font-size:52px;font-weight:300;color:var(--info);margin-bottom:2rem;}
 .break-clock.ended{color:var(--warn);}
+.break-clock.dead{color:var(--danger);}
 .overdue-warn{font-family:var(--mono);font-size:11px;color:var(--danger);margin-bottom:1rem;opacity:0;transition:opacity .4s;}
 .overdue-warn.show{opacity:1;}
+.killswitch-warn{font-family:var(--mono);font-size:11px;color:var(--danger);background:rgba(255,95,95,.1);border:1px solid rgba(255,95,95,.35);border-radius:var(--r);padding:10px 16px;margin-bottom:1rem;max-width:420px;display:none;line-height:1.6;}
+.killswitch-warn.show{display:block;}
 .bo-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
 .break-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:1.5rem;max-width:460px;}
 .break-chip{font-family:var(--mono);font-size:11px;padding:9px 18px;border-radius:var(--r);cursor:pointer;border:1px solid var(--border);color:var(--muted);background:none;transition:all .12s;}
@@ -228,64 +231,55 @@ td.dim{color:var(--muted);}
 .conn-msg.fail{color:var(--danger);background:rgba(255,95,95,.08);}
 .conn-msg.idle{color:var(--muted);}
 
-/* ── Routine Engine ─────────────────────────────────────────── */
-.rt-summary-card{border:1px solid var(--border);border-radius:var(--r);padding:12px;background:var(--surface);}
-.rt-summary-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
-.rt-summary-shift{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.04em;}
-.rt-summary-window{font-family:var(--mono);font-size:9px;color:var(--muted);}
-.rt-bar-track{width:100%;height:6px;border-radius:4px;background:var(--surface2);overflow:hidden;margin-bottom:6px;}
-.rt-bar-fill{height:100%;border-radius:4px;background:var(--accent);transition:width .4s;}
-.rt-bar-fill.warn{background:var(--warn);}
-.rt-bar-fill.danger{background:var(--danger);}
-.rt-summary-sub{font-family:var(--mono);font-size:9px;color:var(--muted);}
-.rt-link{display:block;text-align:center;margin-top:8px;font-family:var(--mono);font-size:9px;color:var(--muted);text-decoration:underline;cursor:pointer;background:none;border:none;width:100%;}
-.rt-banner{border-radius:var(--r);padding:10px 14px;font-family:var(--mono);font-size:11px;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
-.rt-banner.info{background:rgba(95,180,255,.08);border:1px solid rgba(95,180,255,.3);color:var(--info);}
-.rt-banner.warn{background:rgba(255,170,68,.08);border:1px solid rgba(255,170,68,.3);color:var(--warn);}
-.rt-banner.danger{background:rgba(255,95,95,.08);border:1px solid rgba(255,95,95,.3);color:var(--danger);}
-.rt-banner.ok{background:var(--accent-dim);border:1px solid rgba(200,240,74,.3);color:var(--accent);}
-.rt-ceiling-card{border:1px solid var(--border);border-radius:8px;padding:1.25rem;margin-bottom:1.5rem;background:var(--surface);}
-.rt-ceiling-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;}
-.rt-ceiling-val{font-family:var(--mono);font-size:26px;color:var(--accent);}
-.rt-ceiling-max{font-family:var(--mono);font-size:12px;color:var(--muted);}
-.rt-ceiling-track{width:100%;height:10px;border-radius:6px;background:var(--surface2);overflow:hidden;margin-bottom:8px;}
-.rt-ceiling-fill{height:100%;border-radius:6px;background:var(--accent);transition:width .5s;}
-.rt-shift-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:1.5rem;}
-@media(max-width:820px){.rt-shift-grid{grid-template-columns:1fr;}}
-.shift-card{border:1px solid var(--border);border-radius:8px;padding:1rem;background:var(--surface);position:relative;}
-.shift-card.active{border-color:rgba(200,240,74,.5);}
-.shift-card.locked{opacity:.55;}
-.shift-card.cancelled{opacity:.4;}
-.shift-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
-.shift-card-title{font-size:14px;font-weight:700;}
-.shift-status{font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:2px 8px;border-radius:20px;text-transform:uppercase;}
-.shift-status.active{background:var(--accent-dim);color:var(--accent);}
-.shift-status.locked{background:var(--surface2);color:var(--muted);}
-.shift-status.done{background:rgba(95,180,255,.12);color:var(--info);}
-.shift-status.cancelled{background:rgba(255,95,95,.1);color:var(--danger);}
-.shift-window{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:10px;}
-.shift-target{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:6px;}
-.shift-min{font-family:var(--mono);font-size:20px;color:var(--text);margin-bottom:10px;}
-.shift-min span{font-size:11px;color:var(--muted);}
-.shift-rule{font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.7;border-top:1px solid var(--border);padding-top:8px;margin-top:6px;}
-.ticket-row{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
-.ticket-row input{width:52px;text-align:center;}
-.btn-tiny{font-family:var(--mono);font-size:11px;padding:6px 10px;border-radius:var(--r);cursor:pointer;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(200,240,74,.4);}
-.btn-tiny.blue{background:rgba(95,180,255,.1);color:var(--info);border-color:rgba(95,180,255,.35);}
-.skillasset-list{display:flex;flex-direction:column;gap:4px;margin:6px 0;max-height:100px;overflow-y:auto;}
-.skillasset-item{font-family:var(--mono);font-size:10px;color:var(--text);background:var(--surface2);padding:5px 8px;border-radius:var(--r);}
-.rr-panel{border:1px solid var(--border);border-radius:8px;padding:1.25rem;margin-bottom:1.5rem;background:var(--surface);}
-.rr-days-row{display:flex;gap:6px;margin:10px 0;}
-.rr-day-chip{flex:1;text-align:center;padding:8px 4px;border-radius:var(--r);font-family:var(--mono);font-size:9px;}
-.rr-day-chip.hi{background:var(--accent-dim);color:var(--accent);}
-.rr-day-chip.lo{background:rgba(95,180,255,.1);color:var(--info);}
-.rr-day-chip.mid{background:var(--surface2);color:var(--muted);}
-.rr-day-chip.none{background:var(--surface2);color:#333;}
+/* ── Cycle Engine ─────────────────────────────────────────── */
+.cy-summary-card{border:1px solid var(--border);border-radius:var(--r);padding:12px;background:var(--surface);}
+.cy-summary-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.cy-summary-shift{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.04em;}
+.cy-summary-window{font-family:var(--mono);font-size:9px;color:var(--muted);}
+.cy-bar-track{width:100%;height:6px;border-radius:4px;background:var(--surface2);overflow:hidden;margin-bottom:6px;}
+.cy-bar-fill{height:100%;border-radius:4px;background:var(--accent);transition:width .4s;}
+.cy-bar-fill.warn{background:var(--warn);}
+.cy-bar-fill.danger{background:var(--danger);}
+.cy-summary-sub{font-family:var(--mono);font-size:9px;color:var(--muted);}
+.cy-link{display:block;text-align:center;margin-top:8px;font-family:var(--mono);font-size:9px;color:var(--muted);text-decoration:underline;cursor:pointer;background:none;border:none;width:100%;}
+.cy-banner{border-radius:var(--r);padding:10px 14px;font-family:var(--mono);font-size:11px;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+.cy-banner.info{background:rgba(95,180,255,.08);border:1px solid rgba(95,180,255,.3);color:var(--info);}
+.cy-banner.warn{background:rgba(255,170,68,.08);border:1px solid rgba(255,170,68,.3);color:var(--warn);}
+.cy-banner.danger{background:rgba(255,95,95,.08);border:1px solid rgba(255,95,95,.3);color:var(--danger);}
+.cy-banner.ok{background:var(--accent-dim);border:1px solid rgba(200,240,74,.3);color:var(--accent);}
+.cy-ceiling-card{border:1px solid var(--border);border-radius:8px;padding:1.25rem;margin-bottom:1.5rem;background:var(--surface);}
+.cy-ceiling-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;}
+.cy-ceiling-val{font-family:var(--mono);font-size:26px;color:var(--accent);}
+.cy-ceiling-max{font-family:var(--mono);font-size:12px;color:var(--muted);}
+.cy-ceiling-track{width:100%;height:10px;border-radius:6px;background:var(--surface2);overflow:hidden;margin-bottom:8px;}
+.cy-ceiling-fill{height:100%;border-radius:6px;background:var(--accent);transition:width .5s;}
+.cy-cycle-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:1.5rem;}
+@media(max-width:820px){.cy-cycle-grid{grid-template-columns:1fr;}}
+.cycle-card{border:1px solid var(--border);border-radius:8px;padding:1rem;background:var(--surface);position:relative;}
+.cycle-card.active{border-color:rgba(200,240,74,.5);}
+.cycle-card.locked{opacity:.55;}
+.cycle-card.dead{opacity:.6;border-color:rgba(255,95,95,.4);}
+.cycle-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.cycle-card-title{font-size:14px;font-weight:700;}
+.cycle-status{font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:2px 8px;border-radius:20px;text-transform:uppercase;}
+.cycle-status.active{background:var(--accent-dim);color:var(--accent);}
+.cycle-status.locked{background:var(--surface2);color:var(--muted);}
+.cycle-status.done{background:rgba(95,180,255,.12);color:var(--info);}
+.cycle-status.dead{background:rgba(255,95,95,.1);color:var(--danger);}
+.cycle-window{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:10px;}
+.cycle-target{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:6px;}
+.cycle-min{font-family:var(--mono);font-size:20px;color:var(--text);margin-bottom:10px;}
+.cycle-min span{font-size:11px;color:var(--muted);}
+.cycle-rule{font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.7;border-top:1px solid var(--border);padding-top:8px;margin-top:6px;}
+.chains-list{display:flex;flex-direction:column;gap:6px;}
+.chain-item{font-family:var(--mono);font-size:11px;color:var(--text);background:var(--surface2);padding:8px 12px;border-radius:var(--r);display:flex;justify-content:space-between;gap:10px;}
+.chain-item.dead-chain{color:var(--danger);}
+.interrupt-log-item{font-family:var(--mono);font-size:10px;color:var(--muted);padding:6px 8px;border-radius:var(--r);background:var(--surface2);margin-bottom:4px;display:flex;justify-content:space-between;gap:8px;}
+.interrupt-log-item.long{color:var(--danger);}
 .perfect-check{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;padding:6px 0;color:var(--muted);}
 .perfect-check.met{color:var(--accent);}
-.interrupt-log-item{font-family:var(--mono);font-size:10px;color:var(--muted);padding:6px 8px;border-radius:var(--r);background:var(--surface2);margin-bottom:4px;display:flex;justify-content:space-between;gap:8px;}
-.interrupt-log-item.long{color:var(--warn);}
-.tb-timer{font-family:var(--mono);font-size:32px;color:var(--info);text-align:center;margin:10px 0;}
+#kill-switch-hint{font-family:var(--mono);font-size:10px;color:var(--muted);text-align:center;margin-top:-4px;margin-bottom:8px;min-height:14px;transition:color .3s;}
+#kill-switch-hint.dead{color:var(--danger);font-weight:700;}
 </style>
 </head>
 <body>
@@ -322,7 +316,7 @@ td.dim{color:var(--muted);}
     <div class="db-pill" id="db-pill"><div class="db-dot"></div><span id="db-label">not connected</span></div>
     <div class="nav-tabs">
       <button class="nav-tab active" onclick="showPage('timer')">Timer</button>
-      <button class="nav-tab" onclick="showPage('routine')">Routine</button>
+      <button class="nav-tab" onclick="showPage('routine')">Cycles</button>
       <button class="nav-tab" onclick="showPage('log')">Log</button>
       <button class="nav-tab" onclick="showPage('analytics')">Analytics</button>
       <button class="nav-tab" onclick="showPage('checkins')">Check-in</button>
@@ -388,6 +382,7 @@ td.dim{color:var(--muted);}
           </div>
         </div>
         <div id="flow-hint">Start a session to begin tracking</div>
+        <div id="kill-switch-hint"></div>
         <div id="manual-break-panel" style="display:none;margin-top:10px;width:100%;max-width:360px;text-align:center;">
           <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Break Activity</div>
           <div id="manual-break-chips-dynamic" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:8px;"></div>
@@ -414,15 +409,15 @@ td.dim{color:var(--muted);}
     </div>
     <div>
       <div class="sb-section">
-        <div class="sb-label">Today's Shift <span id="rt-summary-toggle-lbl"></span></div>
-        <div class="rt-summary-card" id="rt-summary-card">
-          <div class="rt-summary-top">
-            <span class="rt-summary-shift" id="rt-sum-shift">No shift started</span>
-            <span class="rt-summary-window" id="rt-sum-window">—</span>
+        <div class="sb-label">Today's Chain <span id="rt-summary-toggle-lbl"></span></div>
+        <div class="cy-summary-card" id="rt-summary-card">
+          <div class="cy-summary-top">
+            <span class="cy-summary-shift" id="rt-sum-shift">No chain started</span>
+            <span class="cy-summary-window" id="rt-sum-window">—</span>
           </div>
-          <div class="rt-bar-track"><div class="rt-bar-fill" id="rt-sum-ceilbar" style="width:0%;"></div></div>
-          <div class="rt-summary-sub" id="rt-sum-ceilsub">0 / 260m ceiling</div>
-          <button class="rt-link" onclick="showPage('routine')">Full Routine view →</button>
+          <div class="cy-bar-track"><div class="cy-bar-fill" id="rt-sum-ceilbar" style="width:0%;"></div></div>
+          <div class="cy-summary-sub" id="rt-sum-ceilsub">0 / 260m ceiling</div>
+          <button class="cy-link" onclick="showPage('routine')">Full Cycles view →</button>
         </div>
       </div>
       <div class="sb-section">
@@ -468,71 +463,52 @@ td.dim{color:var(--muted);}
   </div>
 </div>
 
-<!-- ROUTINE PAGE -->
+<!-- CYCLES PAGE (formerly Routine) -->
 <div class="page" id="page-routine">
   <div id="rt-banners"></div>
 
-  <div class="rt-ceiling-card">
-    <div class="rt-ceiling-top">
-      <div><span class="rt-ceiling-val" id="rt-ceil-val">0</span><span class="rt-ceiling-max" id="rt-ceil-max"> / 260 min ceiling</span></div>
+  <div class="cy-ceiling-card">
+    <div class="cy-ceiling-top">
+      <div><span class="cy-ceiling-val" id="rt-ceil-val">0</span><span class="cy-ceiling-max" id="rt-ceil-max"> / 260 min ceiling</span></div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--muted);" id="rt-anchor-lbl">—</div>
     </div>
-    <div class="rt-ceiling-track"><div class="rt-ceiling-fill" id="rt-ceil-fill" style="width:0%;"></div></div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);" id="rt-ceil-note">Your P90 sustainable limit. 9/10 days you naturally stop at or before this.</div>
+    <div class="cy-ceiling-track"><div class="cy-ceiling-fill" id="rt-ceil-fill" style="width:0%;"></div></div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);" id="rt-ceil-note">Your data-backed sustainable limit for the day.</div>
   </div>
 
-  <div class="rt-shift-grid">
-    <div class="shift-card" id="shift-card-1">
-      <div class="shift-card-head"><div class="shift-card-title">Shift 1 · Prime Output</div><span class="shift-status" id="shift1-status">—</span></div>
-      <div class="shift-window" id="shift1-window">Window: —</div>
-      <div class="shift-target">Target 90–100m · Limit 120m</div>
-      <div class="shift-min" id="shift1-min">0<span> min focused</span></div>
-      <div class="ticket-row">
-        <span style="font-family:var(--mono);font-size:10px;color:var(--muted);">Tickets</span>
-        <input type="number" class="input-field" id="rt-ticket-done" min="0" onchange="rtSetTicketsDone(this.value)">
-        <span style="font-family:var(--mono);font-size:10px;color:var(--muted);">/</span>
-        <input type="number" class="input-field" id="rt-ticket-target" min="0" onchange="rtSetTicketTarget(this.value)">
-        <button class="btn-tiny" onclick="rtIncTicket()">+1</button>
-      </div>
-      <div class="shift-rule" id="shift1-rule">Ticket-First Gate: tickets must meet quota before study minutes count toward "success".</div>
+  <div class="cy-cycle-grid">
+    <div class="cycle-card" id="shift-card-1">
+      <div class="cycle-card-head"><div class="cycle-card-title">Cycle 1</div><span class="cycle-status" id="shift1-status">—</span></div>
+      <div class="cycle-window" id="shift1-window">Window: —</div>
+      <div class="cycle-target">Target 41m focus · cap 45m</div>
+      <div class="cycle-min" id="shift1-min">0<span> min focused</span></div>
+      <div class="cycle-rule" id="shift1-rule">Stop at the 45-minute hard cap even mid-task — past this your data shows wasted time jumps sharply.</div>
     </div>
 
-    <div class="shift-card" id="shift-card-2">
-      <div class="shift-card-head"><div class="shift-card-title">Shift 2 · Sustainability Bridge</div><span class="shift-status" id="shift2-status">—</span></div>
-      <div class="shift-window" id="shift2-window">Window: —</div>
-      <div class="shift-target">Target 60m</div>
-      <div class="shift-min" id="shift2-min">0<span> min focused</span></div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:6px;">True Break (45m, no screens) between Shift 1 &amp; 2</div>
-      <div class="tb-timer" id="tb-timer-display" style="display:none;">45:00</div>
-      <div style="display:flex;gap:6px;">
-        <button class="btn-tiny blue" id="tb-start-btn" onclick="rtStartTrueBreak()">Start True Break</button>
-        <button class="btn-tiny" id="tb-done-btn" style="display:none;" onclick="rtMarkTrueBreakDone()">✓ Mark Complete</button>
-      </div>
-      <div class="shift-rule" id="shift2-rule">Only unlocks if Shift 1's ticket gate is met and energy ≥ 3/5.</div>
+    <div class="cycle-card" id="shift-card-2">
+      <div class="cycle-card-head"><div class="cycle-card-title">Cycle 2</div><span class="cycle-status" id="shift2-status">—</span></div>
+      <div class="cycle-window" id="shift2-window">Window: —</div>
+      <div class="cycle-target">Target 41m focus · cap 45m</div>
+      <div class="cycle-min" id="shift2-min">0<span> min focused</span></div>
+      <div class="cycle-rule" id="shift2-rule">Take a real 15-minute break first — screens off, away from the desk.</div>
     </div>
 
-    <div class="shift-card" id="shift-card-3">
-      <div class="shift-card-head"><div class="shift-card-title">Shift 3 · Optional Surge</div><span class="shift-status" id="shift3-status">—</span></div>
-      <div class="shift-window" id="shift3-window">Window: —</div>
-      <div class="shift-target">Target 30–60m · Skill Assets only</div>
-      <div class="shift-min" id="shift3-min">0<span> min focused</span></div>
-      <div class="skillasset-list" id="skillasset-list"></div>
-      <div class="add-row">
-        <input type="text" class="input-field" id="rt-skillasset-input" placeholder="Log a skill asset..." onkeydown="if(event.key==='Enter')rtAddSkillAsset()">
-        <button class="btn-add" onclick="rtAddSkillAsset()">+ Log</button>
-      </div>
-      <div class="shift-rule" id="shift3-rule">Cancelled automatically if it would run past bedtime, or demoted after a long interruption.</div>
+    <div class="cycle-card" id="shift-card-3">
+      <div class="cycle-card-head"><div class="cycle-card-title">Cycle 3</div><span class="cycle-status" id="shift3-status">—</span></div>
+      <div class="cycle-window" id="shift3-window">Window: —</div>
+      <div class="cycle-target">Target 41m focus · cap 45m</div>
+      <div class="cycle-min" id="shift3-min">0<span> min focused</span></div>
+      <div class="cycle-rule" id="shift3-rule">Finishing this cycle completes a full ~3-hour, ~123-minute-focus chain.</div>
     </div>
-  </div>
-
-  <div class="rr-panel">
-    <div class="sb-label" style="margin-bottom:2px;">Recovery Ratio — 3 high-performance days require 1 low-intensity day</div>
-    <div class="rr-days-row" id="rr-days-row"></div>
-    <div style="font-family:var(--mono);font-size:11px;color:var(--muted);" id="rr-status">Loading history…</div>
   </div>
 
   <div class="chart-section">
-    <div class="chart-lbl">Interruption &amp; Delay Log — Today</div>
+    <div class="chart-lbl">Today's Chains</div>
+    <div class="chains-list" id="chains-list"><span style="color:var(--muted);font-family:var(--mono);font-size:11px;">No chain started yet today.</span></div>
+  </div>
+
+  <div class="chart-section">
+    <div class="chart-lbl">Interruption &amp; Kill-Switch Log — Today</div>
     <div id="interrupt-log"><span style="color:var(--muted);font-family:var(--mono);font-size:11px;">No interruptions detected today.</span></div>
     <div class="add-row" style="margin-top:8px;max-width:340px;">
       <input type="number" class="input-field" id="rt-manual-interrupt-min" placeholder="Minutes" min="1">
@@ -541,7 +517,7 @@ td.dim{color:var(--muted);}
   </div>
 
   <div class="chart-section">
-    <div class="chart-lbl">Perfect Day Checklist</div>
+    <div class="chart-lbl">Cycle Day Checklist</div>
     <div id="perfect-day-checklist"></div>
   </div>
 </div>
@@ -591,6 +567,7 @@ td.dim{color:var(--muted);}
   <div class="break-sub" id="break-sub">Session complete</div>
   <div class="break-clock" id="break-clock">05:00</div>
   <div class="overdue-warn" id="overdue-warn">⚠ Break is running over — still coming back?</div>
+  <div class="killswitch-warn" id="killswitch-warn">⚠ 17+ minute gap — this block is statistically dead. Don't try to resume it: log it and start a fresh block instead.</div>
   <div class="bo-lbl">What are you doing?</div>
   <div class="break-chips" id="break-chips-dynamic"></div>
   <textarea class="input-field break-note-field" id="break-note" placeholder="Break note (optional)..." rows="2"></textarea>
@@ -843,22 +820,20 @@ WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div
       </div>
     </div>
     <div class="full-col">
-      <div class="settings-title">Maximum-Sustainable Focus Routine</div>
+      <div class="settings-title">Sweet-Spot Cycle System</div>
       <div class="settings-cols" style="gap:1.5rem;">
         <div>
-          <div class="setting-row"><span class="setting-name">Daily ceiling (min)</span><input type="number" class="input-field w70" id="set-ceilingMin" value="260" min="60" max="600" onchange="saveSettings()"></div>
-          <div class="setting-row"><span class="setting-name">Normal start time</span><input type="time" class="input-field" style="width:110px;" id="set-normalStart" onchange="saveSettings()"></div>
-          <div class="setting-row"><span class="setting-name">Bedtime</span><input type="time" class="input-field" style="width:110px;" id="set-bedtime" onchange="saveSettings()"></div>
-          <div class="setting-row"><span class="setting-name">Default ticket quota / day</span><input type="number" class="input-field w70" id="set-ticketTarget" value="5" min="0" max="50" onchange="saveSettings()"></div>
+          <div class="setting-row"><span class="setting-name">Daily focus ceiling (min)</span><input type="number" class="input-field w70" id="set-ceilingMin" value="260" min="60" max="600" onchange="saveSettings()"></div>
+          <div class="setting-row"><span class="setting-name">Cycle focus target (min)</span><input type="number" class="input-field w70" id="set-cycleTarget" value="41" min="10" max="90" onchange="saveSettings()"></div>
+          <div class="setting-row"><span class="setting-name">Cycle focus hard cap (min)</span><input type="number" class="input-field w70" id="set-cycleCap" value="45" min="10" max="120" onchange="saveSettings()"></div>
         </div>
         <div>
-          <div class="setting-row"><span class="setting-name">Shift 1 target / limit (min)</span><span style="display:flex;gap:6px;"><input type="number" class="input-field w70" id="set-s1Target" value="100" onchange="saveSettings()"><input type="number" class="input-field w70" id="set-s1Limit" value="120" onchange="saveSettings()"></span></div>
-          <div class="setting-row"><span class="setting-name">Shift 2 target (min)</span><input type="number" class="input-field w70" id="set-s2Target" value="60" onchange="saveSettings()"></div>
-          <div class="setting-row"><span class="setting-name">Shift 3 target range (min)</span><span style="display:flex;gap:6px;"><input type="number" class="input-field w70" id="set-s3Min" value="30" onchange="saveSettings()"><input type="number" class="input-field w70" id="set-s3Max" value="60" onchange="saveSettings()"></span></div>
-          <div class="setting-row"><span class="setting-name">Recovery ratio window (days)</span><input type="number" class="input-field w70" id="set-rrLookback" value="28" min="7" max="90" onchange="saveSettings()"></div>
+          <div class="setting-row"><span class="setting-name">Break target per cycle (min)</span><input type="number" class="input-field w70" id="set-cycleBreak" value="15" min="1" max="60" onchange="saveSettings()"></div>
+          <div class="setting-row"><span class="setting-name">Kill-switch gap (min)</span><input type="number" class="input-field w70" id="set-killSwitch" value="17" min="1" max="60" onchange="saveSettings()"></div>
+          <div class="setting-row"><span class="setting-name">Cycles per chain</span><input type="number" class="input-field w70" id="set-cyclesPerChain" value="3" min="1" max="8" onchange="saveSettings()"></div>
         </div>
       </div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px;">Anchors the Three-Shift Engine to your first session of the day. Bedtime is used to auto-cancel Shift 3 on delayed-start days.</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px;">Based on your data: 41m focus / 15m break is the sustainable sweet spot; a gap over the kill-switch threshold breaks the chain — log it and start fresh instead of resuming.</div>
     </div>
     <div class="full-col">
       <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:.75rem;padding-bottom:8px;border-bottom:1px solid var(--border);">Migration — Run in Supabase SQL Editor</div>
@@ -1062,7 +1037,7 @@ var CAT = {};
 var sb = null, offlineQueue = [], deferredInstall = null;
 var OFFLINE_QUEUE_KEY = 'ft_offline_queue';
 var settings = { pomodoro:25, short:5, long:15, interval:4, overdue:3, flowMode:true, autoBreak:false, autoPomo:false, avgMode:'include', nightDate:'actual', nightCutoff:4,
-  ceilingMin:260, normalStart:'', bedtime:'', ticketTarget:5, s1Target:100, s1Limit:120, s2Target:60, s3Min:30, s3Max:60, rrLookback:28 };
+  ceilingMin:260, cycleTarget:41, cycleCap:45, cycleBreak:15, killSwitch:17, cyclesPerChain:3 };
 var excludedFromAvg = {};
 var mode = 'pomodoro', timeLeft = 25*60, totalSecs = 25*60;
 var running = false, tickInterval = null, sessionStart = null;
@@ -1071,7 +1046,7 @@ var pomodoroCount = 0, seqToday = 0;
 var currentEnergy = null, currentCat = null, currentProject = null, currentTask = null;
 var projects = {};
 var pending = null, breakActs = [], breakStart = null, breakTick = null;
-var manualBreakTick = null, overdueShown = false, breakAlarmFired = false;
+var manualBreakTick = null, overdueShown = false, breakAlarmFired = false, killSwitchShown = false;
 var lastSavedSessionId = null, manualBreakActs = [], modalEnergy = null;
 
 if ('serviceWorker' in navigator)
@@ -1487,12 +1462,16 @@ function toggleTimer(){
 function startTimer(){
   stopAlarm();
   if (mode!=='pomodoro'){ setMode('pomodoro'); setTimeout(startTimer,50); return; }
-  if (!sessionStart){ sessionStart=new Date(); pausedMs=0; pauseStartMs=null; seqToday++; startRecoveryInterval(); }
+  if (!sessionStart){
+    sessionStart=new Date(); pausedMs=0; pauseStartMs=null; seqToday++; startRecoveryInterval();
+    noteFreshChainStartIfNeeded();
+  }
   else if (pauseStartMs!==null){ pausedMs+=Date.now()-pauseStartMs; pauseStartMs=null; }
   running=true;
   document.getElementById('start-btn').textContent='PAUSE';
   document.getElementById('end-btn').classList.add('show');
   document.getElementById('flow-hint').textContent='Running — hit "End Session" when ready';
+  clearKillSwitchHint();
   tickInterval=setInterval(doTick,500);
 }
 function pauseTimer(){ running=false; clearInterval(tickInterval); tickInterval=null; pauseStartMs=Date.now(); saveRecoverySnapshot(); document.getElementById('start-btn').textContent='RESUME'; document.getElementById('flow-hint').textContent='Paused — resume or end the session'; }
@@ -1519,6 +1498,7 @@ function endSession(keepAlarm){
   };
   pending=Object.assign({},sessNow);
   sessionStart=null; pausedMs=0; pauseStartMs=null; inOvertime=false;
+  markLastFocusEnd();
   dbInsertReturning(sessNow).then(function(savedId){
     lastSavedSessionId=savedId;
     var hint=document.getElementById('flow-hint');
@@ -1530,6 +1510,53 @@ function endSession(keepAlarm){
   else{ setMode('pomodoro',keepAlarm); }
 }
 function wallElapsedSecs(){ if (!sessionStart) return 0; return Math.floor(((Date.now()-sessionStart.getTime())-pausedMs)/1000); }
+
+/* ── Kill-switch: gap-since-last-focus tracking ───────────────── */
+var LAST_FOCUS_END_KEY='ft_last_focus_end';
+var killSwitchMonitorInterval=null;
+
+function markLastFocusEnd(){
+  try{ localStorage.setItem(LAST_FOCUS_END_KEY, String(Date.now())); }catch(e){}
+}
+function getLastFocusEndMs(){
+  try{ var v=localStorage.getItem(LAST_FOCUS_END_KEY); return v?parseInt(v,10):null; }catch(e){ return null; }
+}
+function noteFreshChainStartIfNeeded(){
+  var lastEnd=getLastFocusEndMs(); if(!lastEnd) return;
+  var gapMin=Math.round((Date.now()-lastEnd)/60000);
+  var kMin=settings.killSwitch||17;
+  if(gapMin>=kMin){
+    var noteEl=document.getElementById('session-note');
+    var tag='[fresh block after '+gapMin+'m gap]';
+    if(noteEl && noteEl.value.indexOf(tag)===-1) noteEl.value=(noteEl.value?noteEl.value+' ':'')+tag;
+  }
+}
+function clearKillSwitchHint(){
+  var el=document.getElementById('kill-switch-hint'); if(!el) return;
+  el.textContent=''; el.className='';
+}
+function killSwitchMonitorTick(){
+  var el=document.getElementById('kill-switch-hint'); if(!el) return;
+  if(running||sessionStart){ el.textContent=''; el.className=''; return; }
+  var overlayOpen=document.getElementById('break-overlay').classList.contains('show');
+  if(overlayOpen){ el.textContent=''; el.className=''; return; } // break overlay has its own warning
+  var lastEnd=getLastFocusEndMs(); if(!lastEnd){ el.textContent=''; el.className=''; return; }
+  var gapMin=(Date.now()-lastEnd)/60000;
+  var kMin=settings.killSwitch||17;
+  if(gapMin<1){ el.textContent=''; el.className=''; return; }
+  if(gapMin>=kMin){
+    el.textContent='⚠ '+Math.floor(gapMin)+'m gap — this block is dead. Log it and start fresh, don\'t try to resume.';
+    el.className='dead';
+  }else{
+    el.textContent='Gap since last focus: '+Math.floor(gapMin)+'m (kill-switch at '+kMin+'m)';
+    el.className='';
+  }
+}
+function startKillSwitchMonitor(){
+  clearInterval(killSwitchMonitorInterval);
+  killSwitchMonitorInterval=setInterval(killSwitchMonitorTick,15000);
+  killSwitchMonitorTick();
+}
 
 var RECOVERY_KEY='ft_recovery';
 var recoveryInterval=null;
@@ -1651,6 +1678,7 @@ async function saveRecoveredSession(){
   clearRecoverySnapshot();
   window._pendingRecovery=null;
   var id=await dbInsertReturning(sessRow);
+  markLastFocusEnd();
   var hint=document.getElementById('flow-hint');
   hint.textContent=id?'✓ Recovered session saved to DB':'✗ Save failed — check connection';
   hint.className=id?'':'overtime';
@@ -1710,6 +1738,13 @@ function doTick(){
     }
     var ot=elapsed-totalSecs; setRing(Math.min(1,ot/totalSecs)); renderClock(ot,true);
   }
+  var focusMin=Math.floor(elapsed/60);
+  var capMin=settings.cycleCap||45;
+  if (focusMin>=capMin){
+    document.getElementById('flow-hint').textContent='🛑 '+capMin+'m cap reached — end this block now, your data shows wasted time jumps sharply past this.';
+    document.getElementById('flow-hint').className='overtime';
+    document.getElementById('ring').style.stroke='var(--danger)';
+  }
 }
 function renderClock(secs,isOt){ var abs=Math.abs(secs), m=String(Math.floor(abs/60)).padStart(2,'0'), s=String(abs%60).padStart(2,'0'); document.getElementById('timer-display').textContent=(isOt?'+':'')+m+':'+s; document.title=(isOt?'+':'')+m+':'+s+' · Focus'; }
 function setRing(r){ var ring=document.getElementById('ring'); ring.style.strokeDasharray=CIRC; ring.style.strokeDashoffset=CIRC*(1-Math.max(0,Math.min(1,r))); }
@@ -1727,8 +1762,9 @@ function showBreakOverlay(type,preserveAlarm,isManual){
   document.querySelectorAll('#break-chips-dynamic .break-chip').forEach(function(c){c.classList.remove('active');});
   document.getElementById('snooze-log').textContent='';
   document.querySelectorAll('.btn-snooze').forEach(function(b){b.classList.remove('snoozed');});
-  breakActs=[]; overdueShown=false; breakAlarmFired=false; snoozeCount=0;
+  breakActs=[]; overdueShown=false; breakAlarmFired=false; killSwitchShown=false; snoozeCount=0;
   document.getElementById('overdue-warn').classList.remove('show');
+  document.getElementById('killswitch-warn').classList.remove('show');
   document.getElementById('break-clock').className='break-clock';
   breakTotalSecs=(type==='long'?settings.long:settings.short)*60; breakStart=new Date(); saveBreakSnapshot(type,[]);
   function tickBreak(){
@@ -1738,6 +1774,13 @@ function showBreakOverlay(type,preserveAlarm,isManual){
     document.getElementById('break-clock').textContent=(left<0?'+':'')+mm+':'+ss;
     if (left<=0&&!breakAlarmFired){ breakAlarmFired=true; playAlarm(); document.getElementById('break-clock').className='break-clock ended'; }
     if (left<=-(settings.overdue*60)&&!overdueShown){ overdueShown=true; document.getElementById('overdue-warn').classList.add('show'); playAlarm(); }
+    var killSec=(settings.killSwitch||17)*60;
+    if (el>=killSec&&!killSwitchShown){
+      killSwitchShown=true;
+      document.getElementById('killswitch-warn').classList.add('show');
+      document.getElementById('break-clock').className='break-clock dead';
+      playAlarm();
+    }
   }
   tickBreak(); breakTick=setInterval(tickBreak,500);
 }
@@ -1777,22 +1820,25 @@ function toggleBreakAct(el,act){ var idx=breakActs.indexOf(act); if(idx>=0){brea
 async function endBreak(returned){
   stopAlarm(); clearInterval(breakTick); breakTick=null; clearBreakSnapshot();
   var breakEnd=new Date(), bDurSec=breakStart?Math.floor((breakEnd.getTime()-breakStart.getTime())/1000):0, bDurMin=Math.floor(bDurSec/60);
+  var wasKilled=bDurSec>=((settings.killSwitch||17)*60);
   var breakRow={
     session_date:focusDateKey(breakStart||breakEnd), start_time:breakStart?fmt24(breakStart):fmt24(new Date()), end_time:fmt24(breakEnd),
     break_activities:breakActs.length?breakActs.join('; '):null,
-    break_note:document.getElementById('break-note').value.trim()||null,
+    break_note:(document.getElementById('break-note').value.trim()||null),
     break_duration_min:bDurMin, overdue:overdueShown, returned:returned
   };
+  if (wasKilled){ breakRow.break_note=(breakRow.break_note?breakRow.break_note+' ':'')+'[dead block — '+bDurMin+'m gap ≥ kill-switch]'; }
   var msg=document.getElementById('save-msg'); msg.textContent='Saving break...'; msg.className='save-msg saving';
   var ok=await dbSave(breakRow); lastSavedSessionId=null;
-  if (ok){ msg.textContent='✓ Break logged'; msg.className='save-msg saved'; }
+  if (ok){ msg.textContent=wasKilled?'✓ Dead block logged — start fresh below':'✓ Break logged'; msg.className='save-msg saved'; }
   else{ msg.textContent=navigator.onLine?'✗ Failed — queued':'✗ Offline — will sync'; msg.className='save-msg failed'; }
+  markLastFocusEnd();
   setTimeout(function(){
     document.getElementById('break-overlay').classList.remove('show');
     pending=null; running=false; sessionStart=null; pausedMs=0; pauseStartMs=null; inOvertime=false;
     timeLeft=settings.pomodoro*60; totalSecs=settings.pomodoro*60; mode='pomodoro';
     setMode('pomodoro'); applyDefaultEnergy(); refreshMetrics(); refreshRoutine();
-    if (settings.autoPomo && returned===true) setTimeout(startTimer,300);
+    if (settings.autoPomo && returned===true && !wasKilled) setTimeout(startTimer,300);
   }, 800);
 }
 
@@ -1987,14 +2033,12 @@ function loadSettings(){
   var _ncrr=document.getElementById('nightcutoff-row'); if(_ncrr)_ncrr.style.display=settings.nightDate==='prev'?'flex':'none';
   document.getElementById('set-defEnergy').value=settings.defEnergy;
   settings.ceilingMin=parseInt(settings.ceilingMin)||260;
-  settings.ticketTarget=parseInt(settings.ticketTarget)||0;
-  settings.s1Target=parseInt(settings.s1Target)||100;
-  settings.s1Limit=parseInt(settings.s1Limit)||120;
-  settings.s2Target=parseInt(settings.s2Target)||60;
-  settings.s3Min=parseInt(settings.s3Min)||30;
-  settings.s3Max=parseInt(settings.s3Max)||60;
-  settings.rrLookback=parseInt(settings.rrLookback)||28;
-  var _idMap={'set-ceilingMin':settings.ceilingMin,'set-normalStart':settings.normalStart||'','set-bedtime':settings.bedtime||'','set-ticketTarget':settings.ticketTarget,'set-s1Target':settings.s1Target,'set-s1Limit':settings.s1Limit,'set-s2Target':settings.s2Target,'set-s3Min':settings.s3Min,'set-s3Max':settings.s3Max,'set-rrLookback':settings.rrLookback};
+  settings.cycleTarget=parseInt(settings.cycleTarget)||41;
+  settings.cycleCap=parseInt(settings.cycleCap)||45;
+  settings.cycleBreak=parseInt(settings.cycleBreak)||15;
+  settings.killSwitch=parseInt(settings.killSwitch)||17;
+  settings.cyclesPerChain=parseInt(settings.cyclesPerChain)||3;
+  var _idMap={'set-ceilingMin':settings.ceilingMin,'set-cycleTarget':settings.cycleTarget,'set-cycleCap':settings.cycleCap,'set-cycleBreak':settings.cycleBreak,'set-killSwitch':settings.killSwitch,'set-cyclesPerChain':settings.cyclesPerChain};
   Object.keys(_idMap).forEach(function(id){ var el=document.getElementById(id); if(el) el.value=_idMap[id]; });
 }
 function saveSettings(){
@@ -2007,10 +2051,10 @@ function saveSettings(){
   settings.nightDate=document.getElementById('set-nightDate').value||'actual';
   settings.nightCutoff=Math.min(8,Math.max(0,parseInt(document.getElementById('set-nightCutoff').value)||4));
   settings.defEnergy=parseInt(document.getElementById('set-defEnergy').value)||0;
-  var _rtIds=['set-ceilingMin','set-normalStart','set-bedtime','set-ticketTarget','set-s1Target','set-s1Limit','set-s2Target','set-s3Min','set-s3Max','set-rrLookback'];
+  var _rtIds=['set-ceilingMin','set-cycleTarget','set-cycleCap','set-cycleBreak','set-killSwitch','set-cyclesPerChain'];
   _rtIds.forEach(function(id){ var el=document.getElementById(id); if(!el) return;
     var key=id.replace('set-','');
-    settings[key]=(key==='normalStart'||key==='bedtime')?el.value:(parseInt(el.value)||0);
+    settings[key]=parseInt(el.value)||0;
   });
   localStorage.setItem('ft_settings',JSON.stringify(settings));
   refreshRoutine();
@@ -2078,7 +2122,7 @@ window.addEventListener('keydown', function(event){
 (function init(){
   try{ var raw=JSON.parse(localStorage.getItem('ft_settings')||'{}'); if((raw.short&&raw.short>30)||(raw.long&&raw.long>60)) localStorage.removeItem('ft_settings'); }catch(e){ localStorage.removeItem('ft_settings'); }
   buildAlarm(); loadOfflineQueue(); loadSettings(); loadCategories(); loadExcluded(); loadProjects(); loadBreakActs(); applyDefaultEnergy(); checkRecovery(); checkBreakRecovery();
-  setRing(1); initSupabase(); checkDailyCheckin(); refreshRoutine();
+  setRing(1); initSupabase(); checkDailyCheckin(); refreshRoutine(); startKillSwitchMonitor();
   if (!navigator.onLine) document.getElementById('offline-bar').classList.add('show');
 })();
 
@@ -2203,23 +2247,21 @@ async function loadCheckinHistory(){
 }
 
 /* ══════════════════════════════════════════════════════════════
-   ROUTINE ENGINE — Maximum-Sustainable Focus Routine
-   Three-Shift System · 260-min Ceiling · Ticket Gate · Earned Flow
-   Recovery Ratio · Delayed-Start / Interruption Rules
+   CYCLE ENGINE — Sweet-Spot Chain System
+   41m focus / 15m break × 3 cycles ≈ 3-hour chain
+   Kill-switch: a gap over the threshold breaks the chain — log it
+   and start fresh, never try to resume the same block.
    ══════════════════════════════════════════════════════════════ */
 var RT_MANUAL_KEY='ft_routine_manual';
 var rtCache=null;
-var rtTrueBreakInterval=null, rtTrueBreakStartMs=null, rtTrueBreakSecs=45*60;
 
 function rtLoadAllManual(){ try{ return JSON.parse(localStorage.getItem(RT_MANUAL_KEY)||'{}'); }catch(e){ return {}; } }
 function rtSaveAllManual(all){ localStorage.setItem(RT_MANUAL_KEY,JSON.stringify(all)); }
-function rtDefaultManual(){ return { ticketsDone:0, ticketTarget:settings.ticketTarget||0, skillAssets:[], trueBreakDone:false, trueBreakMin:0, manualInterruptions:[] }; }
+function rtDefaultManual(){ return { manualInterruptions:[] }; }
 function rtLoadManual(dateKey){
   var all=rtLoadAllManual();
   if(!all[dateKey]) all[dateKey]=rtDefaultManual();
   var m=all[dateKey];
-  if(m.ticketTarget==null) m.ticketTarget=settings.ticketTarget||0;
-  if(!m.skillAssets) m.skillAssets=[];
   if(!m.manualInterruptions) m.manualInterruptions=[];
   return m;
 }
@@ -2235,73 +2277,75 @@ function parseTimeOnDate(dateStr,timeStr){
 function rtFmtTime(d){ return d?d.toTimeString().slice(0,5):'—'; }
 function rtFmtWindow(win){ return win?rtFmtTime(win.start)+' → '+rtFmtTime(win.end):'—'; }
 
+/*
+ * Builds today's "chains": consecutive focus sessions where the gap
+ * (session end -> next session start, folding in any break) stays
+ * under the kill-switch threshold. A gap >= killSwitch breaks the
+ * chain — the next session starts a brand new chain instead of
+ * "resuming" the old one.
+ */
 async function computeRoutineState(){
   var today=isoDate();
   var manual=rtLoadManual(today);
-  var state={ today:today, manual:manual, totalFocusMin:0, anchor:null, interruptions:[], delayed:false, delayMin:0, longInterruption:false };
+  var kMin=settings.killSwitch||17;
+  var cycleTarget=settings.cycleTarget||41;
+  var cycleCap=settings.cycleCap||45;
+  var cyclesPerChain=settings.cyclesPerChain||3;
+  var state={ today:today, manual:manual, totalFocusMin:0, chains:[], currentChain:null, interruptions:[], killSwitchActive:false, killSwitchGapMin:0 };
   if(!sb) return state;
+
   var [sessRes,breakRes]=await Promise.all([
-    sb.from('focus_sessions').select('start_time,end_time,focus_sec').eq('session_date',today).order('start_time',{ascending:true}),
+    sb.from('focus_sessions').select('id,start_time,end_time,focus_sec').eq('session_date',today).order('start_time',{ascending:true}),
     sb.from('breaks').select('start_time,end_time,break_duration_min').eq('session_date',today).order('start_time',{ascending:true})
   ]);
   var sessions=sessRes.error?[]:(sessRes.data||[]);
   var breaks=breakRes.error?[]:(breakRes.data||[]);
   state.totalFocusMin=sessions.reduce(function(a,s){return a+Math.floor((s.focus_sec||0)/60);},0);
-  if(!sessions.length) return state;
 
-  var anchorDt=parseTimeOnDate(today,sessions[0].start_time);
-  state.anchor=anchorDt;
-  var normalStartDt=settings.normalStart?parseTimeOnDate(today,settings.normalStart+':00'):null;
-  if(normalStartDt && anchorDt-normalStartDt>60*60*1000){ state.delayed=true; state.delayMin=Math.round((anchorDt-normalStartDt)/60000); }
+  // annotate each session with parsed start/end
+  var withTimes=sessions.map(function(s){
+    return { start:parseTimeOnDate(today,s.start_time), end:parseTimeOnDate(today,s.end_time), focusMin:Math.floor((s.focus_sec||0)/60) };
+  }).filter(function(s){ return s.start&&s.end; });
 
-  var shift1Start=new Date(anchorDt.getTime());
-  var shift1End=new Date(shift1Start.getTime()+3*3600*1000);
-  var longInterruption=false, interruptions=[];
-  breaks.forEach(function(b){
-    var bStart=parseTimeOnDate(today,b.start_time); if(!bStart) return;
-    if(bStart>=shift1Start && bStart<shift1End){
-      var dur=b.break_duration_min||0;
-      if(dur>30){
-        longInterruption=true;
-        interruptions.push({type:'long',min:dur,at:b.start_time});
-        var bEnd=parseTimeOnDate(today,b.end_time)||new Date(bStart.getTime()+dur*60000);
-        shift1Start=new Date(bEnd.getTime()); shift1End=new Date(shift1Start.getTime()+3*3600*1000);
-      } else if(dur>0){
-        interruptions.push({type:'short',min:dur,at:b.start_time});
-        shift1End=new Date(shift1End.getTime()+dur*60000);
+  // find the break record (if any) that starts closest after a focus session's end, to compute gap
+  function gapAfter(sessEnd, nextStart){
+    if(!nextStart) return null;
+    return Math.max(0,(nextStart-sessEnd)/60000);
+  }
+
+  var chains=[], current=null, interruptions=[];
+  withTimes.forEach(function(s,i){
+    if(!current){
+      current={ start:s.start, sessions:[s], focusMin:s.focusMin, cyclesCompleted:0, dead:false };
+    } else {
+      var gapMin=gapAfter(withTimes[i-1].end,s.start);
+      if(gapMin!=null && gapMin>0.5) interruptions.push({min:Math.round(gapMin),at:withTimes[i-1].end?rtFmtTime(withTimes[i-1].end):'—',type:gapMin>=kMin?'long':'short'});
+      if(gapMin!=null && gapMin>=kMin){
+        current.dead=true; current.end=withTimes[i-1].end;
+        chains.push(current);
+        current={ start:s.start, sessions:[s], focusMin:s.focusMin, cyclesCompleted:0, dead:false };
+      } else {
+        current.sessions.push(s); current.focusMin+=s.focusMin;
       }
     }
   });
-  (manual.manualInterruptions||[]).forEach(function(m){ interruptions.push({type:m.min>30?'long':'short',min:m.min,at:'manual',manual:true}); if(m.min>30) longInterruption=true; });
+  if(current){ current.end=withTimes.length?withTimes[withTimes.length-1].end:current.start; chains.push(current); }
 
-  state.shift1={start:shift1Start,end:shift1End};
-  state.shift2={start:new Date(shift1End.getTime()),end:new Date(shift1End.getTime()+3*3600*1000)};
-  state.shift3={start:new Date(state.shift2.end.getTime()),end:new Date(state.shift2.end.getTime()+3*3600*1000)};
-  state.longInterruption=longInterruption;
+  // include manual interruptions
+  (manual.manualInterruptions||[]).forEach(function(m){ interruptions.push({min:m.min,at:'manual',type:m.min>=kMin?'long':'short',manual:true}); });
+
+  chains.forEach(function(c){ c.cyclesCompleted=Math.min(cyclesPerChain,c.sessions.length); });
+
+  state.chains=chains;
+  state.currentChain=chains.length?chains[chains.length-1]:null;
   state.interruptions=interruptions;
 
-  function minInWindow(win){
-    return sessions.reduce(function(a,s){
-      var st=parseTimeOnDate(today,s.start_time);
-      return (st&&st>=win.start&&st<win.end)?a+Math.floor((s.focus_sec||0)/60):a;
-    },0);
+  // live kill-switch check: gap since the very last focus session ended, if no session running right now
+  if(withTimes.length && !sessionStart){
+    var lastEnd=withTimes[withTimes.length-1].end;
+    var liveGapMin=(Date.now()-lastEnd.getTime())/60000;
+    if(liveGapMin>=kMin){ state.killSwitchActive=true; state.killSwitchGapMin=Math.round(liveGapMin); if(state.currentChain) state.currentChain.dead=true; }
   }
-  state.shift1.min=minInWindow(state.shift1);
-  state.shift2.min=minInWindow(state.shift2);
-  state.shift3.min=minInWindow(state.shift3);
-
-  state.shift3.autoCancelled=false;
-  if(settings.bedtime){
-    var bedtimeDt=parseTimeOnDate(today,settings.bedtime+':00');
-    if(bedtimeDt && bedtimeDt<state.shift3.end) state.shift3.autoCancelled=true;
-  }
-  if(longInterruption) state.shift3.demoted=true;
-
-  var meta=loadMeta()[today]||{};
-  state.energy=meta.energy||currentEnergy||null;
-  state.ticketGateMet=manual.ticketTarget<=0 || manual.ticketsDone>=manual.ticketTarget;
-  state.shift2Unlocked=state.ticketGateMet && (state.energy||0)>=3;
-  state.shift3Unlocked=state.shift2.min>0 && !state.shift3.autoCancelled;
 
   return state;
 }
@@ -2318,151 +2362,101 @@ function renderRoutineSummary(state){
   var ceil=settings.ceilingMin||260;
   var pct=Math.min(100,Math.round((state.totalFocusMin/ceil)*100));
   var fill=document.getElementById('rt-sum-ceilbar');
-  if(fill){ fill.style.width=pct+'%'; fill.className='rt-bar-fill'+(pct>=100?' danger':pct>=85?' warn':''); }
+  if(fill){ fill.style.width=pct+'%'; fill.className='cy-bar-fill'+(pct>=100?' danger':pct>=85?' warn':''); }
   var sub=document.getElementById('rt-sum-ceilsub'); if(sub) sub.textContent=state.totalFocusMin+' / '+ceil+'m ceiling';
   var shiftEl=document.getElementById('rt-sum-shift'), winEl=document.getElementById('rt-sum-window');
   if(!shiftEl) return;
-  if(!state.anchor){ shiftEl.textContent='No shift started'; winEl.textContent='—'; return; }
-  var now=new Date(), label='Shift 3 · Optional Surge', win=state.shift3;
-  if(now<state.shift1.end){ label='Shift 1 · Prime Output'; win=state.shift1; }
-  else if(now<state.shift2.end){ label='Shift 2 · Sustainability Bridge'; win=state.shift2; }
-  shiftEl.textContent=label;
-  winEl.textContent=rtFmtWindow(win);
+  var chain=state.currentChain;
+  if(!chain){ shiftEl.textContent='No chain started'; winEl.textContent='—'; return; }
+  var cyclesPerChain=settings.cyclesPerChain||3;
+  if(state.killSwitchActive){ shiftEl.textContent='⚠ Chain dead ('+state.killSwitchGapMin+'m gap)'; }
+  else { shiftEl.textContent=Math.min(chain.cyclesCompleted,cyclesPerChain)+' / '+cyclesPerChain+' cycles · '+chain.focusMin+'m focus'; }
+  winEl.textContent=rtFmtWindow({start:chain.start,end:chain.end});
 }
 
-function rtShiftStatusBadge(label,cls){ return '<span class="shift-status '+cls+'">'+label+'</span>'; }
-
 function renderRoutinePage(state){
+  var kMin=settings.killSwitch||17;
+  var cycleTarget=settings.cycleTarget||41;
+  var cycleCap=settings.cycleCap||45;
+  var cyclesPerChain=settings.cyclesPerChain||3;
+  var chain=state.currentChain;
+
   var banners=[];
-  if(state.delayed) banners.push({cls:'info',html:'⏱ Delayed start (+'+state.delayMin+'m vs your normal start) — the whole Three-Shift Engine has shifted forward automatically.'});
-  if(state.longInterruption) banners.push({cls:'warn',html:'⚠ Long interruption (&gt;30m) detected — Shift 1 restarted from the resumption time, and Shift 3 has been demoted to optional/short.'});
-  if(state.shift3&&state.shift3.autoCancelled) banners.push({cls:'warn',html:'🌙 Shift 3 would run past your bedtime — it has been auto-cancelled. Stop after Shift 2.'});
-  if(state.totalFocusMin>=(settings.ceilingMin||260)) banners.push({cls:'danger',html:'🛑 260-minute ceiling reached — the day is finished. Stop here to protect tomorrow.'});
-  else if(!state.anchor) banners.push({cls:'info',html:'Start your first Pomodoro to anchor today\'s Three-Shift Engine.'});
-  document.getElementById('rt-banners').innerHTML=banners.map(function(b){ return '<div class="rt-banner '+b.cls+'"><span>'+b.html+'</span></div>'; }).join('');
+  if(state.killSwitchActive) banners.push({cls:'danger',html:'💀 Block dead — '+state.killSwitchGapMin+'m gap since your last focus session (kill-switch is '+kMin+'m). Don\'t try to resume it: log it and start a fresh chain.'});
+  else if(!chain) banners.push({cls:'info',html:'Start your first Pomodoro to begin today\'s first chain.'});
+  else if(chain.cyclesCompleted>=cyclesPerChain) banners.push({cls:'ok',html:'✓ Chain complete — '+chain.focusMin+'m focused across '+chain.cyclesCompleted+' cycles. Take a longer break before starting a new chain.'});
+  if(state.totalFocusMin>=(settings.ceilingMin||260)) banners.push({cls:'danger',html:'🛑 Daily focus ceiling reached — stop here to protect tomorrow.'});
+  document.getElementById('rt-banners').innerHTML=banners.map(function(b){ return '<div class="cy-banner '+b.cls+'"><span>'+b.html+'</span></div>'; }).join('');
 
   var ceil=settings.ceilingMin||260;
   var pct=Math.min(100,Math.round((state.totalFocusMin/ceil)*100));
   document.getElementById('rt-ceil-val').textContent=state.totalFocusMin;
   document.getElementById('rt-ceil-max').textContent=' / '+ceil+' min ceiling';
   var cfill=document.getElementById('rt-ceil-fill'); cfill.style.width=pct+'%'; cfill.style.background=pct>=100?'var(--danger)':pct>=85?'var(--warn)':'var(--accent)';
-  document.getElementById('rt-anchor-lbl').textContent=state.anchor?('Anchored to first session at '+rtFmtTime(state.anchor)):'No session started yet today';
+  document.getElementById('rt-anchor-lbl').textContent=chain?('Current chain started at '+rtFmtTime(chain.start)):'No chain started yet today';
 
-  var m=state.manual;
-  document.getElementById('rt-ticket-done').value=m.ticketsDone;
-  document.getElementById('rt-ticket-target').value=m.ticketTarget;
+  for(var i=1;i<=3;i++){
+    var card=document.getElementById('shift-card-'+i);
+    var statusEl=document.getElementById('shift'+i+'-status');
+    var winEl=document.getElementById('shift'+i+'-window');
+    var minEl=document.getElementById('shift'+i+'-min');
+    var sess=chain&&chain.sessions[i-1];
+    var min=sess?sess.focusMin:0;
+    var cls='locked', label='Pending', windowTxt='—';
+    if(sess){
+      windowTxt=rtFmtTime(sess.start)+' → '+(sess.end?rtFmtTime(sess.end):'—');
+      if(min>=cycleTarget){ cls='done'; label='Complete'; }
+      else { cls='active'; label='In progress'; }
+    } else if(chain && !state.killSwitchActive && chain.sessions.length===i-1){
+      cls='active'; label='Up next';
+    }
+    if(state.killSwitchActive && chain && chain.sessions.length<i){ cls='dead'; label='Dead'; }
+    card.className='cycle-card'+(cls==='active'?' active':cls==='dead'?' dead':cls==='locked'?' locked':'');
+    statusEl.outerHTML='<span class="cycle-status '+cls+'" id="shift'+i+'-status">'+label+'</span>';
+    winEl.textContent='Window: '+windowTxt;
+    minEl.innerHTML=min+'<span> / '+cycleTarget+'m target (cap '+cycleCap+'m)</span>';
+  }
 
-  // Shift 1
-  var s1card=document.getElementById('shift-card-1'), s1min=state.shift1?state.shift1.min:0;
-  s1card.className='shift-card'+(!state.anchor?' locked':'');
-  document.getElementById('shift1-window').textContent='Window: '+(state.shift1?rtFmtWindow(state.shift1):'—');
-  document.getElementById('shift1-min').innerHTML=s1min+'<span> / '+settings.s1Target+'m target (cap '+settings.s1Limit+'m)</span>';
-  var s1status='locked',s1cls='locked';
-  if(state.anchor){ if(state.ticketGateMet){ s1status='Gate met'; s1cls='done'; } else if(new Date()<state.shift1.end){ s1status='Active'; s1cls='active'; } else { s1status='Closed'; s1cls='locked'; } }
-  document.getElementById('shift1-status').outerHTML='<span class="shift-status '+s1cls+'" id="shift1-status">'+s1status+'</span>';
-  document.getElementById('shift1-rule').textContent=state.ticketGateMet?'✓ Ticket-First Gate met — study minutes now count toward success.':'Ticket-First Gate: log tickets to unlock Shift 2 and count study minutes.';
-
-  // Shift 2
-  var s2card=document.getElementById('shift-card-2'), s2min=state.shift2?state.shift2.min:0;
-  s2card.className='shift-card'+(!state.shift2Unlocked?' locked':(new Date()<((state.shift2||{}).end||0)?' active':''));
-  document.getElementById('shift2-window').textContent='Window: '+(state.shift2?rtFmtWindow(state.shift2):'—');
-  document.getElementById('shift2-min').innerHTML=s2min+'<span> / '+settings.s2Target+'m target</span>';
-  var s2status=state.shift2Unlocked?(s2min>0?'Active':'Unlocked'):'Locked', s2cls=state.shift2Unlocked?(s2min>0?'active':'active'):'locked';
-  document.getElementById('shift2-status').outerHTML='<span class="shift-status '+s2cls+'" id="shift2-status">'+s2status+'</span>';
-  document.getElementById('shift2-rule').textContent=state.shift2Unlocked?'✓ Unlocked — ticket gate met and energy ≥ 3/5.':'Locked until Shift 1\'s ticket gate is met and energy is ≥ 3/5 (energy: '+(state.energy||'—')+').';
-  var tbBtn=document.getElementById('tb-start-btn'), tbDone=document.getElementById('tb-done-btn');
-  if(m.trueBreakDone){ tbBtn.style.display='none'; tbDone.style.display='none'; tbDone.textContent='✓ True Break done ('+m.trueBreakMin+'m)'; tbDone.style.display='inline-block'; tbDone.disabled=true; }
-  else if(!rtTrueBreakInterval){ tbBtn.style.display='inline-block'; tbDone.style.display='none'; }
-
-  // Shift 3
-  var s3card=document.getElementById('shift-card-3');
-  var s3cancelled=state.shift3&&state.shift3.autoCancelled;
-  s3card.className='shift-card'+(s3cancelled?' cancelled':(!state.shift3Unlocked?' locked':''));
-  document.getElementById('shift3-window').textContent='Window: '+(state.shift3?rtFmtWindow(state.shift3):'—')+(state.shift3&&state.shift3.demoted?' (demoted — optional/short)':'');
-  document.getElementById('shift3-min').innerHTML=(state.shift3?state.shift3.min:0)+'<span> / '+settings.s3Min+'–'+settings.s3Max+'m target</span>';
-  var s3status=s3cancelled?'Cancelled':(state.shift3Unlocked?'Unlocked':'Locked'), s3cls=s3cancelled?'cancelled':(state.shift3Unlocked?'active':'locked');
-  document.getElementById('shift3-status').outerHTML='<span class="shift-status '+s3cls+'" id="shift3-status">'+s3status+'</span>';
-  document.getElementById('skillasset-list').innerHTML=m.skillAssets.length?m.skillAssets.map(function(a){return '<div class="skillasset-item">✨ '+escHtml(a)+'</div>';}).join(''):'<div style="font-family:var(--mono);font-size:10px;color:var(--muted);">No skill assets logged yet.</div>';
+  // Today's chains list
+  var chainsEl=document.getElementById('chains-list');
+  if(state.chains.length){
+    chainsEl.innerHTML=state.chains.map(function(c,idx){
+      var label=(idx===state.chains.length-1)?'Current':'Chain '+(idx+1);
+      var statusTxt=c.dead?'⚠ broke after '+c.cyclesCompleted+' cycle'+(c.cyclesCompleted!==1?'s':'')+' ('+c.focusMin+'m)':
+        (c.cyclesCompleted>=cyclesPerChain?'✓ complete — '+c.cyclesCompleted+' cycles, '+c.focusMin+'m':c.cyclesCompleted+'/'+cyclesPerChain+' cycles so far, '+c.focusMin+'m');
+      return '<div class="chain-item'+(c.dead?' dead-chain':'')+'"><span>'+label+' · '+rtFmtTime(c.start)+' → '+rtFmtTime(c.end)+'</span><span>'+statusTxt+'</span></div>';
+    }).join('');
+  } else {
+    chainsEl.innerHTML='<span style="color:var(--muted);font-family:var(--mono);font-size:11px;">No chain started yet today.</span>';
+  }
 
   // Interruption log
   var ilog=document.getElementById('interrupt-log');
   if(state.interruptions.length){
     ilog.innerHTML=state.interruptions.map(function(i){
-      return '<div class="interrupt-log-item'+(i.type==='long'?' long':'')+'"><span>'+(i.type==='long'?'⚠ Long':'Short')+' interruption'+(i.manual?' (manual)':' at '+i.at)+'</span><span>'+i.min+'m</span></div>';
+      return '<div class="interrupt-log-item'+(i.type==='long'?' long':'')+'"><span>'+(i.type==='long'?'💀 Kill-switch':'Short gap')+(i.manual?' (manual)':' at '+i.at)+'</span><span>'+i.min+'m</span></div>';
     }).join('');
   } else {
     ilog.innerHTML='<span style="color:var(--muted);font-family:var(--mono);font-size:11px;">No interruptions detected today.</span>';
   }
 
-  // Perfect day checklist
+  // Cycle day checklist
+  var bestChain=state.chains.reduce(function(best,c){ return (!best||c.cyclesCompleted>best.cyclesCompleted)?c:best; },null);
+  var noCapBreach=state.chains.every(function(c){ return c.sessions.every(function(s){ return s.focusMin<=cycleCap+2; }); });
   var checks=[
-    { met: state.ticketGateMet, label:'All ticket quotas met' },
-    { met: state.totalFocusMin>=180 && state.totalFocusMin<=260, label:'Total focus between 180–260 min (currently '+state.totalFocusMin+'m)' },
-    { met: m.skillAssets.length>0, label:'At least one Skill Asset produced' },
-    { met: (state.energy||0)>=3, label:'Ending energy ≥ 3/5' }
+    { met: !!bestChain && bestChain.cyclesCompleted>=cyclesPerChain, label:'Completed at least one full '+cyclesPerChain+'-cycle chain today' },
+    { met: noCapBreach, label:'No block exceeded the '+cycleCap+'-minute hard cap' },
+    { met: state.totalFocusMin>0 && state.totalFocusMin<=(settings.ceilingMin||260), label:'Total focus within the daily ceiling ('+state.totalFocusMin+'m)' },
+    { met: !state.killSwitchActive, label:'No chain currently dead from a kill-switch gap' }
   ];
   document.getElementById('perfect-day-checklist').innerHTML=checks.map(function(c){
     return '<div class="perfect-check'+(c.met?' met':'')+'">'+(c.met?'✓':'○')+' '+c.label+'</div>';
   }).join('');
-
-  renderRecoveryRatio();
 }
 
-function rtSetTicketsDone(v){ var m=rtLoadManual(isoDate()); m.ticketsDone=Math.max(0,parseInt(v)||0); rtSaveManual(isoDate(),m); refreshRoutine(); }
-function rtSetTicketTarget(v){ var m=rtLoadManual(isoDate()); m.ticketTarget=Math.max(0,parseInt(v)||0); rtSaveManual(isoDate(),m); refreshRoutine(); }
-function rtIncTicket(){ var m=rtLoadManual(isoDate()); m.ticketsDone=(m.ticketsDone||0)+1; rtSaveManual(isoDate(),m); refreshRoutine(); }
-function rtAddSkillAsset(){
-  var inp=document.getElementById('rt-skillasset-input'), val=inp.value.trim(); if(!val) return;
-  var m=rtLoadManual(isoDate()); m.skillAssets.push(val); rtSaveManual(isoDate(),m); inp.value=''; refreshRoutine();
-}
 function rtLogManualInterruption(){
   var inp=document.getElementById('rt-manual-interrupt-min'), min=parseInt(inp.value)||0; if(min<=0) return;
   var m=rtLoadManual(isoDate()); m.manualInterruptions.push({min:min,ts:Date.now()}); rtSaveManual(isoDate(),m); inp.value=''; refreshRoutine();
-}
-function rtStartTrueBreak(){
-  rtTrueBreakStartMs=Date.now(); rtTrueBreakSecs=45*60;
-  document.getElementById('tb-timer-display').style.display='block';
-  document.getElementById('tb-start-btn').style.display='none';
-  clearInterval(rtTrueBreakInterval);
-  rtTrueBreakInterval=setInterval(function(){
-    var elapsed=Math.floor((Date.now()-rtTrueBreakStartMs)/1000);
-    var left=Math.max(0,rtTrueBreakSecs-elapsed);
-    var mm=String(Math.floor(left/60)).padStart(2,'0'), ss=String(left%60).padStart(2,'0');
-    var disp=document.getElementById('tb-timer-display'); if(disp) disp.textContent=mm+':'+ss;
-    var doneBtn=document.getElementById('tb-done-btn'); if(doneBtn) doneBtn.style.display='inline-block';
-    if(left<=0){ clearInterval(rtTrueBreakInterval); rtTrueBreakInterval=null; playAlarm(2000); }
-  },500);
-}
-function rtMarkTrueBreakDone(){
-  var elapsedMin=rtTrueBreakStartMs?Math.round((Date.now()-rtTrueBreakStartMs)/60000):45;
-  clearInterval(rtTrueBreakInterval); rtTrueBreakInterval=null;
-  var m=rtLoadManual(isoDate()); m.trueBreakDone=true; m.trueBreakMin=elapsedMin; rtSaveManual(isoDate(),m);
-  refreshRoutine();
-}
-
-async function renderRecoveryRatio(){
-  var rowEl=document.getElementById('rr-days-row'), statusEl=document.getElementById('rr-status');
-  if(!rowEl||!sb) return;
-  var lookback=settings.rrLookback||28;
-  var since=new Date(); since.setDate(since.getDate()-lookback);
-  var res=await sb.from('focus_sessions').select('session_date,focus_sec').gte('session_date',localDateKey(since));
-  var rows=res.error?[]:(res.data||[]);
-  var daily={}; rows.forEach(function(s){ daily[s.session_date]=(daily[s.session_date]||0)+Math.floor((s.focus_sec||0)/60); });
-  var days=[]; for(var i=6;i>=0;i--){ var d=new Date(); d.setDate(d.getDate()-i); var k=localDateKey(d); days.push({date:k,min:daily[k]||0}); }
-  rowEl.innerHTML=days.map(function(d){
-    var cls=d.min===0?'none':(d.min>=200?'hi':(d.min<=100?'lo':'mid'));
-    var lbl=d.date.slice(5);
-    return '<div class="rr-day-chip '+cls+'">'+lbl+'<br>'+(d.min||'—')+'m</div>';
-  }).join('');
-  var sortedDates=Object.keys(daily).sort().reverse().filter(function(d){return d<isoDate();});
-  var streak=0;
-  for(var j=0;j<sortedDates.length;j++){
-    var min=daily[sortedDates[j]];
-    if(min<=100) break;
-    if(min>=200) streak++; else break;
-  }
-  if(streak>=3){ statusEl.innerHTML='<span style="color:var(--warn);">⚠ '+streak+' high-performance days in a row without a low-intensity day — plan a ≤100m day soon.</span>'; }
-  else{ statusEl.textContent=streak+' high-performance day(s) since your last low-intensity day (threshold: 3).'; }
 }
 </script>
 </body>
