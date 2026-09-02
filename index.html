@@ -1469,7 +1469,6 @@ function startTimer(){
   if (!sessionStart){
     sessionStart=new Date(); pausedMs=0; pauseStartMs=null; seqToday++; startRecoveryInterval();
     noteFreshChainStartIfNeeded();
-    resumeKillSwitch();
   }
   else if (pauseStartMs!==null){ pausedMs+=Date.now()-pauseStartMs; pauseStartMs=null; }
   running=true;
@@ -1527,12 +1526,20 @@ function markLastFocusEnd(){
 function getLastFocusEndMs(){
   try{ var v=localStorage.getItem(LAST_FOCUS_END_KEY); return v?parseInt(v,10):null; }catch(e){ return null; }
 }
+var STALE_GAP_CAP_MIN = 720; // 12 hours
+
+function isStaleFocusMarker(lastEnd){
+  var now=new Date(), last=new Date(lastEnd);
+  if(focusDateKey(last)!==isoDate()) return true;
+  if(localDateKey(last)!==localDateKey(now)){
+    if((now.getTime()-lastEnd)/60000 >= STALE_GAP_CAP_MIN) return true;
+  }
+  return false;
+}
 function noteFreshChainStartIfNeeded(){
+  if(isKillSwitchSuspended()) return;
   var lastEnd=getLastFocusEndMs(); if(!lastEnd) return;
-  // Only count this as a "gap" worth flagging if the last focus session belongs to
-  // the SAME logical day (respecting the night-cutoff setting) — otherwise this is
-  // just the start of a new day, not an interrupted block.
-  if(focusDateKey(new Date(lastEnd))!==isoDate()) return;
+  if(isStaleFocusMarker(lastEnd)){ localStorage.removeItem(LAST_FOCUS_END_KEY); return; }
   var gapMin=Math.round((Date.now()-lastEnd)/60000);
   var kMin=settings.killSwitch||17;
   if(gapMin>=kMin){
@@ -1568,15 +1575,10 @@ function rtEndChainManually(){
   refreshRoutine();
 }
 
-function killSwitchMonitorTick(){
-  var el=document.getElementById('kill-switch-hint'); if(!el) return;
-  if(running||sessionStart){ el.textContent=''; el.className=''; return; }
-  var overlayOpen=document.getElementById('break-overlay').classList.contains('show');
-  if(overlayOpen){ el.textContent=''; el.className=''; return; } // break overlay has its own warning
   var lastEnd=getLastFocusEndMs(); if(!lastEnd){ el.textContent=''; el.className=''; return; }
   // Stale marker from a previous logical day (e.g. you worked past midnight, or it's
   // simply the next day) — never a "dead block", just clear it and stay quiet.
-  if(focusDateKey(new Date(lastEnd))!==isoDate()){
+  if(isStaleFocusMarker(lastEnd)){
     localStorage.removeItem(LAST_FOCUS_END_KEY);
     el.textContent=''; el.className=''; return;
   }
