@@ -1576,28 +1576,6 @@ function rtEndChainManually(){
 }
 
   var lastEnd=getLastFocusEndMs(); if(!lastEnd){ el.textContent=''; el.className=''; return; }
-  // Stale marker from a previous logical day (e.g. you worked past midnight, or it's
-  // simply the next day) — never a "dead block", just clear it and stay quiet.
-  if(isStaleFocusMarker(lastEnd)){
-    localStorage.removeItem(LAST_FOCUS_END_KEY);
-    el.textContent=''; el.className=''; return;
-  }
-  if(isKillSwitchSuspended()){
-    el.textContent='✓ Kill-switch paused — enjoy the longer break, start whenever you\'re ready.';
-    el.className='';
-    return;
-  }
-  var gapMin=(Date.now()-lastEnd)/60000;
-  var kMin=settings.killSwitch||17;
-  if(gapMin<1){ el.textContent=''; el.className=''; return; }
-  if(gapMin>=kMin){
-    el.textContent='⚠ '+Math.floor(gapMin)+'m gap — this block is dead. Log it and start fresh, don\'t try to resume.';
-    el.className='dead';
-  }else{
-    el.textContent='Gap since last focus: '+Math.floor(gapMin)+'m (kill-switch at '+kMin+'m)';
-    el.className='';
-  }
-}
 function startKillSwitchMonitor(){
   clearInterval(killSwitchMonitorInterval);
   killSwitchMonitorInterval=setInterval(killSwitchMonitorTick,15000);
