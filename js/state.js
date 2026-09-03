@@ -16,7 +16,12 @@ export function loadSettings() {
   settings.long = Math.min(60, Math.max(1, parseInt(settings.long) || 15));
   settings.interval = Math.min(10, Math.max(2, parseInt(settings.interval) || 4));
   settings.overdue = Math.min(20, Math.max(0, parseInt(settings.overdue) || 3));
-  settings.flowMode = settings.flowMode !== false;
+  // timerMode: 'hard' (alarm + stop at target) | 'flow' (silent, count up
+  // indefinitely past target) | 'hybrid' (silent past target like flow, but
+  // alarms and force-stops at the cycleCap to prevent runaway overflow).
+  // Migrates any pre-existing boolean `flowMode` setting on first load.
+  if (!settings.timerMode) settings.timerMode = settings.flowMode === false ? 'hard' : 'flow';
+  settings.timerMode = ['hard', 'flow', 'hybrid'].includes(settings.timerMode) ? settings.timerMode : 'flow';
   settings.autoBreak = settings.autoBreak === true;
   settings.autoPomo = settings.autoPomo === true;
   settings.avgMode = (settings.avgMode === 'exclude' || settings.avgMode === 'active') ? 'exclude' : 'include';

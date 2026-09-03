@@ -13,7 +13,7 @@ export function populateSettingsForm() {
   document.getElementById('set-long').value = settings.long;
   document.getElementById('set-interval').value = settings.interval;
   document.getElementById('set-overdue').value = settings.overdue;
-  document.getElementById('tog-flowMode').classList.toggle('on', settings.flowMode);
+  document.getElementById('set-timerMode').value = settings.timerMode;
   document.getElementById('tog-autoBreak').classList.toggle('on', settings.autoBreak);
   document.getElementById('tog-autoPomo').classList.toggle('on', settings.autoPomo);
   document.getElementById('set-avgMode').value = settings.avgMode;
@@ -34,6 +34,7 @@ export function saveSettings() {
   settings.long = parseInt(document.getElementById('set-long').value) || 15;
   settings.interval = parseInt(document.getElementById('set-interval').value) || 4;
   settings.overdue = parseInt(document.getElementById('set-overdue').value) || 3;
+  settings.timerMode = document.getElementById('set-timerMode').value || 'flow';
   settings.avgMode = document.getElementById('set-avgMode').value || 'include';
   settings.nightDate = document.getElementById('set-nightDate').value || 'actual';
   settings.nightCutoff = Math.min(8, Math.max(0, parseInt(document.getElementById('set-nightCutoff').value) || 4));

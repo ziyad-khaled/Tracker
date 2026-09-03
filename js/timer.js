@@ -181,11 +181,24 @@ export function wallElapsedSecs() {
 }
 
 // ── Kill-switch: gap-since-last-focus tracking ───────────────────
+// Fix: store the focus-date alongside the timestamp. A last-focus-end from
+// a previous focus day (respecting the night-cutoff setting) is stale —
+// using it for a live gap calculation the next day produced a huge,
+// meaningless "block is dead" false positive. Only a same-day timestamp
+// is used for the gap.
 export function markLastFocusEnd() {
-  try { localStorage.setItem(STORAGE_KEYS.lastFocusEnd, String(Date.now())); } catch (e) { /* ignore */ }
+  try {
+    localStorage.setItem(STORAGE_KEYS.lastFocusEnd, JSON.stringify({ date: focusDateKey(new Date()), ms: Date.now() }));
+  } catch (e) { /* ignore */ }
 }
 function getLastFocusEndMs() {
-  try { const v = localStorage.getItem(STORAGE_KEYS.lastFocusEnd); return v ? parseInt(v, 10) : null; } catch (e) { return null; }
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.lastFocusEnd);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (data && data.date === focusDateKey(new Date()) && typeof data.ms === 'number') return data.ms;
+    return null;
+  } catch (e) { return null; }
 }
 function noteFreshChainStartIfNeeded() {
   const lastEnd = getLastFocusEndMs();
@@ -214,7 +227,14 @@ function killSwitchMonitorTick() {
   const gapMin = (Date.now() - lastEnd) / 60000;
   const kMin = settings.killSwitch || 17;
   if (gapMin < 1) { el.textContent = ''; el.className = ''; return; }
-  if (gapMin >= kMin) {
+  // Suppressed once today's chain is already complete or the user has
+  // manually silenced the kill-switch — same rule the routine page uses
+  // (state.rtCache is refreshed on session/break end and page changes).
+  const suppressed = !!(state.rtCache && state.rtCache.killSwitchSuppressed);
+  if (gapMin >= kMin && suppressed) {
+    el.textContent = 'Gap since last focus: ' + Math.floor(gapMin) + 'm (kill-switch silenced — chain complete or disabled for today)';
+    el.className = '';
+  } else if (gapMin >= kMin) {
     el.textContent = '⚠ ' + Math.floor(gapMin) + 'm gap — this block is dead. Log it and start fresh, don\'t try to resume.';
     el.className = 'dead';
   } else {
@@ -381,30 +401,43 @@ export function doTick() {
   tickCount++;
   if (tickCount % 60 === 0) saveRecoverySnapshot();
   const elapsed = wallElapsedSecs(), remaining = state.totalSecs - elapsed;
+  const mode = settings.timerMode || 'flow';
+  const focusMin = Math.floor(elapsed / 60);
+  const capMin = settings.cycleCap || 45;
+
+  // Hybrid's whole point: behave like flow at the target (no alarm, keep
+  // going), but never overflow past the cap unattended — force-stop with
+  // the alarm the moment focus time reaches it, same as hard-stop does at
+  // the target. Checked first so it wins even mid-overtime-render below.
+  if (mode === 'hybrid' && focusMin >= capMin) {
+    endSession(false);
+    playAlarm(2500);
+    return;
+  }
+
   if (remaining > 0) {
     setRing(remaining / state.totalSecs);
     renderClock(remaining, false);
   } else {
     if (!state.inOvertime) {
-      if (settings.flowMode) {
-        state.inOvertime = true;
-        document.getElementById('overtime-badge').classList.add('show');
-        document.getElementById('ring').style.stroke = 'var(--warn)';
-        document.getElementById('timer-display').style.color = 'var(--warn)';
-        document.getElementById('flow-hint').textContent = 'Target reached — keep going or end when ready';
-        document.getElementById('flow-hint').className = 'overtime';
-      } else {
+      if (mode === 'hard') {
         endSession(false);
         playAlarm(2000);
         return;
       }
+      state.inOvertime = true;
+      document.getElementById('overtime-badge').classList.add('show');
+      document.getElementById('ring').style.stroke = 'var(--warn)';
+      document.getElementById('timer-display').style.color = 'var(--warn)';
+      document.getElementById('flow-hint').textContent = mode === 'hybrid'
+        ? 'Target reached — keep going, alarm + auto-stop at the ' + capMin + 'm cap'
+        : 'Target reached — keep going or end when ready';
+      document.getElementById('flow-hint').className = 'overtime';
     }
     const ot = elapsed - state.totalSecs;
     setRing(Math.min(1, ot / state.totalSecs));
     renderClock(ot, true);
   }
-  const focusMin = Math.floor(elapsed / 60);
-  const capMin = settings.cycleCap || 45;
   if (focusMin >= capMin) {
     document.getElementById('flow-hint').textContent = '🛑 ' + capMin + 'm cap reached — end this block now, your data shows wasted time jumps sharply past this.';
     document.getElementById('flow-hint').className = 'overtime';

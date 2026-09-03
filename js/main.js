@@ -67,6 +67,7 @@ Object.assign(window, {
   updateBreakActEmoji: breakActs.updateBreakActEmoji,
 
   rtLogManualInterruption: cycleEngine.rtLogManualInterruption,
+  toggleKillSwitchDisabled: cycleEngine.toggleKillSwitchDisabled,
 
   exportCSV: log.exportCSV,
   loadLog: log.loadLog,

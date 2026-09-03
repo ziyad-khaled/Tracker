@@ -8,15 +8,25 @@ const RT_MANUAL_KEY = 'ft_routine_manual';
 
 function rtLoadAllManual() { try { return JSON.parse(localStorage.getItem(RT_MANUAL_KEY) || '{}'); } catch (e) { return {}; } }
 function rtSaveAllManual(all) { localStorage.setItem(RT_MANUAL_KEY, JSON.stringify(all)); }
-function rtDefaultManual() { return { manualInterruptions: [] }; }
+function rtDefaultManual() { return { manualInterruptions: [], killSwitchDisabled: false }; }
 function rtLoadManual(dateKey) {
   const all = rtLoadAllManual();
   if (!all[dateKey]) all[dateKey] = rtDefaultManual();
   const m = all[dateKey];
   if (!m.manualInterruptions) m.manualInterruptions = [];
+  if (typeof m.killSwitchDisabled !== 'boolean') m.killSwitchDisabled = false;
   return m;
 }
 function rtSaveManual(dateKey, m) { const all = rtLoadAllManual(); all[dateKey] = m; rtSaveAllManual(all); }
+
+// Whether the user has manually silenced the kill-switch for today (e.g.
+// they're done working and don't want "block is dead" nagging).
+export function isKillSwitchDisabledToday() { return !!rtLoadManual(isoDate()).killSwitchDisabled; }
+export function setKillSwitchDisabledToday(disabled) {
+  const m = rtLoadManual(isoDate());
+  m.killSwitchDisabled = !!disabled;
+  rtSaveManual(isoDate(), m);
+}
 
 /**
  * Pure chain-building logic.
@@ -74,10 +84,18 @@ export function computeChains(sessions, today, opts) {
     killSwitchGapMin: 0
   };
 
+  // The live "block is dead" warning is suppressed once the current chain
+  // has already hit its cycle target (nothing left to protect) or the user
+  // has explicitly silenced it for today (e.g. done working). Chain-splitting
+  // on long historical gaps above still happens either way — this only
+  // affects the live nag about the *current* idle gap.
+  const chainAlreadyComplete = !!(result.currentChain && result.currentChain.cyclesCompleted >= cyclesPerChain);
+  result.killSwitchSuppressed = chainAlreadyComplete || !!opts.killSwitchDisabled;
+
   if (withTimes.length && !opts.sessionInProgress) {
     const lastEnd = withTimes[withTimes.length - 1].end;
     const liveGapMin = (now - lastEnd.getTime()) / 60000;
-    if (liveGapMin >= kMin) {
+    if (liveGapMin >= kMin && !result.killSwitchSuppressed) {
       result.killSwitchActive = true;
       result.killSwitchGapMin = Math.round(liveGapMin);
       if (result.currentChain) result.currentChain.dead = true;
@@ -102,7 +120,8 @@ export async function computeRoutineState() {
     killSwitchMin: settings.killSwitch || 17,
     cyclesPerChain: settings.cyclesPerChain || 3,
     manualInterruptions: manual.manualInterruptions,
-    sessionInProgress: !!state.sessionStart
+    sessionInProgress: !!state.sessionStart,
+    killSwitchDisabled: !!manual.killSwitchDisabled
   });
 
   return Object.assign(base, computed);
@@ -141,11 +160,14 @@ export function renderRoutinePage(rState) {
   const chain = rState.currentChain;
 
   const banners = [];
+  const manuallyDisabled = isKillSwitchDisabledToday();
   if (rState.killSwitchActive) banners.push({ cls: 'danger', html: '💀 Block dead — ' + rState.killSwitchGapMin + 'm gap since your last focus session (kill-switch is ' + kMin + 'm). Don\'t try to resume it: log it and start a fresh chain.' });
   else if (!chain) banners.push({ cls: 'info', html: 'Start your first Pomodoro to begin today\'s first chain.' });
   else if (chain.cyclesCompleted >= cyclesPerChain) banners.push({ cls: 'ok', html: '✓ Chain complete — ' + chain.focusMin + 'm focused across ' + chain.cyclesCompleted + ' cycles. Take a longer break before starting a new chain.' });
+  else if (manuallyDisabled) banners.push({ cls: 'info', html: '🔕 Kill-switch disabled for today — idle gaps won\'t be flagged as a dead block.' });
   if (rState.totalFocusMin >= (settings.ceilingMin || 260)) banners.push({ cls: 'danger', html: '🛑 Daily focus ceiling reached — stop here to protect tomorrow.' });
   document.getElementById('rt-banners').innerHTML = banners.map(b => `<div class="cy-banner ${b.cls}"><span>${b.html}</span></div>`).join('');
+  renderKillSwitchToggle(manuallyDisabled);
 
   const ceil = settings.ceilingMin || 260;
   const pct = Math.min(100, Math.round((rState.totalFocusMin / ceil) * 100));
@@ -211,6 +233,18 @@ export function renderRoutinePage(rState) {
   document.getElementById('perfect-day-checklist').innerHTML = checks.map(c =>
     `<div class="perfect-check${c.met ? ' met' : ''}">${c.met ? '✓' : '○'} ${c.label}</div>`
   ).join('');
+}
+
+function renderKillSwitchToggle(disabled) {
+  const el = document.getElementById('kill-switch-toggle');
+  if (!el) return;
+  el.textContent = disabled ? '🔔 Re-enable kill-switch for today' : '🔕 Disable kill-switch for today';
+}
+export function toggleKillSwitchDisabled() {
+  setKillSwitchDisabledToday(!isKillSwitchDisabledToday());
+  refreshRoutine();
+  const monitor = document.getElementById('kill-switch-hint');
+  if (monitor) monitor.textContent = '';
 }
 
 export function rtLogManualInterruption() {
