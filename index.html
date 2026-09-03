@@ -244,6 +244,7 @@
       <input type="number" class="input-field" id="rt-manual-interrupt-min" placeholder="Minutes" min="1">
       <button class="btn-add" onclick="rtLogManualInterruption()">+ Log interruption</button>
     </div>
+    <button class="btn-ghost" id="kill-switch-toggle" style="margin-top:8px;" onclick="toggleKillSwitchDisabled()"></button>
   </div>
 
   <div class="chart-section">
@@ -473,7 +474,7 @@ WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div
     <div>
       <div class="settings-title">Timer</div>
       <div class="setting-row">
-        <div><div class="setting-name">Pomodoro target (min)</div><div class="setting-sub">Counts up past this in flow mode</div></div>
+        <div><div class="setting-name">Pomodoro target (min)</div><div class="setting-sub">Counts up past this unless Timer end mode is set to Hard stop</div></div>
         <input type="number" class="input-field w70" id="set-pomodoro" value="25" min="1" max="120" onchange="saveSettings()">
       </div>
       <div class="setting-row"><span class="setting-name">Short Break (min)</span><input type="number" class="input-field w70" id="set-short" value="5" min="1" max="30" onchange="saveSettings()"></div>
@@ -481,8 +482,12 @@ WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div
       <div class="setting-row"><span class="setting-name">Long Break every N</span><input type="number" class="input-field w70" id="set-interval" value="4" min="2" max="10" onchange="saveSettings()"></div>
       <div class="setting-row"><span class="setting-name">Overdue warn (extra min)</span><input type="number" class="input-field w70" id="set-overdue" value="3" min="0" max="20" onchange="saveSettings()"></div>
       <div class="setting-row">
-        <div><div class="setting-name">Flow mode</div><div class="setting-sub">Timer counts past target; end manually</div></div>
-        <div class="toggle on" id="tog-flowMode" onclick="toggleSetting('flowMode')"></div>
+        <div><div class="setting-name">Timer end mode</div><div class="setting-sub">Hard stop: alarm at target. Flow: silent, count up indefinitely. Hybrid: silent at target, alarm + auto-stop at the cap below</div></div>
+        <select class="input-field" style="width:118px;padding:6px 8px;" id="set-timerMode" onchange="saveSettings()">
+          <option value="hard">Hard stop</option>
+          <option value="flow">Flow</option>
+          <option value="hybrid">Hybrid</option>
+        </select>
       </div>
       <div class="setting-row">
         <div><div class="setting-name">Auto-start breaks</div><div class="setting-sub">Break overlay opens after session</div></div>
@@ -555,7 +560,7 @@ WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div
         <div>
           <div class="setting-row"><span class="setting-name">Daily focus ceiling (min)</span><input type="number" class="input-field w70" id="set-ceilingMin" value="260" min="60" max="600" onchange="saveSettings()"></div>
           <div class="setting-row"><span class="setting-name">Cycle focus target (min)</span><input type="number" class="input-field w70" id="set-cycleTarget" value="41" min="10" max="90" onchange="saveSettings()"></div>
-          <div class="setting-row"><span class="setting-name">Cycle focus hard cap (min)</span><input type="number" class="input-field w70" id="set-cycleCap" value="45" min="10" max="120" onchange="saveSettings()"></div>
+          <div class="setting-row"><div><div class="setting-name">Cycle focus hard cap (min)</div><div class="setting-sub">Hybrid timer mode alarms and auto-ends the session here</div></div><input type="number" class="input-field w70" id="set-cycleCap" value="45" min="10" max="120" onchange="saveSettings()"></div>
         </div>
         <div>
           <div class="setting-row"><span class="setting-name">Break target per cycle (min)</span><input type="number" class="input-field w70" id="set-cycleBreak" value="15" min="1" max="60" onchange="saveSettings()"></div>
