@@ -99,11 +99,33 @@ from v4 (still below), v5 needs the `client_id` idempotency columns:
 
 ```sql
 ALTER TABLE focus_sessions ADD COLUMN IF NOT EXISTS client_id text;
-CREATE UNIQUE INDEX IF NOT EXISTS focus_sessions_client_id_key ON focus_sessions(client_id) WHERE client_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS focus_sessions_client_id_key ON focus_sessions(client_id);
 
 ALTER TABLE breaks ADD COLUMN IF NOT EXISTS client_id text;
-CREATE UNIQUE INDEX IF NOT EXISTS breaks_client_id_key ON breaks(client_id) WHERE client_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS breaks_client_id_key ON breaks(client_id);
 ```
+
+**Note:** earlier versions of this migration used a partial index
+(`WHERE client_id IS NOT NULL`). Don't do that — Postgres can't use a
+partial unique index for `ON CONFLICT (client_id)` inference unless the
+same `WHERE` clause is repeated in the conflict target, which PostgREST's
+`upsert(..., { onConflict: 'client_id' })` never does. That mismatch makes
+every single upsert fail with *"there is no unique or exclusion constraint
+matching the ON CONFLICT specification"* — every write silently falls into
+the offline queue and stays there forever, since the retry path hits the
+same broken index. A plain (non-partial) unique index is safe here anyway:
+Postgres already treats multiple `NULL`s in a unique index as distinct from
+one another, so nothing is lost by dropping the `WHERE` clause. If you
+already ran the old partial-index version, fix it with:
+```sql
+DROP INDEX IF EXISTS focus_sessions_client_id_key;
+CREATE UNIQUE INDEX focus_sessions_client_id_key ON focus_sessions(client_id);
+DROP INDEX IF EXISTS breaks_client_id_key;
+CREATE UNIQUE INDEX breaks_client_id_key ON breaks(client_id);
+```
+Also remember to run `NOTIFY pgrst, 'reload schema';` after any `ALTER TABLE`
+— PostgREST caches the schema and can 400 on a brand-new column for a bit
+otherwise.
 
 This is also included in the in-app Settings → Migration SQL block.
 
