@@ -23,7 +23,7 @@ export function populateSettingsForm() {
   document.getElementById('set-defEnergy').value = settings.defEnergy;
   const idMap = {
     'set-ceilingMin': settings.ceilingMin, 'set-cycleTarget': settings.cycleTarget, 'set-cycleCap': settings.cycleCap,
-    'set-cycleBreak': settings.cycleBreak, 'set-killSwitch': settings.killSwitch, 'set-cyclesPerChain': settings.cyclesPerChain
+    'set-cycleBreak': settings.cycleBreak, 'set-killSwitch': settings.killSwitch, 'set-chainKillSwitch': settings.chainKillSwitch, 'set-cyclesPerChain': settings.cyclesPerChain
   };
   Object.keys(idMap).forEach(id => { const el = document.getElementById(id); if (el) el.value = idMap[id]; });
 }
@@ -39,7 +39,7 @@ export function saveSettings() {
   settings.nightDate = document.getElementById('set-nightDate').value || 'actual';
   settings.nightCutoff = Math.min(8, Math.max(0, parseInt(document.getElementById('set-nightCutoff').value) || 4));
   settings.defEnergy = parseInt(document.getElementById('set-defEnergy').value) || 0;
-  ['set-ceilingMin', 'set-cycleTarget', 'set-cycleCap', 'set-cycleBreak', 'set-killSwitch', 'set-cyclesPerChain'].forEach(id => {
+  ['set-ceilingMin', 'set-cycleTarget', 'set-cycleCap', 'set-cycleBreak', 'set-killSwitch', 'set-chainKillSwitch', 'set-cyclesPerChain'].forEach(id => {
     const el = document.getElementById(id); if (!el) return;
     settings[id.replace('set-', '')] = parseInt(el.value) || 0;
   });
