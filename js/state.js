@@ -1,68 +1,104 @@
-// config.js — constants & defaults. No mutable app state lives here.
+// state.js — single source of truth for mutable app state + settings.
+import { STORAGE_KEYS, DEFAULT_SETTINGS } from './config.js';
+import { localDateKey } from './utils.js';
 
-export const STORAGE_KEYS = {
-  settings:     'ft_settings',
-  daymeta:      'ft_daymeta',
-  projects:     'ft_projects',
-  categories:   'ft_categories',
-  excluded:     'ft_excluded',
-  breakActs:    'ft_break_acts',
-  offlineQueue: 'ft_offline_queue',
-  recovery:     'ft_recovery',
-  breakRecovery:'ft_break_rec',
-  lastFocusEnd: 'ft_last_focus_end',
-  routineManual:'ft_routine_manual',
-  sbUrl:        'sb_url',
-  sbKey:        'sb_key'
+// ── Settings ─────────────────────────────────────────────────────
+export let settings = Object.assign({}, DEFAULT_SETTINGS);
+
+export function loadSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.settings) || '{}');
+    Object.assign(settings, saved);
+  } catch (e) { /* ignore corrupt data */ }
+
+  settings.pomodoro = Math.min(120, Math.max(1, parseInt(settings.pomodoro) || 25));
+  settings.short = Math.min(30, Math.max(1, parseInt(settings.short) || 5));
+  settings.long = Math.min(60, Math.max(1, parseInt(settings.long) || 15));
+  settings.interval = Math.min(10, Math.max(2, parseInt(settings.interval) || 4));
+  settings.overdue = Math.min(20, Math.max(0, parseInt(settings.overdue) || 3));
+  // timerMode: 'hard' (alarm + stop at target) | 'flow' (silent, count up
+  // indefinitely past target) | 'hybrid' (silent past target like flow, but
+  // alarms and force-stops at the cycleCap to prevent runaway overflow).
+  // Migrates any pre-existing boolean `flowMode` setting on first load.
+  if (!settings.timerMode) settings.timerMode = settings.flowMode === false ? 'hard' : 'flow';
+  settings.timerMode = ['hard', 'flow', 'hybrid'].includes(settings.timerMode) ? settings.timerMode : 'flow';
+  settings.autoBreak = settings.autoBreak === true;
+  settings.autoPomo = settings.autoPomo === true;
+  settings.avgMode = (settings.avgMode === 'exclude' || settings.avgMode === 'active') ? 'exclude' : 'include';
+  settings.nightDate = settings.nightDate === 'prev' ? 'prev' : 'actual';
+  settings.nightCutoff = isNaN(parseInt(settings.nightCutoff)) || parseInt(settings.nightCutoff) < 0 ? 4 : Math.min(8, parseInt(settings.nightCutoff));
+  settings.defEnergy = [0, 1, 2, 3].includes(parseInt(settings.defEnergy)) ? parseInt(settings.defEnergy) : 0;
+  settings.ceilingMin = parseInt(settings.ceilingMin) || 260;
+  settings.cycleTarget = parseInt(settings.cycleTarget) || 41;
+  settings.cycleCap = parseInt(settings.cycleCap) || 45;
+  settings.cycleBreak = parseInt(settings.cycleBreak) || 15;
+  settings.killSwitch = parseInt(settings.killSwitch) || 17;
+  settings.chainKillSwitch = parseInt(settings.chainKillSwitch) || 45;
+  settings.cyclesPerChain = parseInt(settings.cyclesPerChain) || 3;
+
+  persistSettings();
+  return settings;
+}
+
+export function persistSettings() {
+  localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(settings));
+}
+
+// ── Date helpers that depend on settings ────────────────────────
+export function focusDateKey(date) {
+  const d = new Date((date || new Date()).getTime());
+  if (settings.nightDate === 'prev' && d.getHours() < (settings.nightCutoff != null ? settings.nightCutoff : 4)) {
+    d.setDate(d.getDate() - 1);
+  }
+  return localDateKey(d);
+}
+export function isoDate() { return focusDateKey(new Date()); }
+
+// ── Central mutable runtime state ───────────────────────────────
+// Kept as a plain object (rather than scattered globals) so all modules
+// share one authoritative source and mutations are easy to trace.
+export const state = {
+  sb: null,
+  mode: 'pomodoro',
+  timeLeft: settings.pomodoro * 60,
+  totalSecs: settings.pomodoro * 60,
+  running: false,
+  tickInterval: null,
+  sessionStart: null,
+  pausedMs: 0,
+  pauseStartMs: null,
+  inOvertime: false,
+  pomodoroCount: 0,
+  seqToday: 0,
+  currentEnergy: null,
+  currentCat: null,
+  currentProject: null,
+  currentTask: null,
+  projects: {},
+  pending: null,
+  breakActs: [],
+  breakStart: null,
+  breakTick: null,
+  breakTotalSecs: 0,
+  snoozeCount: 0,
+  manualBreakTick: null,
+  manualBreakActs: [],
+  overdueShown: false,
+  breakAlarmFired: false,
+  killSwitchShown: false,
+  lastSavedSessionId: null,
+  modalEnergy: null,
+  ci2Energy: null,
+  editingSessionId: null,
+  editingTable: 'focus_sessions',
+  currentLogTab: 'sessions',
+  CAT: {},
+  breakActsList: [],
+  excludedFromAvg: {},
+  offlineQueue: [],
+  deferredInstall: null,
+  killSwitchMonitorInterval: null,
+  recoveryInterval: null,
+  rtCache: null,
+  pendingRecovery: null
 };
-
-export const CIRC = 2 * Math.PI * 120;
-
-export const DEFAULT_BREAK_ACTS = [
-  { label: 'Phone Call', emoji: '📱' }, { label: 'Eating',    emoji: '🍽' },
-  { label: 'Walk',       emoji: '🚶' }, { label: 'Bathroom',  emoji: '🚿' },
-  { label: 'Scrolling',  emoji: '📲' }, { label: 'Pray',      emoji: '🤲' },
-  { label: 'YouTube',    emoji: '▶️' }, { label: 'Anime',     emoji: '🎬' },
-  { label: 'AI',         emoji: '🤖' }, { label: 'Cleaning',  emoji: '🧹' },
-  { label: 'Tea',        emoji: '🍵' }, { label: 'Training',  emoji: '🏋️' },
-  { label: 'Quran',      emoji: '📖' }
-];
-
-export const RETIRED_ONE_OFF_BREAK_ACTS = new Set([
-  'family time', 'orders', 'cv', 'getting ready', 'gomla market', 'kamal',
-  'longer break', 'match', 'meal prep', 'playstation', 'salma', 'shower',
-  'whatsapp', 'work finish'
-]);
-
-export const DEFAULT_CATS = [
-  { name: 'Learn',  emoji: '📚', col: 'var(--info)'   },
-  { name: 'Build',  emoji: '🔨', col: 'var(--accent)' },
-  { name: 'Refine', emoji: '✨', col: 'var(--purple)' },
-  { name: 'Work',   emoji: '🤝', col: 'var(--warn)'   },
-  { name: 'Islam',  emoji: '🤲', col: 'var(--text)'   },
-  { name: 'Apply',  emoji: '📨', col: 'var(--danger)' }
-];
-
-export const CAT_COLORS = ['var(--info)', 'var(--accent)', 'var(--purple)', 'var(--warn)', 'var(--danger)', 'var(--text)'];
-export const CAT_COLOR_LABELS = ['Blue', 'Green', 'Purple', 'Orange', 'Red', 'White'];
-
-export const CAT_RGBA_MAP = {
-  'var(--info)':    '95,180,255',
-  'var(--accent)':  '200,240,74',
-  'var(--purple)':  '181,123,255',
-  'var(--warn)':    '255,170,68',
-  'var(--danger)':  '255,95,95',
-  'var(--text)':    '232,232,226',
-  'var(--muted)':   '85,85,85'
-};
-
-export const DEFAULT_SETTINGS = {
-  pomodoro: 25, short: 5, long: 15, interval: 4, overdue: 3,
-  timerMode: 'flow', autoBreak: false, autoPomo: false,
-  avgMode: 'include', nightDate: 'actual', nightCutoff: 4, defEnergy: 0,
-  ceilingMin: 260, cycleTarget: 41, cycleCap: 45, cycleBreak: 15,
-  killSwitch: 17, chainKillSwitch: 45, cyclesPerChain: 3
-};
-
-// Minimum focus length (seconds) worth saving as a real session (fixes #2.10)
-export const MIN_SESSION_SEC = 60;
