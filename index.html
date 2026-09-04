@@ -372,6 +372,10 @@
     <div class="stat-card"><div class="stat-lbl">Last Week avg/day</div><div class="stat-val" id="an-lastweek">—</div><div class="stat-sub" id="an-lastweek-sub"></div></div>
   </div>
   <div class="chart-section">
+    <div class="chart-lbl">12-Week Year</div>
+    <div id="cycle12-wrap"><span style="color:var(--muted);font-family:var(--mono);font-size:11px;">Open analytics to load</span></div>
+  </div>
+  <div class="chart-section">
     <div class="chart-lbl">Daily Focus — last 14 days</div>
     <div class="bar-chart" id="focus-bars"><span style="color:var(--muted);font-family:var(--mono);font-size:11px;">Open analytics to load</span></div>
   </div>
@@ -570,6 +574,18 @@ WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div
         </div>
       </div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px;">Based on your data: 41m focus / 15m break is the sustainable sweet spot. A gap over the between-cycles kill-switch mid-chain breaks it — log it and start fresh instead of resuming. A gap over the between-chains kill-switch after you've already finished a full chain just closes it out cleanly and starts the next one.</div>
+    </div>
+    <div class="full-col">
+      <div class="settings-title">12-Week Year</div>
+      <div class="settings-cols" style="gap:1.5rem;">
+        <div>
+          <div class="setting-row"><div><div class="setting-name">Cycle anchor date</div><div class="setting-sub">Day 1 of Cycle 1 — everything else is computed from this</div></div><input type="date" class="input-field w140" id="set-cycleAnchor" onchange="setCycleAnchor(this.value)"></div>
+        </div>
+        <div>
+          <div class="setting-row"><span class="setting-name">Weekly focus goal (hrs)</span><input type="number" class="input-field w70" id="set-cycleTargetHours" value="42" min="1" max="100" onchange="setCycleTargetHours(this.value)"></div>
+        </div>
+      </div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px;">Changing the anchor date recomputes which cycle you're currently in and resets the Analytics view to it.</div>
     </div>
     <div class="full-col">
       <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:.75rem;padding-bottom:8px;border-bottom:1px solid var(--border);">Migration — Run in Supabase SQL Editor</div>

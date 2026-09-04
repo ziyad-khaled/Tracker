@@ -189,6 +189,15 @@ td.dim{color:var(--muted);}
 .bar-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:0;}
 .bar{width:100%;border-radius:2px 2px 0 0;background:var(--accent);min-height:2px;transition:height .5s cubic-bezier(.4,0,.2,1);}
 .bar-lbl{font-family:var(--mono);font-size:8px;color:var(--muted);writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;}
+.cy12-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;}
+.cy12-nav{font-size:9px;padding:4px 10px;flex-shrink:0;}
+.cy12-title{font-family:var(--mono);font-size:10px;color:var(--muted);text-align:center;flex:1;}
+.cy12-chart{height:110px;}
+.cy12-bar-hit{background:var(--good,#4caf7d);}
+.cy12-bar-future{background:var(--surface2);}
+.cy12-goal-line{position:absolute;left:0;right:0;height:1px;background:var(--muted);opacity:.5;pointer-events:none;}
+.cy12-goal-line::after{content:'goal';position:absolute;right:0;top:-9px;font-family:var(--mono);font-size:7px;color:var(--muted);}
+.cy12-pace{font-family:var(--mono);font-size:10px;color:var(--muted);text-align:center;margin-top:8px;}
 .cat-breakdown{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
 .cat-an-card{background:var(--surface2);border-radius:var(--r);padding:12px;}
 .cat-an-icon{font-size:20px;margin-bottom:6px;}
@@ -206,6 +215,7 @@ td.dim{color:var(--muted);}
 .setting-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:1rem;}
 .setting-name{font-size:13px;}.setting-sub{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;}
 .w70{width:70px;}
+.w140{width:140px;}
 .toggle{width:40px;height:22px;border-radius:11px;background:var(--surface2);border:1px solid var(--border);cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;margin-top:2px;}
 .toggle.on{background:var(--accent);border-color:var(--accent);}
 .toggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--muted);transition:all .2s;}
