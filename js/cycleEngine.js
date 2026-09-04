@@ -32,18 +32,29 @@ export function setKillSwitchDisabledToday(disabled) {
  * Pure chain-building logic.
  * @param {Array<{start_time:string,end_time:string,focus_sec:number}>} sessions - today's sessions, in start-time order
  * @param {string} today - ISO date string the sessions belong to
- * @param {object} opts - { killSwitchMin, cyclesPerChain, manualInterruptions, now, sessionInProgress }
+ * @param {object} opts - { killSwitchMin, chainKillMin, cyclesPerChain, manualInterruptions, now, sessionInProgress, killSwitchDisabled }
  */
 export function computeChains(sessions, today, opts) {
   const kMin = opts.killSwitchMin;
+  // Threshold for the gap AFTER a chain has already hit its cycle target —
+  // i.e. the planned longer break between chains — falls back to kMin if
+  // not provided so older callers/tests keep working.
+  const chainKMin = opts.chainKillMin != null ? opts.chainKillMin : kMin;
   const cyclesPerChain = opts.cyclesPerChain;
   const now = opts.now || new Date();
 
-  const withTimes = sessions.map(s => ({
-    start: parseTimeOnDate(today, s.start_time),
-    end: parseTimeOnDate(today, s.end_time),
-    focusMin: Math.floor((s.focus_sec || 0) / 60)
-  })).filter(s => s.start && s.end);
+  const withTimes = sessions.map(s => {
+    const start = parseTimeOnDate(today, s.start_time);
+    let end = parseTimeOnDate(today, s.end_time);
+    // A session that starts before midnight and ends after it has an
+    // end_time clock value that's numerically earlier than start_time
+    // (e.g. start 23:53, end 00:18) — both are pinned to the same
+    // session_date since only a bare TIME is stored, so the naive
+    // same-day reconstruction puts "end" ~24h before it actually
+    // happened. Roll it forward a day whenever that's the case.
+    if (start && end && end < start) end = new Date(end.getTime() + 24 * 3600 * 1000);
+    return { start, end, focusMin: Math.floor((s.focus_sec || 0) / 60) };
+  }).filter(s => s.start && s.end);
 
   const gapAfter = (sessEnd, nextStart) => nextStart ? Math.max(0, (nextStart - sessEnd) / 60000) : null;
 
@@ -55,11 +66,20 @@ export function computeChains(sessions, today, opts) {
       current = { start: s.start, sessions: [s], focusMin: s.focusMin, cyclesCompleted: 0, dead: false };
     } else {
       const gapMin = gapAfter(withTimes[i - 1].end, s.start);
+      // A chain that already reached its cycle target gets the longer,
+      // between-chains threshold — a planned break there shouldn't be
+      // flagged as a kill-switch/dead interruption the way a too-long gap
+      // mid-chain (between cycles) should.
+      const priorChainComplete = current.sessions.length >= cyclesPerChain;
+      const threshold = priorChainComplete ? chainKMin : kMin;
       if (gapMin != null && gapMin > 0.5) {
-        interruptions.push({ min: Math.round(gapMin), at: withTimes[i - 1].end ? rtFmtTime(withTimes[i - 1].end) : '—', type: gapMin >= kMin ? 'long' : 'short' });
+        interruptions.push({ min: Math.round(gapMin), at: withTimes[i - 1].end ? rtFmtTime(withTimes[i - 1].end) : '—', type: gapMin >= threshold ? 'long' : 'short' });
       }
-      if (gapMin != null && gapMin >= kMin) {
-        current.dead = true; current.end = withTimes[i - 1].end;
+      if (gapMin != null && gapMin >= threshold) {
+        // Only mark the chain "dead" (broken) if it hadn't already hit its
+        // target — a completed chain closing because of its own planned
+        // between-chains break is a clean finish, not a break.
+        current.dead = !priorChainComplete; current.end = withTimes[i - 1].end;
         chains.push(current);
         current = { start: s.start, sessions: [s], focusMin: s.focusMin, cyclesCompleted: 0, dead: false };
       } else {
@@ -118,6 +138,7 @@ export async function computeRoutineState() {
 
   const computed = computeChains(sessions, today, {
     killSwitchMin: settings.killSwitch || 17,
+    chainKillMin: settings.chainKillSwitch || 45,
     cyclesPerChain: settings.cyclesPerChain || 3,
     manualInterruptions: manual.manualInterruptions,
     sessionInProgress: !!state.sessionStart,
