@@ -606,10 +606,14 @@ CREATE POLICY "allow all" ON app_config FOR ALL USING (true) WITH CHECK (true);
 -- ║  inserts (a retried write is now an upsert, not a new row)  ║
 -- ╚═══════════════════════════════════════════════════════════════╝
 ALTER TABLE focus_sessions ADD COLUMN IF NOT EXISTS client_id text;
-CREATE UNIQUE INDEX IF NOT EXISTS focus_sessions_client_id_key ON focus_sessions(client_id) WHERE client_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS focus_sessions_client_id_key ON focus_sessions(client_id);
 
 ALTER TABLE breaks ADD COLUMN IF NOT EXISTS client_id text;
-CREATE UNIQUE INDEX IF NOT EXISTS breaks_client_id_key ON breaks(client_id) WHERE client_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS breaks_client_id_key ON breaks(client_id);
+-- Plain (non-partial) unique index -- Postgres already treats multiple
+-- NULLs as distinct, and a partial index breaks upsert's ON CONFLICT
+-- inference. Reload PostgREST's schema cache after running this:
+NOTIFY pgrst, 'reload schema';
 
 
 -- ╔═══════════════════════════════════════════════════════════════╗
