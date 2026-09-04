@@ -5,6 +5,7 @@ import { state } from './state.js';
 import { setSupabaseClient, flushQueue } from './db.js';
 import { refreshMetrics } from './metrics.js';
 import { refreshRoutine } from './cycleEngine.js';
+import { initCycle12Config, renderCycle12 } from './cycles12.js';
 
 function setPill(cls, label) {
   document.getElementById('db-pill').className = 'db-pill ' + cls;
@@ -33,6 +34,7 @@ export function connectSB(url, key, fb) {
         localStorage.setItem(STORAGE_KEYS.sbKey, key);
         if (fb) showConn('ok', '✓ Connected — ' + res.count + ' sessions');
         refreshMetrics(); flushQueue(); refreshRoutine();
+        initCycle12Config().then(renderCycle12);
       }
     });
   } catch (e) {

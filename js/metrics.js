@@ -37,6 +37,72 @@ export function weekTotal(sessions, bounds, exclude) {
   return total;
 }
 
+// ── 12-Week Year cycle math ──────────────────────────────────────────
+// A "cycle" is a fixed 12-week (84-day) block anchored to CYCLE_ANCHOR
+// (not a rolling last-12-weeks window). Cycle 1 = anchor..anchor+83d,
+// Cycle 2 = anchor+84d..anchor+167d, etc. Weeks within a cycle always
+// start on the anchor's weekday, not necessarily Monday.
+export const CYCLE_LENGTH_WEEKS = 12;
+export const CYCLE_LENGTH_DAYS = CYCLE_LENGTH_WEEKS * 7;
+
+function parseLocalDate(dateKey) {
+  const [y, m, d] = dateKey.split('-').map(Number);
+  const dt = new Date(); dt.setHours(0, 0, 0, 0);
+  dt.setFullYear(y, m - 1, d);
+  return dt;
+}
+function addDays(date, n) {
+  const d = new Date(date.getTime()); d.setDate(d.getDate() + n); return d;
+}
+
+// Given the anchor date key and "now", return which cycle number we're
+// in (1-indexed) and that cycle's [startKey, endKey] bounds.
+export function currentCycleInfo(anchorKey, now) {
+  const anchor = parseLocalDate(anchorKey);
+  const today = now || new Date();
+  const daysSince = Math.floor((today.setHours(0, 0, 0, 0) - anchor.getTime()) / 86400000);
+  const cycleNum = Math.max(1, Math.floor(daysSince / CYCLE_LENGTH_DAYS) + 1);
+  const cycleStart = addDays(anchor, (cycleNum - 1) * CYCLE_LENGTH_DAYS);
+  const cycleEnd = addDays(cycleStart, CYCLE_LENGTH_DAYS - 1);
+  return { cycleNum, start: localDateKey(cycleStart), end: localDateKey(cycleEnd) };
+}
+
+// Bounds for an arbitrary cycle number (for prev/next navigation).
+export function cycleInfoForNum(anchorKey, cycleNum) {
+  const anchor = parseLocalDate(anchorKey);
+  const cycleStart = addDays(anchor, (cycleNum - 1) * CYCLE_LENGTH_DAYS);
+  const cycleEnd = addDays(cycleStart, CYCLE_LENGTH_DAYS - 1);
+  return { cycleNum, start: localDateKey(cycleStart), end: localDateKey(cycleEnd) };
+}
+
+// 12 [startKey, endKey] pairs, one per week of the given cycle.
+export function cycleWeekBounds(cycleStartKey) {
+  const start = parseLocalDate(cycleStartKey);
+  const weeks = [];
+  for (let i = 0; i < CYCLE_LENGTH_WEEKS; i++) {
+    const wStart = addDays(start, i * 7);
+    const wEnd = addDays(wStart, 6);
+    weeks.push([localDateKey(wStart), localDateKey(wEnd)]);
+  }
+  return weeks;
+}
+
+// Sum focus minutes per week for the given sessions, respecting the
+// same excludedFromAvg category filter used elsewhere.
+export function cycleWeeklyTotals(sessions, weekBoundsArr, exclude) {
+  return weekBoundsArr.map(bounds => weekTotal(sessions, bounds, exclude));
+}
+
+// Which week index (0-based, 0..11) "today" falls in for a given cycle,
+// or -1 if today is outside this cycle (past cycle, or future cycle).
+export function currentWeekIndexInCycle(cycleStartKey, cycleEndKey, now) {
+  const todayKey = localDateKey(now || new Date());
+  if (todayKey < cycleStartKey || todayKey > cycleEndKey) return -1;
+  const start = parseLocalDate(cycleStartKey);
+  const days = Math.floor((parseLocalDate(todayKey) - start) / 86400000);
+  return Math.floor(days / 7);
+}
+
 export async function refreshMetrics() {
   if (!state.sb) return;
   const today = isoDate(), thisWeek = currentWeekBounds(), lastWeek = weekBounds(1);

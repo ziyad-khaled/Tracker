@@ -12,9 +12,17 @@ export const STORAGE_KEYS = {
   breakRecovery:'ft_break_rec',
   lastFocusEnd: 'ft_last_focus_end',
   routineManual:'ft_routine_manual',
+  cycleAnchor:  'ft_cycle_anchor',
+  cycleTargetH: 'ft_cycle_target_h',
   sbUrl:        'sb_url',
   sbKey:        'sb_key'
 };
+
+// 12-Week Year cycle anchor — backdated to when the focus practice
+// actually started (mid-2021, per the Focus To-Do export history).
+// Editable later from Settings; this is only the first-run default.
+export const DEFAULT_CYCLE_ANCHOR = '2021-07-01';
+export const DEFAULT_CYCLE_TARGET_HOURS = 42; // weekly focus-hours goal
 
 export const CIRC = 2 * Math.PI * 120;
 

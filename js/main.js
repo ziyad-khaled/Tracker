@@ -17,6 +17,7 @@ import * as metrics from './metrics.js';
 import * as log from './log.js';
 import * as edit from './edit.js';
 import { buildAlarm } from './alarm.js';
+import * as cycles12 from './cycles12.js';
 
 // ── Expose functions referenced by inline onclick="..." attributes ──────
 // The markup was left largely as-is (rewriting every handler to addEventListener
@@ -57,6 +58,11 @@ Object.assign(window, {
   renameCat: categories.renameCat,
   updateCatEmoji: categories.updateCatEmoji,
   updateCatColor: categories.updateCatColor,
+
+  shiftViewedCycle: cycles12.shiftViewedCycle,
+  jumpToCurrentCycle: cycles12.jumpToCurrentCycle,
+  setCycleAnchor: cycles12.setCycleAnchor,
+  setCycleTargetHours: cycles12.setCycleTargetHours,
   toggleExcluded: categories.toggleExcluded,
 
   toggleBreakAct: breakActs.toggleBreakAct,
@@ -129,7 +135,7 @@ window.addEventListener('keydown', (event) => {
 window.addEventListener('ft:pageShown', async (e) => {
   const id = e.detail.id;
   if (id === 'log') log.loadLog();
-  if (id === 'analytics') log.loadAnalytics();
+  if (id === 'analytics') { log.loadAnalytics(); cycles12.renderCycle12(); }
   if (id === 'checkins') log.loadCheckinHistory();
   if (id === 'routine') cycleEngine.refreshRoutine();
 });
@@ -147,6 +153,7 @@ window.addEventListener('ft:pageShown', async (e) => {
   settingsPage.populateSettingsForm();
   categories.loadCategories();
   categories.loadExcluded();
+  cycles12.initCycle12Config();
   projects.loadProjects();
   breakActs.loadBreakActs();
   ui.applyDefaultEnergy();
