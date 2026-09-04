@@ -564,11 +564,12 @@ WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div
         </div>
         <div>
           <div class="setting-row"><span class="setting-name">Break target per cycle (min)</span><input type="number" class="input-field w70" id="set-cycleBreak" value="15" min="1" max="60" onchange="saveSettings()"></div>
-          <div class="setting-row"><span class="setting-name">Kill-switch gap (min)</span><input type="number" class="input-field w70" id="set-killSwitch" value="17" min="1" max="60" onchange="saveSettings()"></div>
+          <div class="setting-row"><div><div class="setting-name">Kill-switch — between cycles (min)</div><div class="setting-sub">Gap during a chain (e.g. cycle 1 → 2) longer than this breaks the chain</div></div><input type="number" class="input-field w70" id="set-killSwitch" value="17" min="1" max="60" onchange="saveSettings()"></div>
+          <div class="setting-row"><div><div class="setting-name">Kill-switch — between chains (min)</div><div class="setting-sub">Longer allowance for the planned break after finishing a full chain</div></div><input type="number" class="input-field w70" id="set-chainKillSwitch" value="45" min="1" max="180" onchange="saveSettings()"></div>
           <div class="setting-row"><span class="setting-name">Cycles per chain</span><input type="number" class="input-field w70" id="set-cyclesPerChain" value="3" min="1" max="8" onchange="saveSettings()"></div>
         </div>
       </div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px;">Based on your data: 41m focus / 15m break is the sustainable sweet spot; a gap over the kill-switch threshold breaks the chain — log it and start fresh instead of resuming.</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px;">Based on your data: 41m focus / 15m break is the sustainable sweet spot. A gap over the between-cycles kill-switch mid-chain breaks it — log it and start fresh instead of resuming. A gap over the between-chains kill-switch after you've already finished a full chain just closes it out cleanly and starts the next one.</div>
     </div>
     <div class="full-col">
       <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:.75rem;padding-bottom:8px;border-bottom:1px solid var(--border);">Migration — Run in Supabase SQL Editor</div>
