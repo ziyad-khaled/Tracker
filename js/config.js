@@ -69,7 +69,8 @@ export const DEFAULT_SETTINGS = {
   timerMode: 'flow', autoBreak: false, autoPomo: false,
   avgMode: 'include', nightDate: 'actual', nightCutoff: 4, defEnergy: 0,
   ceilingMin: 260, cycleTarget: 41, cycleCap: 45, cycleBreak: 15,
-  killSwitch: 17, chainKillSwitch: 45, cyclesPerChain: 3
+  killSwitch: 17, chainKillSwitch: 45, cyclesPerChain: 3,
+  streakMinFocusMin: 0
 };
 
 // Minimum focus length (seconds) worth saving as a real session (fixes #2.10)

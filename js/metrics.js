@@ -103,6 +103,61 @@ export function currentWeekIndexInCycle(cycleStartKey, cycleEndKey, now) {
   return Math.floor(days / 7);
 }
 
+// ── Daily totals, streaks, and month bounds ─────────────────────────
+function dayNum(dateKey) {
+  const [y, m, d] = dateKey.split('-').map(Number);
+  return Math.floor(Date.UTC(y, m - 1, d) / 86400000);
+}
+
+// {dateKey: totalFocusMinutes} across all given sessions, respecting
+// the same excludedFromAvg category filter used elsewhere.
+export function buildDayTotals(sessions, exclude) {
+  const totals = {};
+  sessions.forEach(s => {
+    if (!s.session_date) return;
+    if (exclude && exclude[s.task_type]) return;
+    totals[s.session_date] = (totals[s.session_date] || 0) + Math.floor((s.focus_sec || 0) / 60);
+  });
+  return totals;
+}
+
+// Current + longest streak of qualifying days (>= minMinutesPerDay,
+// floored at 1 so a technically-zero day never counts). "Current"
+// tolerates today not having a session yet, so the streak doesn't
+// look broken before the day is even over.
+export function computeStreaks(dayTotals, minMinutesPerDay) {
+  const threshold = Math.max(1, minMinutesPerDay || 0);
+  const qualifyingKeys = Object.keys(dayTotals).filter(d => dayTotals[d] >= threshold);
+  const nums = qualifyingKeys.map(dayNum).sort((a, b) => a - b);
+  const numSet = new Set(nums);
+
+  let longest = 0, run = 0, prevNum = null;
+  nums.forEach(n => {
+    run = (prevNum !== null && n === prevNum + 1) ? run + 1 : 1;
+    longest = Math.max(longest, run);
+    prevNum = n;
+  });
+
+  const todayNum = dayNum(localDateKey(new Date()));
+  let cursor = numSet.has(todayNum) ? todayNum : todayNum - 1;
+  let current = 0;
+  while (numSet.has(cursor)) { current++; cursor--; }
+
+  return { current, longest };
+}
+
+export function monthBounds(offsetMonths) {
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth() - (offsetMonths || 0);
+  const start = new Date(y, m, 1);
+  const end = new Date(y, m + 1, 0);
+  return [localDateKey(start), localDateKey(end)];
+}
+export function currentMonthBounds() {
+  const now = new Date();
+  return [localDateKey(new Date(now.getFullYear(), now.getMonth(), 1)), localDateKey(now)];
+}
+
 export async function refreshMetrics() {
   if (!state.sb) return;
   const today = isoDate(), thisWeek = currentWeekBounds(), lastWeek = weekBounds(1);

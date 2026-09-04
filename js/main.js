@@ -18,6 +18,7 @@ import * as log from './log.js';
 import * as edit from './edit.js';
 import { buildAlarm } from './alarm.js';
 import * as cycles12 from './cycles12.js';
+import * as trends from './trends.js';
 
 // ── Expose functions referenced by inline onclick="..." attributes ──────
 // The markup was left largely as-is (rewriting every handler to addEventListener
@@ -135,7 +136,7 @@ window.addEventListener('keydown', (event) => {
 window.addEventListener('ft:pageShown', async (e) => {
   const id = e.detail.id;
   if (id === 'log') log.loadLog();
-  if (id === 'analytics') { log.loadAnalytics(); cycles12.renderCycle12(); }
+  if (id === 'analytics') { log.loadAnalytics(); cycles12.renderCycle12(); trends.renderTrends(); }
   if (id === 'checkins') log.loadCheckinHistory();
   if (id === 'routine') cycleEngine.refreshRoutine();
 });

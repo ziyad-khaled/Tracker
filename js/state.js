@@ -35,6 +35,7 @@ export function loadSettings() {
   settings.killSwitch = parseInt(settings.killSwitch) || 17;
   settings.chainKillSwitch = parseInt(settings.chainKillSwitch) || 45;
   settings.cyclesPerChain = parseInt(settings.cyclesPerChain) || 3;
+  settings.streakMinFocusMin = Math.max(0, parseInt(settings.streakMinFocusMin) || 0);
 
   persistSettings();
   return settings;
