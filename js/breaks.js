@@ -96,10 +96,111 @@ export async function saveManualBreak() {
   setMode('pomodoro');
 }
 
+const OPEN_URGENT_KEY = STORAGE_KEYS.openUrgentBreak;
+
+// ── "Urgent" breaks — unknown duration at the moment you flag it ────
+// Unlike a normal break (planned duration, ends when you click a
+// button) or "Didn't Return" (also ends at button-click time), an
+// Urgent break's real length isn't known upfront -- e.g. "I need to
+// walk the dog, no idea how long." So instead of finalizing end_time
+// at click time, we park it and let the NEXT real focus session's
+// start be the true end -- whatever that turns out to be.
+export function saveOpenUrgentBreak(data) {
+  const existing = loadOpenUrgentBreak();
+  if (existing) {
+    // One's already open (e.g. two Urgent taps with no session in
+    // between) -- the original break never actually ended, so keep its
+    // start time and just widen the notes rather than restarting the clock.
+    data = {
+      startMs: existing.startMs,
+      session_date: existing.session_date,
+      start_time: existing.start_time,
+      break_activities: [existing.break_activities, data.break_activities].filter(Boolean).join('; ') || null,
+      break_note: [existing.break_note, data.break_note].filter(Boolean).join(' ') || null
+    };
+  }
+  try { localStorage.setItem(OPEN_URGENT_KEY, JSON.stringify(data)); } catch (e) { /* ignore */ }
+  renderOpenUrgentHint();
+}
+export function loadOpenUrgentBreak() {
+  try { const raw = localStorage.getItem(OPEN_URGENT_KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+}
+export function clearOpenUrgentBreak() {
+  try { localStorage.removeItem(OPEN_URGENT_KEY); } catch (e) { /* ignore */ }
+}
+
+// Small persistent reminder so an open Urgent break isn't invisible --
+// shown on the idle screen (flow-hint gets overwritten the moment a
+// session actually starts, which is exactly when this resolves anyway).
+export function renderOpenUrgentHint() {
+  const pending = loadOpenUrgentBreak();
+  const hint = document.getElementById('flow-hint');
+  if (!hint || state.running) return;
+  if (pending) {
+    const since = new Date(pending.startMs);
+    hint.textContent = '⚡ Urgent break open since ' + fmt24(since).slice(0, 5) + ' — will log once your next session starts';
+    hint.className = 'overtime';
+  } else if (hint.className === 'overtime' && hint.textContent.indexOf('Urgent break open') === 0) {
+    hint.textContent = 'Start a session to begin tracking'; hint.className = '';
+  }
+}
+
+// Called right as the next real focus session starts. This is the
+// whole point of Urgent: its span is whatever it actually took, not a
+// guess made at button-click time.
+export async function finalizeOpenUrgentBreakIfAny(sessionStartDate) {
+  const pending = loadOpenUrgentBreak();
+  if (!pending) return;
+  clearOpenUrgentBreak();
+  const durSec = Math.max(0, Math.floor((sessionStartDate.getTime() - pending.startMs) / 1000));
+  const breakRow = {
+    session_date: pending.session_date,
+    start_time: pending.start_time,
+    end_time: fmt24(sessionStartDate),
+    break_activities: pending.break_activities,
+    break_note: pending.break_note,
+    break_duration_min: Math.floor(durSec / 60),
+    overdue: false,
+    returned: null
+  };
+  await dbSave(breakRow);
+  renderOpenUrgentHint();
+}
+
 export async function endBreak(returned) {
   stopAlarm();
   clearInterval(state.breakTick); state.breakTick = null;
   clearBreakSnapshot();
+
+  if (returned === null) {
+    // Urgent -- park it instead of finalizing now; see saveOpenUrgentBreak.
+    saveOpenUrgentBreak({
+      startMs: state.breakStart ? state.breakStart.getTime() : Date.now(),
+      session_date: focusDateKey(state.breakStart || new Date()),
+      start_time: state.breakStart ? fmt24(state.breakStart) : fmt24(new Date()),
+      break_activities: state.breakActs.length ? state.breakActs.join('; ') : null,
+      break_note: (document.getElementById('break-note').value.trim() || null)
+    });
+    const msg = document.getElementById('save-msg');
+    msg.textContent = '⚡ Urgent — duration will be logged once your next session starts';
+    msg.className = 'save-msg saved';
+    const { markLastFocusEnd, setMode } = await import('./timer.js');
+    markLastFocusEnd();
+    setTimeout(async () => {
+      document.getElementById('break-overlay').classList.remove('show');
+      state.pending = null; state.running = false; state.sessionStart = null;
+      state.pausedMs = 0; state.pauseStartMs = null; state.inOvertime = false;
+      state.timeLeft = settings.pomodoro * 60; state.totalSecs = settings.pomodoro * 60; state.mode = 'pomodoro';
+      setMode('pomodoro');
+      const { applyDefaultEnergy } = await import('./ui.js');
+      applyDefaultEnergy();
+      refreshMetrics();
+      window.dispatchEvent(new CustomEvent('ft:refreshRoutine'));
+      renderOpenUrgentHint();
+    }, 800);
+    return;
+  }
+
   const breakEnd = new Date();
   const bDurSec = state.breakStart ? Math.floor((breakEnd.getTime() - state.breakStart.getTime()) / 1000) : 0;
   const bDurMin = Math.floor(bDurSec / 60);

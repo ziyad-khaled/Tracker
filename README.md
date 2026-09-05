@@ -216,7 +216,7 @@ CREATE TABLE IF NOT EXISTS focus_sessions (
   energy       INT4,
   note         TEXT
 );
-CREATE UNIQUE INDEX IF NOT EXISTS focus_sessions_client_id_key ON focus_sessions(client_id) WHERE client_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS focus_sessions_client_id_key ON focus_sessions(client_id);
 ALTER TABLE focus_sessions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "allow all" ON focus_sessions FOR ALL USING (true) WITH CHECK (true);
 
@@ -234,7 +234,7 @@ CREATE TABLE IF NOT EXISTS breaks (
   returned           BOOLEAN,
   break_note         TEXT
 );
-CREATE UNIQUE INDEX IF NOT EXISTS breaks_client_id_key ON breaks(client_id) WHERE client_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS breaks_client_id_key ON breaks(client_id);
 ALTER TABLE breaks ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "allow all" ON breaks FOR ALL USING (true) WITH CHECK (true);
 

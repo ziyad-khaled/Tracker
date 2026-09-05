@@ -10,6 +10,7 @@ export const STORAGE_KEYS = {
   offlineQueue: 'ft_offline_queue',
   recovery:     'ft_recovery',
   breakRecovery:'ft_break_rec',
+  openUrgentBreak:'ft_open_urgent_break',
   lastFocusEnd: 'ft_last_focus_end',
   routineManual:'ft_routine_manual',
   cycleAnchor:  'ft_cycle_anchor',
