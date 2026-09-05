@@ -1,23 +1,23 @@
 // metrics.js — weekly bounds/averages and the "Today / This Week / Last Week" row.
-import { state, settings, isoDate } from './state.js';
+import { state, settings, isoDate, workdayNow } from './state.js';
 import { localDateKey } from './utils.js';
 
 export function startOfMonday(date) {
-  const d = new Date((date || new Date()).getTime());
+  const d = new Date((date || workdayNow()).getTime());
   d.setHours(0, 0, 0, 0);
   d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
   return d;
 }
 export function weekBounds(offsetWeeks) {
-  const start = startOfMonday(new Date());
+  const start = startOfMonday(workdayNow());
   start.setDate(start.getDate() - (offsetWeeks || 0) * 7);
   const end = new Date(start); end.setDate(end.getDate() + 6);
   return [localDateKey(start), localDateKey(end)];
 }
 export function currentWeekBounds() {
-  return [localDateKey(startOfMonday(new Date())), localDateKey(new Date())];
+  return [localDateKey(startOfMonday(workdayNow())), localDateKey(workdayNow())];
 }
-export function daysInCurrentWeek() { return ((new Date().getDay() + 6) % 7) + 1; }
+export function daysInCurrentWeek() { return ((workdayNow().getDay() + 6) % 7) + 1; }
 export function weeklyAverageDivisor(activeDays, isCurrentWeek) {
   if (settings.avgMode === 'exclude') return Math.max(1, activeDays);
   return isCurrentWeek ? daysInCurrentWeek() : 7;
@@ -59,7 +59,7 @@ function addDays(date, n) {
 // in (1-indexed) and that cycle's [startKey, endKey] bounds.
 export function currentCycleInfo(anchorKey, now) {
   const anchor = parseLocalDate(anchorKey);
-  const today = now || new Date();
+  const today = now || workdayNow();
   const daysSince = Math.floor((today.setHours(0, 0, 0, 0) - anchor.getTime()) / 86400000);
   const cycleNum = Math.max(1, Math.floor(daysSince / CYCLE_LENGTH_DAYS) + 1);
   const cycleStart = addDays(anchor, (cycleNum - 1) * CYCLE_LENGTH_DAYS);
@@ -96,7 +96,7 @@ export function cycleWeeklyTotals(sessions, weekBoundsArr, exclude) {
 // Which week index (0-based, 0..11) "today" falls in for a given cycle,
 // or -1 if today is outside this cycle (past cycle, or future cycle).
 export function currentWeekIndexInCycle(cycleStartKey, cycleEndKey, now) {
-  const todayKey = localDateKey(now || new Date());
+  const todayKey = localDateKey(now || workdayNow());
   if (todayKey < cycleStartKey || todayKey > cycleEndKey) return -1;
   const start = parseLocalDate(cycleStartKey);
   const days = Math.floor((parseLocalDate(todayKey) - start) / 86400000);
@@ -138,7 +138,7 @@ export function computeStreaks(dayTotals, minMinutesPerDay) {
     prevNum = n;
   });
 
-  const todayNum = dayNum(localDateKey(new Date()));
+  const todayNum = dayNum(localDateKey(workdayNow()));
   let cursor = numSet.has(todayNum) ? todayNum : todayNum - 1;
   let current = 0;
   while (numSet.has(cursor)) { current++; cursor--; }
@@ -147,14 +147,14 @@ export function computeStreaks(dayTotals, minMinutesPerDay) {
 }
 
 export function monthBounds(offsetMonths) {
-  const now = new Date();
+  const now = workdayNow();
   const y = now.getFullYear(), m = now.getMonth() - (offsetMonths || 0);
   const start = new Date(y, m, 1);
   const end = new Date(y, m + 1, 0);
   return [localDateKey(start), localDateKey(end)];
 }
 export function currentMonthBounds() {
-  const now = new Date();
+  const now = workdayNow();
   return [localDateKey(new Date(now.getFullYear(), now.getMonth(), 1)), localDateKey(now)];
 }
 

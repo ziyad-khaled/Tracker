@@ -2,7 +2,7 @@
 // (current + longest), a This Month vs Last Month rollup, and a
 // GitHub-style focus heatmap over the last 12 weeks. All pure display —
 // math lives in metrics.js (buildDayTotals, computeStreaks, monthBounds).
-import { state, settings } from './state.js';
+import { state, settings, workdayNow } from './state.js';
 import { fetchSessions } from './db.js';
 import { localDateKey } from './utils.js';
 import {
@@ -53,19 +53,20 @@ function renderHeatmap(dayTotals) {
   const wrap = document.getElementById('heatmap-wrap');
   if (!wrap) return;
   const weeksBack = 12;
-  const start = startOfMonday(new Date());
+  const start = startOfMonday(workdayNow());
   start.setDate(start.getDate() - (weeksBack - 1) * 7);
 
   const cells = [];
   let maxMin = 1;
+  const todayKey = localDateKey(workdayNow());
   for (let w = 0; w < weeksBack; w++) {
     for (let d = 0; d < 7; d++) {
       const date = new Date(start.getTime());
       date.setDate(date.getDate() + w * 7 + d);
       const key = localDateKey(date);
       const min = dayTotals[key] || 0;
-      if (key <= localDateKey(new Date())) maxMin = Math.max(maxMin, min);
-      cells.push({ week: w, day: d, key, min, future: key > localDateKey(new Date()) });
+      if (key <= todayKey) maxMin = Math.max(maxMin, min);
+      cells.push({ week: w, day: d, key, min, future: key > todayKey });
     }
   }
 
