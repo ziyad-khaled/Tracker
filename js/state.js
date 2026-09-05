@@ -25,6 +25,17 @@ export function loadSettings() {
   settings.autoBreak = settings.autoBreak === true;
   settings.autoPomo = settings.autoPomo === true;
   settings.avgMode = (settings.avgMode === 'exclude' || settings.avgMode === 'active') ? 'exclude' : 'include';
+  // One-time migration: night-cutoff used to default to OFF ('actual', 4h),
+  // which meant any session logged after midnight silently became a new
+  // "day" -- breaking daily/weekly averages and same-day seq numbering for
+  // a schedule that runs past midnight. Force the corrected default once;
+  // after this it's a normal user-editable setting (Settings page already
+  // exposes it) and won't be overwritten again.
+  if (!settings._nightCutoffMigrated) {
+    settings.nightDate = 'prev';
+    settings.nightCutoff = 1;
+    settings._nightCutoffMigrated = true;
+  }
   settings.nightDate = settings.nightDate === 'prev' ? 'prev' : 'actual';
   settings.nightCutoff = isNaN(parseInt(settings.nightCutoff)) || parseInt(settings.nightCutoff) < 0 ? 4 : Math.min(8, parseInt(settings.nightCutoff));
   settings.defEnergy = [0, 1, 2, 3].includes(parseInt(settings.defEnergy)) ? parseInt(settings.defEnergy) : 0;

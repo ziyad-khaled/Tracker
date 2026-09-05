@@ -68,7 +68,7 @@ export const CAT_RGBA_MAP = {
 export const DEFAULT_SETTINGS = {
   pomodoro: 25, short: 5, long: 15, interval: 4, overdue: 3,
   timerMode: 'flow', autoBreak: false, autoPomo: false,
-  avgMode: 'include', nightDate: 'actual', nightCutoff: 4, defEnergy: 0,
+  avgMode: 'include', nightDate: 'prev', nightCutoff: 1, defEnergy: 0,
   ceilingMin: 260, cycleTarget: 41, cycleCap: 45, cycleBreak: 15,
   killSwitch: 17, chainKillSwitch: 45, cyclesPerChain: 3,
   streakMinFocusMin: 0
