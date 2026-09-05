@@ -28,12 +28,6 @@ export async function loadLog() {
   const bRows = brRes.error ? [] : (brRes.data || []);
   document.getElementById('log-count').textContent = fSess.length + ' sessions · ' + bRows.length + ' breaks';
 
-  const checkinMap = {};
-  const allDates = [...new Set(fSess.map(s => s.session_date))];
-  if (allDates.length) {
-    const cr = await state.sb.from('daily_checkins').select('date,sleep_hrs,wake_time').in('date', allDates);
-    if (!cr.error && cr.data) cr.data.forEach(c => { checkinMap[c.date] = c; });
-  }
   const eMap = { 1: '↓', 2: '→', 3: '↑' };
 
   const stbody = document.getElementById('sessions-tbody'), sempty = document.getElementById('sessions-empty');
@@ -47,14 +41,13 @@ export async function loadLog() {
       const catHtml = cat
         ? '<span class="cat-tag" style="background:' + catRgba(cat.col, 0.1) + ';color:' + catRgba(cat.col, 1) + ';">' + cat.emoji + ' ' + s.task_type + '</span>'
         : '<span class="cat-tag cat-tag-default">' + (s.task_type || '—') + '</span>';
-      const ci = checkinMap[s.session_date] || {};
       return '<tr><td><button class="edit-row-btn" onclick="openEditModal(\'' + s.id + '\',\'focus_sessions\')" title="Edit">✏</button></td>'
+        + '<td class="dim">' + (s.seq != null ? s.seq : '—') + '</td>'
         + '<td>' + (s.session_date || '—') + '</td><td class="dim">' + (s.start_time ? s.start_time.slice(0, 5) : '—') + '</td>'
         + '<td class="dim">' + (s.end_time ? s.end_time.slice(0, 5) : '—') + '</td><td>' + (s.span_sec != null ? fmtFocusSec(s.span_sec) : '—') + '</td>'
         + '<td><b>' + (s.focus_sec != null ? fmtFocusSec(s.focus_sec) : '—') + '</b></td><td><span class="badge ' + rCls + '">' + ratio + '%</span></td>'
         + '<td class="dim">' + (s.project || '—') + '</td><td>' + (s.task || '—') + '</td><td>' + catHtml + '</td>'
-        + '<td class="dim">' + (s.seq != null ? s.seq : '—') + '</td><td>' + (eMap[s.energy] || '—') + '</td>'
-        + '<td class="dim">' + (ci.sleep_hrs || '—') + '</td><td class="dim">' + (ci.wake_time ? ci.wake_time.slice(0, 5) : '—') + '</td>'
+        + '<td>' + (eMap[s.energy] || '—') + '</td>'
         + '<td class="dim" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;">' + (s.note || '—') + '</td></tr>';
     }).join('');
   }
