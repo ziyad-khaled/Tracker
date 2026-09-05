@@ -66,6 +66,23 @@ export function focusDateKey(date) {
 }
 export function isoDate() { return focusDateKey(new Date()); }
 
+// The "workday-aware now" -- same date-shifting focusDateKey() applies to
+// a session being saved, but returned as a Date (not a key string) so it
+// can drive week/month/streak *boundary* math too. Without this, code
+// that asks "what week/month is it right now" via a raw new Date() will
+// disagree with the already-shifted session_date on late-night sessions
+// -- e.g. at 12:30am (before the cutoff), a session's session_date
+// correctly stays "yesterday", but a boundary check using new Date()
+// still thinks it's the new calendar day, which can even push the
+// session's week out of "this week" entirely at a Sun/Mon edge.
+export function workdayNow() {
+  const d = new Date();
+  if (settings.nightDate === 'prev' && d.getHours() < (settings.nightCutoff != null ? settings.nightCutoff : 4)) {
+    d.setDate(d.getDate() - 1);
+  }
+  return d;
+}
+
 // ── Central mutable runtime state ───────────────────────────────
 // Kept as a plain object (rather than scattered globals) so all modules
 // share one authoritative source and mutations are easy to trace.
