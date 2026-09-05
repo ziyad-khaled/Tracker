@@ -12,7 +12,7 @@ import { stopAlarm, playAlarm } from './alarm.js';
 
 // showBreakOverlay lives in breaks.js; imported lazily inside functions to
 // avoid a hard circular-import ordering requirement at module-eval time.
-import { showBreakOverlay } from './breaks.js';
+import { showBreakOverlay, finalizeOpenUrgentBreakIfAny, renderOpenUrgentHint } from './breaks.js';
 
 export function setMode(m, preserveAlarm) {
   if (state.running) return;
@@ -78,6 +78,7 @@ export function startTimer() {
   if (state.mode !== 'pomodoro') { setMode('pomodoro'); setTimeout(startTimer, 50); return; }
   if (!state.sessionStart) {
     state.sessionStart = new Date();
+    finalizeOpenUrgentBreakIfAny(state.sessionStart); // fire-and-forget; see breaks.js
     state.pausedMs = 0; state.pauseStartMs = null;
     state.seqToday++;
     startRecoveryInterval();

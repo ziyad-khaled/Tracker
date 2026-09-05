@@ -160,6 +160,7 @@ window.addEventListener('ft:pageShown', async (e) => {
   ui.applyDefaultEnergy();
   timer.checkRecovery();
   breaks.checkBreakRecovery();
+  breaks.renderOpenUrgentHint();
   timer.setRing(1);
   connection.initSupabase();
   ui.checkDailyCheckin();
