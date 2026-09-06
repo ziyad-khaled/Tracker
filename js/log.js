@@ -17,6 +17,61 @@ export function switchLogTab(tab) {
   if (tab === 'checkins') loadCheckinLogTab();
 }
 
+function renderTimeline(fSess, bRows, eMap) {
+  const byDay = {};
+  fSess.forEach(s => {
+    if (!s.session_date) return;
+    (byDay[s.session_date] = byDay[s.session_date] || []).push(Object.assign({ _kind: 'focus' }, s));
+  });
+  bRows.forEach(b => {
+    if (!b.session_date) return;
+    (byDay[b.session_date] = byDay[b.session_date] || []).push(Object.assign({ _kind: 'break' }, b));
+  });
+
+  const dayKeys = Object.keys(byDay).sort((a, b) => b.localeCompare(a));
+  return dayKeys.map(day => {
+    const items = byDay[day].sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+    const dayFocusMin = Math.round(items.filter(i => i._kind === 'focus').reduce((sum, i) => sum + (i.focus_sec || 0), 0) / 60);
+
+    const blocks = items.map(i => {
+      const startTxt = i.start_time ? i.start_time.slice(0, 5) : '—';
+      const endTxt = i.end_time ? i.end_time.slice(0, 5) : '—';
+      if (i._kind === 'focus') {
+        const ratio = i.ratio != null ? i.ratio : (i.span_sec > 0 ? Math.round((i.focus_sec || 0) / i.span_sec * 100) : 100);
+        const rCls = ratio >= 85 ? 'badge-hi' : ratio >= 65 ? 'badge-mid' : 'badge-lo';
+        const cat = i.task_type && state.CAT[i.task_type];
+        const barCol = cat ? catRgba(cat.col, 1) : 'var(--muted)';
+        const catHtml = cat
+          ? '<span class="cat-tag" style="background:' + catRgba(cat.col, 0.1) + ';color:' + catRgba(cat.col, 1) + ';">' + cat.emoji + ' ' + i.task_type + '</span>'
+          : '<span class="cat-tag cat-tag-default">' + (i.task_type || '—') + '</span>';
+        return '<div class="tl-block tl-focus" style="border-left-color:' + barCol + ';">'
+          + '<button class="edit-row-btn tl-edit" onclick="openEditModal(\'' + i.id + '\',\'focus_sessions\')" title="Edit">✏</button>'
+          + '<div class="tl-time">' + startTxt + '–' + endTxt + '</div>'
+          + '<div class="tl-main"><b>' + (i.focus_sec != null ? fmtFocusSec(i.focus_sec) : '—') + '</b> focus'
+          + (i.seq != null ? ' <span class="dim">#' + i.seq + '</span>' : '')
+          + '<span class="badge ' + rCls + '" style="margin-left:8px;">' + ratio + '%</span></div>'
+          + '<div class="tl-sub">' + catHtml + (i.project ? ' <span class="dim">' + i.project + (i.task ? ' / ' + i.task : '') + '</span>' : '')
+          + (i.energy ? ' ' + (eMap[i.energy] || '') : '') + '</div>'
+          + (i.note ? '<div class="tl-note">' + i.note + '</div>' : '')
+          + '</div>';
+      }
+      const urgent = i.returned === null;
+      const statusTxt = urgent ? '⚡ Urgent' : i.returned === false ? "✗ Didn't return" : '✓ Returned';
+      return '<div class="tl-block tl-break' + (urgent ? ' tl-urgent' : '') + '">'
+        + '<button class="edit-row-btn tl-edit" onclick="openEditModal(\'' + i.id + '\',\'breaks\')" title="Edit">✏</button>'
+        + '<div class="tl-time">' + startTxt + '–' + endTxt + '</div>'
+        + '<div class="tl-main">' + (i.break_duration_min != null ? i.break_duration_min + 'm' : '—') + ' break <span class="dim">· ' + statusTxt + '</span></div>'
+        + (i.break_activities || i.break_note ? '<div class="tl-sub dim">' + [i.break_activities, i.break_note].filter(Boolean).join(' · ') + '</div>' : '')
+        + '</div>';
+    }).join('');
+
+    return '<div class="tl-day">'
+      + '<div class="tl-day-hdr"><span>' + formatDisplayDate(day) + '</span><span class="dim">' + fmtFocusSec(dayFocusMin * 60) + ' focus</span></div>'
+      + '<div class="tl-day-body">' + blocks + '</div>'
+      + '</div>';
+  }).join('');
+}
+
 export async function loadLog() {
   document.getElementById('log-count').textContent = 'Loading...';
   if (!state.sb) return;
@@ -30,26 +85,11 @@ export async function loadLog() {
 
   const eMap = { 1: '↓', 2: '→', 3: '↑' };
 
-  const stbody = document.getElementById('sessions-tbody'), sempty = document.getElementById('sessions-empty');
-  if (!fSess.length) { stbody.innerHTML = ''; sempty.style.display = 'block'; }
+  const wrap = document.getElementById('timeline-wrap'), sempty = document.getElementById('sessions-empty');
+  if (!fSess.length) { wrap.innerHTML = ''; sempty.style.display = 'block'; }
   else {
     sempty.style.display = 'none';
-    stbody.innerHTML = fSess.map(s => {
-      const ratio = s.ratio != null ? s.ratio : (s.span_sec > 0 ? Math.round((s.focus_sec || 0) / s.span_sec * 100) : 100);
-      const rCls = ratio >= 85 ? 'badge-hi' : ratio >= 65 ? 'badge-mid' : 'badge-lo';
-      const cat = s.task_type && state.CAT[s.task_type];
-      const catHtml = cat
-        ? '<span class="cat-tag" style="background:' + catRgba(cat.col, 0.1) + ';color:' + catRgba(cat.col, 1) + ';">' + cat.emoji + ' ' + s.task_type + '</span>'
-        : '<span class="cat-tag cat-tag-default">' + (s.task_type || '—') + '</span>';
-      return '<tr><td><button class="edit-row-btn" onclick="openEditModal(\'' + s.id + '\',\'focus_sessions\')" title="Edit">✏</button></td>'
-        + '<td class="dim">' + (s.seq != null ? s.seq : '—') + '</td>'
-        + '<td>' + (s.session_date || '—') + '</td><td class="dim">' + (s.start_time ? s.start_time.slice(0, 5) : '—') + '</td>'
-        + '<td class="dim">' + (s.end_time ? s.end_time.slice(0, 5) : '—') + '</td><td>' + (s.span_sec != null ? fmtFocusSec(s.span_sec) : '—') + '</td>'
-        + '<td><b>' + (s.focus_sec != null ? fmtFocusSec(s.focus_sec) : '—') + '</b></td><td><span class="badge ' + rCls + '">' + ratio + '%</span></td>'
-        + '<td class="dim">' + (s.project || '—') + '</td><td>' + (s.task || '—') + '</td><td>' + catHtml + '</td>'
-        + '<td>' + (eMap[s.energy] || '—') + '</td>'
-        + '<td class="dim" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;">' + (s.note || '—') + '</td></tr>';
-    }).join('');
+    wrap.innerHTML = renderTimeline(fSess, bRows, eMap);
   }
 
   const btbody = document.getElementById('breaks-tbody'), bempty = document.getElementById('breaks-empty');

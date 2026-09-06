@@ -21,6 +21,8 @@ function renderStreakCards(dayTotals) {
   const lngEl = document.getElementById('an-streak-longest');
   if (curEl) curEl.textContent = current ? current + 'd' : '0d';
   if (lngEl) lngEl.textContent = longest ? longest + 'd' : '0d';
+  const sideEl = document.getElementById('side-streak');
+  if (sideEl) sideEl.textContent = current ? current + 'd' : '0d';
   const sub = document.getElementById('an-streak-sub');
   if (sub) sub.textContent = settings.streakMinFocusMin > 0 ? '≥' + settings.streakMinFocusMin + 'm/day' : 'any focus counts';
 }

@@ -94,3 +94,19 @@ export function checkDailyCheckin() {
   if (td && td.done) { state.currentEnergy = td.energy || null; updateCheckinSummary(td); }
   else setTimeout(showCheckinModal, 500);
 }
+
+// ── Timer page view mode: Minimalist (default) vs Dashboard ──────────
+// A pure display preference, so it's local-only, not synced to Supabase.
+const VIEW_MODE_KEY = 'ft_timer_view_mode';
+export function applyTimerViewMode() {
+  const mode = localStorage.getItem(VIEW_MODE_KEY) || 'minimal';
+  const layout = document.querySelector('.timer-layout');
+  const btn = document.getElementById('view-mode-toggle');
+  if (layout) layout.classList.toggle('minimal-mode', mode === 'minimal');
+  if (btn) btn.textContent = mode === 'minimal' ? 'Dashboard view' : 'Minimalist view';
+}
+export function toggleTimerViewMode() {
+  const current = localStorage.getItem(VIEW_MODE_KEY) || 'minimal';
+  localStorage.setItem(VIEW_MODE_KEY, current === 'minimal' ? 'dashboard' : 'minimal');
+  applyTimerViewMode();
+}

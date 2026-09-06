@@ -59,6 +59,7 @@ Object.assign(window, {
   renameCat: categories.renameCat,
   updateCatEmoji: categories.updateCatEmoji,
   updateCatColor: categories.updateCatColor,
+  toggleTimerViewMode: ui.toggleTimerViewMode,
 
   shiftViewedCycle: cycles12.shiftViewedCycle,
   jumpToCurrentCycle: cycles12.jumpToCurrentCycle,
@@ -158,6 +159,7 @@ window.addEventListener('ft:pageShown', async (e) => {
   projects.loadProjects();
   breakActs.loadBreakActs();
   ui.applyDefaultEnergy();
+  ui.applyTimerViewMode();
   timer.checkRecovery();
   breaks.checkBreakRecovery();
   breaks.renderOpenUrgentHint();
