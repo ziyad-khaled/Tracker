@@ -135,6 +135,8 @@ export async function renderCycle12() {
   } else {
     paceLine = 'Week ' + (activeWeekIdx + 1) + ' of 12 · ' + fmtHrs(cumSoFar) + ' / ' + fmtHrs(cumTarget) + ' pace · ' + pacePct + '%';
   }
+  const sideEl = document.getElementById('side-cyclepace');
+  if (sideEl) sideEl.textContent = (isCurrentCycle && activeWeekIdx >= 0) ? pacePct + '%' : '—';
 
   wrap.innerHTML =
     '<div class="cy12-head">' +

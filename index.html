@@ -87,6 +87,7 @@
         <button class="mode-btn active" onclick="setMode('pomodoro')">Pomodoro</button>
         <button class="mode-btn" onclick="setBreakMode('short')">Short Break</button>
         <button class="mode-btn" onclick="setBreakMode('long')">Long Break</button>
+        <button class="btn-ghost" style="margin-left:auto;padding:6px 12px;font-size:10px;" id="view-mode-toggle" onclick="toggleTimerViewMode()">Dashboard view</button>
       </div>
       <div class="ring-wrap">
         <div class="ring-container">
@@ -138,6 +139,13 @@
       </div>
     </div>
     <div>
+      <div class="sb-section">
+        <div class="sb-label">Overview</div>
+        <div style="display:flex;gap:8px;">
+          <div class="metric-cell" style="flex:1;"><div class="metric-cell-lbl">Streak</div><div class="metric-cell-val" id="side-streak">—</div></div>
+          <div class="metric-cell" style="flex:1;"><div class="metric-cell-lbl">Cycle-12 pace</div><div class="metric-cell-val" id="side-cyclepace">—</div></div>
+        </div>
+      </div>
       <div class="sb-section">
         <div class="sb-label">Today's Chain <span id="rt-summary-toggle-lbl"></span></div>
         <div class="cy-summary-card" id="rt-summary-card">
@@ -329,14 +337,7 @@
     <span class="log-count" id="log-count">—</span>
   </div>
   <div id="sessions-table-wrap" class="table-wrap">
-    <table>
-      <thead><tr>
-        <th></th><th>#</th><th>Date</th><th>Start</th><th>End</th><th>Span</th>
-        <th>Focus</th><th>Ratio</th><th>Project</th><th>Task</th>
-        <th>Category</th><th>Energy</th><th>Note</th>
-      </tr></thead>
-      <tbody id="sessions-tbody"></tbody>
-    </table>
+    <div id="timeline-wrap"></div>
     <div class="empty-state" id="sessions-empty" style="display:none;">No focus sessions yet.</div>
   </div>
   <div id="checkins-log-wrap" style="display:none;">
