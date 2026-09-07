@@ -78,6 +78,18 @@ export function startTimer() {
   if (state.mode !== 'pomodoro') { setMode('pomodoro'); setTimeout(startTimer, 50); return; }
   if (!state.sessionStart) {
     state.sessionStart = new Date();
+    // Snapshot the formatted date/time strings HERE, at the exact instant
+    // the session starts -- not later at save time. fmt24()/focusDateKey()
+    // both format using whatever the system timezone is AT THE MOMENT
+    // they're called; state.sessionStart is just an epoch instant, so
+    // reformatting it later (at endSession, or after a crash-recovery
+    // restore) uses whatever zone is active *then*. A timezone change
+    // mid-session would silently reformat the start time to a different
+    // wall-clock string than what was actually shown when the user hit
+    // Start -- in the worst case producing a start_time that lands after
+    // end_time, corrupting span_sec downstream.
+    state.sessionDateStr = focusDateKey(state.sessionStart);
+    state.sessionStartTimeStr = fmt24(state.sessionStart);
     finalizeOpenUrgentBreakIfAny(state.sessionStart); // fire-and-forget; see breaks.js
     state.pausedMs = 0; state.pauseStartMs = null;
     state.seqToday++;
@@ -153,7 +165,7 @@ export function endSession(keepAlarm) {
   const ratio = Math.round(focusSec / Math.max(spanSec, 1) * 100);
   const otMin = Math.max(0, Math.floor(focusSec / 60) - settings.pomodoro);
   const sessNow = {
-    session_date: focusDateKey(state.sessionStart), start_time: fmt24(state.sessionStart), end_time: fmt24(end),
+    session_date: state.sessionDateStr || focusDateKey(state.sessionStart), start_time: state.sessionStartTimeStr || fmt24(state.sessionStart), end_time: fmt24(end),
     span_sec: spanSec, task_type: state.currentCat || null, focus_sec: focusSec, ratio,
     project: state.currentProject && state.projects[state.currentProject] ? state.projects[state.currentProject].name : null,
     task: state.currentTask && state.currentProject && state.projects[state.currentProject] ? state.projects[state.currentProject].tasks[state.currentTask] : null,
@@ -266,7 +278,9 @@ export function saveRecoverySnapshot() {
     mode: state.mode,
     seqToday: state.seqToday,
     pomodoroCount: state.pomodoroCount,
-    sessionDate: focusDateKey(state.sessionStart),
+    sessionDate: state.sessionDateStr || focusDateKey(state.sessionStart),
+    sessionDateStr: state.sessionDateStr || focusDateKey(state.sessionStart),
+    sessionStartTimeStr: state.sessionStartTimeStr || fmt24(state.sessionStart),
     currentCat: state.currentCat,
     currentEnergy: state.currentEnergy,
     currentProjectId: state.currentProject,
@@ -315,7 +329,7 @@ export function checkRecovery() {
   // going into innerHTML — the original built this string with raw
   // concatenation and no escaping.
   const parts = [
-    'Started: <b>' + escHtml((snap.sessionDate || focusDateKey(startDt)) + ' ' + fmt24(startDt)) + '</b>',
+    'Started: <b>' + escHtml((snap.sessionDateStr || snap.sessionDate || focusDateKey(startDt)) + ' ' + (snap.sessionStartTimeStr || fmt24(startDt))) + '</b>',
     'Verified focus at interruption: <b>' + elMin + 'm ' + elSec + 's</b>',
     snap.currentCat ? 'Category: <b>' + escHtml(snap.currentCat) + '</b>' : '',
     proj ? 'Project: <b>' + escHtml(proj + (task ? ' / ' + task : '')) + '</b>' : '',
@@ -332,6 +346,8 @@ export function recoverSession() {
   if (!snap) return;
   document.getElementById('recovery-banner').style.display = 'none';
   state.sessionStart = new Date(snap.sessionStartMs);
+  state.sessionDateStr = snap.sessionDateStr || snap.sessionDate || focusDateKey(state.sessionStart);
+  state.sessionStartTimeStr = snap.sessionStartTimeStr || fmt24(state.sessionStart);
   const verifiedFocus = snapshotFocusSecs(snap), nowMs = Date.now();
   state.pausedMs = Math.max(0, nowMs - snap.sessionStartMs - (verifiedFocus * 1000));
   state.pauseStartMs = nowMs;
@@ -374,7 +390,7 @@ export async function saveRecoveredSession() {
   const proj = snap.currentProjectId && state.projects[snap.currentProjectId] ? state.projects[snap.currentProjectId].name : null;
   const task = snap.currentTaskId && snap.currentProjectId && state.projects[snap.currentProjectId] ? state.projects[snap.currentProjectId].tasks[snap.currentTaskId] : null;
   const sessRow = {
-    session_date: snap.sessionDate || focusDateKey(startDt), start_time: fmt24(startDt), end_time: fmt24(savedAt),
+    session_date: snap.sessionDateStr || snap.sessionDate || focusDateKey(startDt), start_time: snap.sessionStartTimeStr || fmt24(startDt), end_time: fmt24(savedAt),
     span_sec: spanSec, focus_sec: focusSec, ratio,
     project: proj || null, task: task || null, task_type: snap.currentCat || null,
     seq: snap.seqToday || null, energy: snap.currentEnergy || null,
