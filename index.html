@@ -49,7 +49,6 @@
       <button class="nav-tab" onclick="showPage('routine')">Cycles</button>
       <button class="nav-tab" onclick="showPage('log')">Log</button>
       <button class="nav-tab" onclick="showPage('analytics')">Analytics</button>
-      <button class="nav-tab" onclick="showPage('checkins')">Check-in</button>
       <button class="nav-tab" onclick="showPage('settings')">Settings</button>
     </div>
   </div>
@@ -105,6 +104,7 @@
           <div class="task-name-shown" id="task-name-shown">—</div>
           <div class="task-cat-pill" id="task-cat-pill">no category</div>
         </div>
+        <div class="chain-dots" id="chain-dots" title="Chain progress"></div>
         <div class="timer-controls">
           <div class="controls-row">
             <button class="btn-primary" id="start-btn" onclick="toggleTimer()" title="Space to start / pause">START</button>
@@ -328,6 +328,7 @@
 <div class="page" id="page-log">
   <div class="log-tabs">
     <button class="log-tab active" id="tab-sessions" onclick="switchLogTab('sessions')">📚 Focus Sessions</button>
+    <button class="log-tab" id="tab-timeline" onclick="switchLogTab('timeline')">🕐 Timeline View</button>
     <button class="log-tab break-tab" id="tab-breaks" onclick="switchLogTab('breaks')">⏸ Breaks</button>
     <button class="log-tab" id="tab-checkins-log" onclick="switchLogTab('checkins')">🌙 Check-ins</button>
   </div>
@@ -337,17 +338,57 @@
     <span class="log-count" id="log-count">—</span>
   </div>
   <div id="sessions-table-wrap" class="table-wrap">
-    <div id="timeline-wrap"></div>
+    <table>
+      <thead><tr>
+        <th></th><th>#</th><th>Date</th><th>Start</th><th>End</th><th>Span</th>
+        <th>Focus</th><th>Ratio</th><th>Project</th><th>Task</th>
+        <th>Category</th><th>Energy</th><th>Note</th>
+      </tr></thead>
+      <tbody id="sessions-tbody"></tbody>
+    </table>
     <div class="empty-state" id="sessions-empty" style="display:none;">No focus sessions yet.</div>
   </div>
+  <div id="timeline-view-wrap" class="table-wrap" style="display:none;">
+    <div id="timeline-wrap"></div>
+    <div class="empty-state" id="timeline-empty" style="display:none;">No focus sessions yet.</div>
+  </div>
   <div id="checkins-log-wrap" style="display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:10px;">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">Log sleep, wake time and energy when you start your day.</div>
+      <button class="btn-success" onclick="openCheckinForm()">+ Today's Check-in</button>
+    </div>
+    <div id="ci-inline-form" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;" id="ci-form-date-label"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:1rem;">
+        <div>
+          <label style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px;">Sleep (hrs)</label>
+          <input type="number" class="input-field" id="ci2-sleep" placeholder="7.5" min="0" max="24" step="0.5">
+        </div>
+        <div>
+          <label style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px;">Wake Time</label>
+          <input type="time" class="input-field" id="ci2-wake">
+        </div>
+        <div>
+          <label style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px;">Energy</label>
+          <div style="display:flex;gap:6px;margin-top:2px;" id="ci2-energy-btns">
+            <button class="energy-btn" data-e2="1" onclick="setCi2Energy(1)" style="flex:1;">🪫</button>
+            <button class="energy-btn" data-e2="2" onclick="setCi2Energy(2)" style="flex:1;">😐</button>
+            <button class="energy-btn" data-e2="3" onclick="setCi2Energy(3)" style="flex:1;">⚡</button>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-success" onclick="saveCheckinInline()">Save</button>
+        <button style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:11px;padding:8px 14px;border-radius:var(--r);cursor:pointer;" onclick="document.getElementById('ci-inline-form').style.display='none'">Cancel</button>
+      </div>
+    </div>
     <div class="table-wrap">
-      <table>
+      <table id="ci-history-table">
         <thead><tr>
           <th>Date</th><th>Sleep</th><th>Wake</th><th>Energy</th><th>Sessions</th><th>Focus</th><th style="width:40px;"></th>
         </tr></thead>
-        <tbody id="ci-log-body">
-          <tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;padding:2rem;">Loading…</td></tr>
+        <tbody id="ci-history-body">
+          <tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;padding:2rem;">Connect Supabase to load history.</td></tr>
         </tbody>
       </table>
     </div>
@@ -396,307 +437,163 @@
     <div class="chart-lbl">Break Activity Count</div>
     <div class="break-grid" id="break-breakdown"><span style="color:var(--muted);font-family:var(--mono);font-size:11px;">No break data yet</span></div>
   </div>
-  <div class="chart-section">
-    <div class="chart-lbl">SQL Playground</div>
-    <div class="sql-block"><pre>-- Weekly avg (Sat-Fri, div 7)
-SELECT date_trunc('week', session_date + interval '2 days') - interval '2 days' AS week_sat,
-  ROUND((SUM(focus_sec)/7.0)::NUMERIC,1) AS avg_per_day_min
-FROM focus_sessions GROUP BY week_sat ORDER BY week_sat DESC LIMIT 4;
-
--- Break return rate by activity
-SELECT break_activities, COUNT(*) AS n,
-  ROUND(AVG(CASE WHEN returned THEN 1 ELSE 0 END)::NUMERIC*100,1) AS return_pct
-FROM breaks WHERE break_activities IS NOT NULL
-GROUP BY break_activities ORDER BY n DESC;
-
--- Sleep vs focus (join tables)
-SELECT ROUND(dc.sleep_hrs::NUMERIC,0) AS sleep_hrs,
-  COUNT(*) AS sessions, ROUND(AVG(fs.focus_sec)::NUMERIC,1) AS avg_focus
-FROM focus_sessions fs
-JOIN daily_checkins dc ON dc.date = fs.session_date
-WHERE dc.sleep_hrs IS NOT NULL GROUP BY sleep_hrs ORDER BY sleep_hrs;</pre></div>
-  </div>
-</div>
-
-<!-- CHECK-IN PAGE -->
-<div class="page" id="page-checkins">
-  <div style="max-width:900px;margin:0 auto;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:10px;">
-      <div>
-        <div style="font-size:18px;font-weight:700;margin-bottom:4px;">Daily Check-in</div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">Log sleep, wake time and energy when you start your day.</div>
-      </div>
-      <button class="btn-success" onclick="openCheckinForm()">+ Today's Check-in</button>
-    </div>
-    <div id="ci-inline-form" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
-      <div style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;" id="ci-form-date-label"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:1rem;">
-        <div>
-          <label style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px;">Sleep (hrs)</label>
-          <input type="number" class="input-field" id="ci2-sleep" placeholder="7.5" min="0" max="24" step="0.5">
-        </div>
-        <div>
-          <label style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px;">Wake Time</label>
-          <input type="time" class="input-field" id="ci2-wake">
-        </div>
-        <div>
-          <label style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px;">Energy</label>
-          <div style="display:flex;gap:6px;margin-top:2px;" id="ci2-energy-btns">
-            <button class="energy-btn" data-e2="1" onclick="setCi2Energy(1)" style="flex:1;">🪫</button>
-            <button class="energy-btn" data-e2="2" onclick="setCi2Energy(2)" style="flex:1;">😐</button>
-            <button class="energy-btn" data-e2="3" onclick="setCi2Energy(3)" style="flex:1;">⚡</button>
-          </div>
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn-success" onclick="saveCheckinInline()">Save</button>
-        <button style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:11px;padding:8px 14px;border-radius:var(--r);cursor:pointer;" onclick="document.getElementById('ci-inline-form').style.display='none'">Cancel</button>
-      </div>
-    </div>
-    <div class="table-wrap">
-      <table id="ci-history-table">
-        <thead><tr>
-          <th>Date</th><th>Sleep</th><th>Wake</th><th>Energy</th><th>Sessions</th><th>Focus</th><th style="width:40px;"></th>
-        </tr></thead>
-        <tbody id="ci-history-body">
-          <tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;padding:2rem;">Connect Supabase to load history.</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
 </div>
 
 <!-- SETTINGS PAGE -->
 <div class="page" id="page-settings">
-  <div class="settings-cols">
-    <div>
-      <div class="settings-title">Supabase Connection</div>
-      <div style="margin-bottom:10px;">
-        <div class="setting-name">Project URL</div>
-        <div class="setting-sub">Settings → API → Project URL</div>
-        <input type="text" class="input-field" id="sb-url" placeholder="https://xxxx.supabase.co" style="margin-top:6px;">
-      </div>
-      <div style="margin-bottom:14px;">
-        <div class="setting-name">Anon / Public Key</div>
-        <div class="setting-sub">Settings → API → anon public (eyJ...)</div>
-        <input type="text" class="input-field" id="sb-key" placeholder="eyJhbGci..." style="margin-top:6px;">
-      </div>
-      <button class="btn-success" onclick="testConnection()">Test Connection</button>
-      <div class="conn-msg" id="conn-msg"></div>
-    </div>
-    <div>
-      <div class="settings-title">Timer</div>
-      <div class="setting-row">
-        <div><div class="setting-name">Pomodoro target (min)</div><div class="setting-sub">Counts up past this unless Timer end mode is set to Hard stop</div></div>
-        <input type="number" class="input-field w70" id="set-pomodoro" value="25" min="1" max="120" onchange="saveSettings()">
-      </div>
-      <div class="setting-row"><span class="setting-name">Short Break (min)</span><input type="number" class="input-field w70" id="set-short" value="5" min="1" max="30" onchange="saveSettings()"></div>
-      <div class="setting-row"><span class="setting-name">Long Break (min)</span><input type="number" class="input-field w70" id="set-long" value="15" min="1" max="60" onchange="saveSettings()"></div>
-      <div class="setting-row"><span class="setting-name">Long Break every N</span><input type="number" class="input-field w70" id="set-interval" value="4" min="2" max="10" onchange="saveSettings()"></div>
-      <div class="setting-row"><span class="setting-name">Overdue warn (extra min)</span><input type="number" class="input-field w70" id="set-overdue" value="3" min="0" max="20" onchange="saveSettings()"></div>
-      <div class="setting-row">
-        <div><div class="setting-name">Timer end mode</div><div class="setting-sub">Hard stop: alarm at target. Flow: silent, count up indefinitely. Hybrid: silent at target, alarm + auto-stop at the cap below</div></div>
-        <select class="input-field" style="width:118px;padding:6px 8px;" id="set-timerMode" onchange="saveSettings()">
-          <option value="hard">Hard stop</option>
-          <option value="flow">Flow</option>
-          <option value="hybrid">Hybrid</option>
-        </select>
-      </div>
-      <div class="setting-row">
-        <div><div class="setting-name">Auto-start breaks</div><div class="setting-sub">Break overlay opens after session</div></div>
-        <div class="toggle" id="tog-autoBreak" onclick="toggleSetting('autoBreak')"></div>
-      </div>
-      <div class="setting-row">
-        <div><div class="setting-name">Auto-start Pomodoro</div><div class="setting-sub">Timer starts after break ends</div></div>
-        <div class="toggle" id="tog-autoPomo" onclick="toggleSetting('autoPomo')"></div>
-      </div>
-      <div class="setting-row">
-        <div><div class="setting-name">Week starts on</div><div class="setting-sub">This Week runs Monday through today; Last Week stays fixed Monday–Sunday</div></div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--accent);">Monday</div>
-      </div>
-      <div class="setting-row">
-        <div><div class="setting-name">Inactive days in average</div><div class="setting-sub">You decide whether no-focus days count as zero</div></div>
-        <select class="input-field" style="width:118px;padding:6px 8px;" id="set-avgMode" onchange="saveSettings()">
-          <option value="include">Count as zero</option>
-          <option value="exclude">Ignore them</option>
-        </select>
-      </div>
-      <div class="setting-row">
-        <div><div class="setting-name">Overnight sessions</div><div class="setting-sub">Uses the session’s start time, never its save time</div></div>
-        <select class="input-field" style="width:110px;padding:6px 8px;" id="set-nightDate" onchange="saveSettings()">
-          <option value="actual">Actual date</option>
-          <option value="prev">Previous day</option>
-        </select>
-      </div>
-      <div class="setting-row" id="nightcutoff-row" style="display:none;">
-        <div><div class="setting-name">Cutoff hour (0–8)</div><div class="setting-sub">Sessions before this hour count as previous day</div></div>
-        <input type="number" class="input-field w70" id="set-nightCutoff" value="4" min="0" max="8" onchange="saveSettings()">
-      </div>
-      <div class="setting-row">
-        <div><div class="setting-name">Default energy</div><div class="setting-sub">Pre-selected at session start</div></div>
-        <select class="input-field" style="width:90px;padding:6px 8px;" id="set-defEnergy" onchange="saveSettings()">
-          <option value="0">None (blank)</option>
-          <option value="1">🪫 Low</option>
-          <option value="2">😐 Medium</option>
-          <option value="3">⚡ High</option>
-        </select>
-      </div>
-    </div>
-    <div class="full-col">
-      <div class="settings-title">Session Categories</div>
-      <div id="cat-settings-list" style="margin-bottom:10px;"></div>
-      <div style="display:flex;gap:6px;align-items:center;">
-        <input type="text" class="input-field" id="new-cat-emoji" placeholder="📌" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;">
-        <input type="text" class="input-field" id="new-cat-name" placeholder="Category name..." onkeydown="if(event.key==='Enter')addCategory()">
-        <button class="btn-add" onclick="addCategory()">+ Add</button>
-      </div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:8px;">Changes apply immediately.</div>
-    </div>
-    <div class="full-col">
-      <div class="settings-title">Average Calculation — Excluded Categories</div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:10px;">Crossed-out categories excluded from weekly averages.</div>
-      <div id="cat-exclude-chips" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
-    </div>
-    <div class="full-col">
-      <div class="settings-title">Break Activity Categories</div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:10px;">Customise the chips shown during breaks. Changes apply immediately.</div>
-      <div id="break-acts-settings-list" style="margin-bottom:10px;"></div>
-      <div style="display:flex;gap:6px;align-items:center;">
-        <input type="text" class="input-field" id="new-break-act-emoji" placeholder="🏃" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;">
-        <input type="text" class="input-field" id="new-break-act-name" placeholder="Activity name..." onkeydown="if(event.key==='Enter')addBreakAct()">
-        <button class="btn-add" onclick="addBreakAct()">+ Add</button>
-      </div>
-    </div>
-    <div class="full-col">
-      <div class="settings-title">Sweet-Spot Cycle System</div>
-      <div class="settings-cols" style="gap:1.5rem;">
-        <div>
-          <div class="setting-row"><span class="setting-name">Daily focus ceiling (min)</span><input type="number" class="input-field w70" id="set-ceilingMin" value="260" min="60" max="600" onchange="saveSettings()"></div>
-          <div class="setting-row"><span class="setting-name">Cycle focus target (min)</span><input type="number" class="input-field w70" id="set-cycleTarget" value="41" min="10" max="90" onchange="saveSettings()"></div>
-          <div class="setting-row"><div><div class="setting-name">Cycle focus hard cap (min)</div><div class="setting-sub">Hybrid timer mode alarms and auto-ends the session here</div></div><input type="number" class="input-field w70" id="set-cycleCap" value="45" min="10" max="120" onchange="saveSettings()"></div>
+  <div class="settings-groups">
+    <details class="settings-group" open>
+      <summary>Supabase Connection</summary>
+      <div class="settings-group-body">
+        <div style="margin-bottom:10px;">
+          <div class="setting-name">Project URL</div>
+          <div class="setting-sub">Settings → API → Project URL</div>
+          <input type="text" class="input-field" id="sb-url" placeholder="https://xxxx.supabase.co" style="margin-top:6px;">
         </div>
-        <div>
-          <div class="setting-row"><span class="setting-name">Break target per cycle (min)</span><input type="number" class="input-field w70" id="set-cycleBreak" value="15" min="1" max="60" onchange="saveSettings()"></div>
-          <div class="setting-row"><div><div class="setting-name">Kill-switch — between cycles (min)</div><div class="setting-sub">Gap during a chain (e.g. cycle 1 → 2) longer than this breaks the chain</div></div><input type="number" class="input-field w70" id="set-killSwitch" value="17" min="1" max="60" onchange="saveSettings()"></div>
-          <div class="setting-row"><div><div class="setting-name">Kill-switch — between chains (min)</div><div class="setting-sub">Longer allowance for the planned break after finishing a full chain</div></div><input type="number" class="input-field w70" id="set-chainKillSwitch" value="45" min="1" max="180" onchange="saveSettings()"></div>
-          <div class="setting-row"><span class="setting-name">Cycles per chain</span><input type="number" class="input-field w70" id="set-cyclesPerChain" value="3" min="1" max="8" onchange="saveSettings()"></div>
+        <div style="margin-bottom:14px;">
+          <div class="setting-name">Anon / Public Key</div>
+          <div class="setting-sub">Settings → API → anon public (eyJ...)</div>
+          <input type="text" class="input-field" id="sb-key" placeholder="eyJhbGci..." style="margin-top:6px;">
+        </div>
+        <button class="btn-success" onclick="testConnection()">Test Connection</button>
+        <div class="conn-msg" id="conn-msg"></div>
+      </div>
+    </details>
+
+    <details class="settings-group">
+      <summary>Timer</summary>
+      <div class="settings-group-body">
+        <div class="setting-row">
+          <div><div class="setting-name">Pomodoro target (min)</div><div class="setting-sub">Counts up past this unless Timer end mode is set to Hard stop</div></div>
+          <input type="number" class="input-field w70" id="set-pomodoro" value="25" min="1" max="120" onchange="saveSettings()">
+        </div>
+        <div class="setting-row"><span class="setting-name">Short Break (min)</span><input type="number" class="input-field w70" id="set-short" value="5" min="1" max="30" onchange="saveSettings()"></div>
+        <div class="setting-row"><span class="setting-name">Long Break (min)</span><input type="number" class="input-field w70" id="set-long" value="15" min="1" max="60" onchange="saveSettings()"></div>
+        <div class="setting-row"><span class="setting-name">Long Break every N</span><input type="number" class="input-field w70" id="set-interval" value="4" min="2" max="10" onchange="saveSettings()"></div>
+        <div class="setting-row"><span class="setting-name">Overdue warn (extra min)</span><input type="number" class="input-field w70" id="set-overdue" value="3" min="0" max="20" onchange="saveSettings()"></div>
+        <div class="setting-row">
+          <div><div class="setting-name">Timer end mode</div><div class="setting-sub">Hard stop: alarm at target. Flow: silent, count up indefinitely. Hybrid: silent at target, alarm + auto-stop at the cap below</div></div>
+          <select class="input-field" style="width:118px;padding:6px 8px;" id="set-timerMode" onchange="saveSettings()">
+            <option value="hard">Hard stop</option>
+            <option value="flow">Flow</option>
+            <option value="hybrid">Hybrid</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-name">Auto-start breaks</div><div class="setting-sub">Break overlay opens after session</div></div>
+          <div class="toggle" id="tog-autoBreak" onclick="toggleSetting('autoBreak')"></div>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-name">Auto-start Pomodoro</div><div class="setting-sub">Timer starts after break ends</div></div>
+          <div class="toggle" id="tog-autoPomo" onclick="toggleSetting('autoPomo')"></div>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-name">Week starts on</div><div class="setting-sub">This Week runs Monday through today; Last Week stays fixed Monday–Sunday</div></div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--accent);">Monday</div>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-name">Inactive days in average</div><div class="setting-sub">You decide whether no-focus days count as zero</div></div>
+          <select class="input-field" style="width:118px;padding:6px 8px;" id="set-avgMode" onchange="saveSettings()">
+            <option value="include">Count as zero</option>
+            <option value="exclude">Ignore them</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-name">Overnight sessions</div><div class="setting-sub">Uses the session's start time, never its save time</div></div>
+          <select class="input-field" style="width:110px;padding:6px 8px;" id="set-nightDate" onchange="saveSettings()">
+            <option value="actual">Actual date</option>
+            <option value="prev">Previous day</option>
+          </select>
+        </div>
+        <div class="setting-row" id="nightcutoff-row" style="display:none;">
+          <div><div class="setting-name">Cutoff hour (0–8)</div><div class="setting-sub">Sessions before this hour count as previous day</div></div>
+          <input type="number" class="input-field w70" id="set-nightCutoff" value="4" min="0" max="8" onchange="saveSettings()">
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-name">Default energy</div><div class="setting-sub">Pre-selected at session start</div></div>
+          <select class="input-field" style="width:90px;padding:6px 8px;" id="set-defEnergy" onchange="saveSettings()">
+            <option value="0">None (blank)</option>
+            <option value="1">🪫 Low</option>
+            <option value="2">😐 Medium</option>
+            <option value="3">⚡ High</option>
+          </select>
         </div>
       </div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px;">Based on your data: 41m focus / 15m break is the sustainable sweet spot. A gap over the between-cycles kill-switch mid-chain breaks it — log it and start fresh instead of resuming. A gap over the between-chains kill-switch after you've already finished a full chain just closes it out cleanly and starts the next one.</div>
-    </div>
-    <div class="full-col">
-      <div class="settings-title">12-Week Year &amp; Streaks</div>
-      <div class="settings-cols" style="gap:1.5rem;">
-        <div>
-          <div class="setting-row"><div><div class="setting-name">Cycle anchor date</div><div class="setting-sub">Day 1 of Cycle 1 — everything else is computed from this</div></div><input type="date" class="input-field w140" id="set-cycleAnchor" onchange="setCycleAnchor(this.value)"></div>
+    </details>
+
+    <details class="settings-group">
+      <summary>Categories</summary>
+      <div class="settings-group-body">
+        <div style="margin-bottom:1.5rem;">
+          <div class="settings-subtitle">Session Categories</div>
+          <div id="cat-settings-list" style="margin-bottom:10px;"></div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <input type="text" class="input-field" id="new-cat-emoji" placeholder="📌" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;">
+            <input type="text" class="input-field" id="new-cat-name" placeholder="Category name..." onkeydown="if(event.key==='Enter')addCategory()">
+            <button class="btn-add" onclick="addCategory()">+ Add</button>
+          </div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:8px;">Changes apply immediately.</div>
+        </div>
+        <div style="margin-bottom:1.5rem;">
+          <div class="settings-subtitle">Average Calculation — Excluded Categories</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:10px;">Crossed-out categories excluded from weekly averages.</div>
+          <div id="cat-exclude-chips" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
         </div>
         <div>
-          <div class="setting-row"><span class="setting-name">Weekly focus goal (hrs)</span><input type="number" class="input-field w70" id="set-cycleTargetHours" value="42" min="1" max="100" onchange="setCycleTargetHours(this.value)"></div>
-          <div class="setting-row"><div><div class="setting-name">Streak minimum (min/day)</div><div class="setting-sub">0 = any logged focus counts toward a streak day</div></div><input type="number" class="input-field w70" id="set-streakMinFocusMin" value="0" min="0" max="600" onchange="saveSettings()"></div>
+          <div class="settings-subtitle">Break Activity Categories</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:10px;">Customise the chips shown during breaks. Changes apply immediately.</div>
+          <div id="break-acts-settings-list" style="margin-bottom:10px;"></div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <input type="text" class="input-field" id="new-break-act-emoji" placeholder="🏃" maxlength="2" style="width:44px;text-align:center;font-size:16px;padding:6px 4px;">
+            <input type="text" class="input-field" id="new-break-act-name" placeholder="Activity name..." onkeydown="if(event.key==='Enter')addBreakAct()">
+            <button class="btn-add" onclick="addBreakAct()">+ Add</button>
+          </div>
         </div>
       </div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px;">Changing the anchor date recomputes which cycle you're currently in and resets the Analytics view to it.</div>
-    </div>
-    <div class="full-col">
-      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:.75rem;padding-bottom:8px;border-bottom:1px solid var(--border);">Migration — Run in Supabase SQL Editor</div>
-      <div class="sql-block"><pre>-- ╔═══════════════════════════════════════════════════════════════╗
--- ║  app_config table — run once to enable DB-synced settings   ║
--- ╚═══════════════════════════════════════════════════════════════╝
-CREATE TABLE IF NOT EXISTS app_config (
-  key   text PRIMARY KEY,
-  value text NOT NULL,
-  updated_at timestamptz DEFAULT now()
-);
-ALTER TABLE app_config ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "allow all" ON app_config FOR ALL USING (true) WITH CHECK (true);
+    </details>
 
+    <details class="settings-group">
+      <summary>Cycle Engine</summary>
+      <div class="settings-group-body">
+        <div class="settings-cols" style="gap:1.5rem;">
+          <div>
+            <div class="setting-row"><span class="setting-name">Daily focus ceiling (min)</span><input type="number" class="input-field w70" id="set-ceilingMin" value="260" min="60" max="600" onchange="saveSettings()"></div>
+            <div class="setting-row"><span class="setting-name">Cycle focus target (min)</span><input type="number" class="input-field w70" id="set-cycleTarget" value="41" min="10" max="90" onchange="saveSettings()"></div>
+            <div class="setting-row"><div><div class="setting-name">Cycle focus hard cap (min)</div><div class="setting-sub">Hybrid timer mode alarms and auto-ends the session here</div></div><input type="number" class="input-field w70" id="set-cycleCap" value="45" min="10" max="120" onchange="saveSettings()"></div>
+          </div>
+          <div>
+            <div class="setting-row"><span class="setting-name">Break target per cycle (min)</span><input type="number" class="input-field w70" id="set-cycleBreak" value="15" min="1" max="60" onchange="saveSettings()"></div>
+            <div class="setting-row"><div><div class="setting-name">Kill-switch — between cycles (min)</div><div class="setting-sub">Gap during a chain (e.g. cycle 1 → 2) longer than this breaks the chain</div></div><input type="number" class="input-field w70" id="set-killSwitch" value="17" min="1" max="60" onchange="saveSettings()"></div>
+            <div class="setting-row"><div><div class="setting-name">Kill-switch — between chains (min)</div><div class="setting-sub">Longer allowance for the planned break after finishing a full chain</div></div><input type="number" class="input-field w70" id="set-chainKillSwitch" value="45" min="1" max="180" onchange="saveSettings()"></div>
+            <div class="setting-row"><span class="setting-name">Cycles per chain</span><input type="number" class="input-field w70" id="set-cyclesPerChain" value="3" min="1" max="8" onchange="saveSettings()"></div>
+          </div>
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px;">Based on your data: 41m focus / 15m break is the sustainable sweet spot. A gap over the between-cycles kill-switch mid-chain breaks it — log it and start fresh instead of resuming. A gap over the between-chains kill-switch after you've already finished a full chain just closes it out cleanly and starts the next one.</div>
+      </div>
+    </details>
 
--- ╔═══════════════════════════════════════════════════════════════╗
--- ║  client_id idempotency columns — fixes duplicate offline-queue║
--- ║  inserts (a retried write is now an upsert, not a new row)  ║
--- ╚═══════════════════════════════════════════════════════════════╝
-ALTER TABLE focus_sessions ADD COLUMN IF NOT EXISTS client_id text;
-CREATE UNIQUE INDEX IF NOT EXISTS focus_sessions_client_id_key ON focus_sessions(client_id);
+    <details class="settings-group">
+      <summary>12-Week Year &amp; Streaks</summary>
+      <div class="settings-group-body">
+        <div class="settings-cols" style="gap:1.5rem;">
+          <div>
+            <div class="setting-row"><div><div class="setting-name">Cycle anchor date</div><div class="setting-sub">Day 1 of Cycle 1 — everything else is computed from this</div></div><input type="date" class="input-field w140" id="set-cycleAnchor" onchange="setCycleAnchor(this.value)"></div>
+          </div>
+          <div>
+            <div class="setting-row"><span class="setting-name">Weekly focus goal (hrs)</span><input type="number" class="input-field w70" id="set-cycleTargetHours" value="42" min="1" max="100" onchange="setCycleTargetHours(this.value)"></div>
+            <div class="setting-row"><div><div class="setting-name">Streak minimum (min/day)</div><div class="setting-sub">0 = any logged focus counts toward a streak day</div></div><input type="number" class="input-field w70" id="set-streakMinFocusMin" value="0" min="0" max="600" onchange="saveSettings()"></div>
+          </div>
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px;">Changing the anchor date recomputes which cycle you're currently in and resets the Analytics view to it.</div>
+      </div>
+    </details>
 
-ALTER TABLE breaks ADD COLUMN IF NOT EXISTS client_id text;
-CREATE UNIQUE INDEX IF NOT EXISTS breaks_client_id_key ON breaks(client_id);
--- Plain (non-partial) unique index -- Postgres already treats multiple
--- NULLs as distinct, and a partial index breaks upsert's ON CONFLICT
--- inference. Reload PostgREST's schema cache after running this:
-NOTIFY pgrst, 'reload schema';
-
-
--- ╔═══════════════════════════════════════════════════════════════╗
--- ║  focus_min → focus_sec  (run steps A1–A5 first)             ║
--- ╚═══════════════════════════════════════════════════════════════╝
-
--- A1 — fill focus_sec where NULL
-UPDATE focus_sessions
-SET focus_sec = focus_min * 60
-WHERE focus_sec IS NULL AND focus_min IS NOT NULL;
-
--- A2 — audit drift (hand-edited focus_min rows); review before touching
-SELECT id, session_date, start_time,
-  focus_min                              AS focus_min_stored,
-  focus_sec                              AS focus_sec_stored,
-  ROUND(focus_sec / 60.0, 2)             AS focus_sec_as_min,
-  focus_min - ROUND(focus_sec / 60.0, 0) AS drift_min
-FROM focus_sessions
-WHERE focus_sec IS NOT NULL AND focus_min IS NOT NULL
-  AND ABS(focus_min - ROUND(focus_sec / 60.0, 0)) > 1
-ORDER BY ABS(focus_min - ROUND(focus_sec / 60.0, 0)) DESC;
-
--- A3 — fix drifted rows: trust focus_min (your manual edits)
-UPDATE focus_sessions
-SET focus_sec = focus_min * 60
-WHERE focus_sec IS NOT NULL AND focus_min IS NOT NULL
-  AND ABS(focus_min - ROUND(focus_sec / 60.0, 0)) > 1;
-
--- A4 — verify (should return 0)
-SELECT COUNT(*) AS out_of_sync FROM focus_sessions
-WHERE focus_sec IS NOT NULL AND focus_min IS NOT NULL
-  AND ABS(focus_min - ROUND(focus_sec / 60.0, 0)) > 1;
-
--- A5 — drop focus_min — IRREVERSIBLE, run only after A4 = 0
-ALTER TABLE focus_sessions DROP COLUMN focus_min;
-
-
--- ╔═══════════════════════════════════════════════════════════════╗
--- ║  span_min → span_sec  (run steps B1–B5 after A is done)     ║
--- ╚═══════════════════════════════════════════════════════════════╝
-
--- B1 — add span_sec column (seconds, derived from end_time - start_time)
-ALTER TABLE focus_sessions ADD COLUMN span_sec int4;
-
--- B2 — populate span_sec from the actual timestamps
-UPDATE focus_sessions
-SET span_sec = EXTRACT(EPOCH FROM (
-    (session_date + end_time::interval) -
-    (session_date + start_time::interval)
-  ))::int
-WHERE start_time IS NOT NULL AND end_time IS NOT NULL;
-
--- B3 — audit: compare new span_sec to old span_min
--- Shows rows where they differ by more than 60 seconds (1 min)
-SELECT id, session_date, start_time, end_time,
-  span_min,
-  span_sec,
-  ROUND(span_sec / 60.0, 2)             AS span_sec_as_min,
-  span_min - ROUND(span_sec / 60.0, 0)  AS drift_min
-FROM focus_sessions
-WHERE span_sec IS NOT NULL AND span_min IS NOT NULL
-  AND ABS(span_min - ROUND(span_sec / 60.0, 0)) > 1
-ORDER BY ABS(span_min - ROUND(span_sec / 60.0, 0)) DESC;
-
--- B4 — verify everything looks clean (should return 0 after review)
-SELECT COUNT(*) AS out_of_sync FROM focus_sessions
-WHERE span_sec IS NOT NULL AND span_min IS NOT NULL
-  AND ABS(span_min - ROUND(span_sec / 60.0, 0)) > 1;
-
--- B5 — drop span_min — IRREVERSIBLE, run only after B4 = 0
-ALTER TABLE focus_sessions DROP COLUMN span_min;</pre></div>
-      <div style="margin-top:1rem;"><button class="btn-danger" onclick="clearLocalCache()">Clear Local Cache</button></div>
-    </div>
+    <details class="settings-group">
+      <summary>Maintenance</summary>
+      <div class="settings-group-body">
+        <button class="btn-danger" onclick="clearLocalCache()">Clear Local Cache</button>
+      </div>
+    </details>
   </div>
 </div>
 

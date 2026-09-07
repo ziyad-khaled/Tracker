@@ -164,10 +164,21 @@ export function renderRoutineSummary(rState) {
   const sub = document.getElementById('rt-sum-ceilsub');
   if (sub) sub.textContent = rState.totalFocusMin + ' / ' + ceil + 'm ceiling';
   const shiftEl = document.getElementById('rt-sum-shift'), winEl = document.getElementById('rt-sum-window');
-  if (!shiftEl) return;
+  const dotsEl = document.getElementById('chain-dots');
   const chain = rState.currentChain;
-  if (!chain) { shiftEl.textContent = 'No chain started'; winEl.textContent = '—'; return; }
+  if (!chain) {
+    if (dotsEl) dotsEl.innerHTML = '';
+    if (!shiftEl) return;
+    shiftEl.textContent = 'No chain started'; winEl.textContent = '—'; return;
+  }
   const cyclesPerChain = settings.cyclesPerChain || 3;
+  if (dotsEl) {
+    const done = Math.min(chain.cyclesCompleted, cyclesPerChain);
+    dotsEl.innerHTML = Array.from({ length: cyclesPerChain }, (_, i) =>
+      '<div class="cd' + (rState.killSwitchActive ? ' dead' : (i < done ? ' filled' : '')) + '"></div>'
+    ).join('');
+  }
+  if (!shiftEl) return;
   if (rState.killSwitchActive) shiftEl.textContent = '⚠ Chain dead (' + rState.killSwitchGapMin + 'm gap)';
   else shiftEl.textContent = Math.min(chain.cyclesCompleted, cyclesPerChain) + ' / ' + cyclesPerChain + ' cycles · ' + chain.focusMin + 'm focus';
   winEl.textContent = rtFmtWindow({ start: chain.start, end: chain.end });

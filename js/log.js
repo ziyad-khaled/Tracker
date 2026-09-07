@@ -9,12 +9,14 @@ import { loadMeta, saveMeta, updateCheckinSummary } from './ui.js';
 export function switchLogTab(tab) {
   state.currentLogTab = tab;
   document.getElementById('tab-sessions').classList.toggle('active', tab === 'sessions');
+  document.getElementById('tab-timeline').classList.toggle('active', tab === 'timeline');
   document.getElementById('tab-breaks').classList.toggle('active', tab === 'breaks');
   document.getElementById('tab-checkins-log').classList.toggle('active', tab === 'checkins');
   document.getElementById('sessions-table-wrap').style.display = tab === 'sessions' ? 'block' : 'none';
+  document.getElementById('timeline-view-wrap').style.display = tab === 'timeline' ? 'block' : 'none';
   document.getElementById('checkins-log-wrap').style.display = tab === 'checkins' ? 'block' : 'none';
   document.getElementById('breaks-table-wrap').style.display = tab === 'breaks' ? 'block' : 'none';
-  if (tab === 'checkins') loadCheckinLogTab();
+  if (tab === 'checkins') loadCheckinHistory();
 }
 
 function renderTimeline(fSess, bRows, eMap) {
@@ -85,11 +87,33 @@ export async function loadLog() {
 
   const eMap = { 1: '↓', 2: '→', 3: '↑' };
 
-  const wrap = document.getElementById('timeline-wrap'), sempty = document.getElementById('sessions-empty');
-  if (!fSess.length) { wrap.innerHTML = ''; sempty.style.display = 'block'; }
+  const stbody = document.getElementById('sessions-tbody'), sempty = document.getElementById('sessions-empty');
+  if (!fSess.length) { stbody.innerHTML = ''; sempty.style.display = 'block'; }
   else {
     sempty.style.display = 'none';
-    wrap.innerHTML = renderTimeline(fSess, bRows, eMap);
+    stbody.innerHTML = fSess.map(s => {
+      const ratio = s.ratio != null ? s.ratio : (s.span_sec > 0 ? Math.round((s.focus_sec || 0) / s.span_sec * 100) : 100);
+      const rCls = ratio >= 85 ? 'badge-hi' : ratio >= 65 ? 'badge-mid' : 'badge-lo';
+      const cat = s.task_type && state.CAT[s.task_type];
+      const catHtml = cat
+        ? '<span class="cat-tag" style="background:' + catRgba(cat.col, 0.1) + ';color:' + catRgba(cat.col, 1) + ';">' + cat.emoji + ' ' + s.task_type + '</span>'
+        : '<span class="cat-tag cat-tag-default">' + (s.task_type || '—') + '</span>';
+      return '<tr><td><button class="edit-row-btn" onclick="openEditModal(\'' + s.id + '\',\'focus_sessions\')" title="Edit">✏</button></td>'
+        + '<td class="dim">' + (s.seq != null ? s.seq : '—') + '</td>'
+        + '<td>' + (s.session_date || '—') + '</td><td class="dim">' + (s.start_time ? s.start_time.slice(0, 5) : '—') + '</td>'
+        + '<td class="dim">' + (s.end_time ? s.end_time.slice(0, 5) : '—') + '</td><td>' + (s.span_sec != null ? fmtFocusSec(s.span_sec) : '—') + '</td>'
+        + '<td><b>' + (s.focus_sec != null ? fmtFocusSec(s.focus_sec) : '—') + '</b></td><td><span class="badge ' + rCls + '">' + ratio + '%</span></td>'
+        + '<td class="dim">' + (s.project || '—') + '</td><td>' + (s.task || '—') + '</td><td>' + catHtml + '</td>'
+        + '<td>' + (eMap[s.energy] || '—') + '</td>'
+        + '<td class="dim" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;">' + (s.note || '—') + '</td></tr>';
+    }).join('');
+  }
+
+  const twrap = document.getElementById('timeline-wrap'), tempty = document.getElementById('timeline-empty');
+  if (!fSess.length) { twrap.innerHTML = ''; tempty.style.display = 'block'; }
+  else {
+    tempty.style.display = 'none';
+    twrap.innerHTML = renderTimeline(fSess, bRows, eMap);
   }
 
   const btbody = document.getElementById('breaks-tbody'), bempty = document.getElementById('breaks-empty');
@@ -222,16 +246,6 @@ function renderCheckinRows(sortedDates, ciByDate, sessMap, editHandlerAttr) {
       + '<td><button data-ci-date="' + d + '" onclick="' + editHandlerAttr + '" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:4px 6px;" title="Edit">✎</button></td>'
       + '</tr>';
   }).join('');
-}
-
-export async function loadCheckinLogTab() {
-  const tbody = document.getElementById('ci-log-body');
-  if (!tbody) return;
-  if (!state.sb) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;padding:2rem;">Connect Supabase to load.</td></tr>'; return; }
-  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;padding:1rem;">Loading…</td></tr>';
-  const { sortedDates, ciByDate, sessMap } = await buildCheckinRows(60);
-  if (!sortedDates.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;padding:2rem;">No data yet.</td></tr>'; return; }
-  tbody.innerHTML = renderCheckinRows(sortedDates, ciByDate, sessMap, "openCheckinForm(this.dataset.ciDate);showPage('checkins')");
 }
 
 export async function loadCheckinHistory() {

@@ -3,7 +3,7 @@
 // shortcuts, the init() sequence, and exposing the functions referenced by
 // inline onclick="..." handlers in the markup onto `window` (see note below).
 import { state, loadSettings } from './state.js';
-import { loadOfflineQueue, flushQueue } from './db.js';
+import { loadOfflineQueue, flushQueue, updateOfflineBannerVisibility } from './db.js';
 import * as connection from './connection.js';
 import * as settingsPage from './settingsPage.js';
 import * as projects from './projects.js';
@@ -116,8 +116,8 @@ document.getElementById('dismiss-install').addEventListener('click', () => {
 });
 
 // ── Online/offline ────────────────────────────────────────────────
-window.addEventListener('online', () => { document.getElementById('offline-bar').classList.remove('show'); flushQueue(); });
-window.addEventListener('offline', () => { document.getElementById('offline-bar').classList.add('show'); });
+window.addEventListener('online', () => { updateOfflineBannerVisibility(); flushQueue(); });
+window.addEventListener('offline', () => { updateOfflineBannerVisibility(); });
 
 // ── Visibility / keyboard shortcuts ─────────────────────────────
 document.addEventListener('visibilitychange', () => {
@@ -168,5 +168,5 @@ window.addEventListener('ft:pageShown', async (e) => {
   ui.checkDailyCheckin();
   cycleEngine.refreshRoutine();
   timer.startKillSwitchMonitor();
-  if (!navigator.onLine) document.getElementById('offline-bar').classList.add('show');
+  if (!navigator.onLine) updateOfflineBannerVisibility();
 })();

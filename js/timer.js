@@ -166,7 +166,7 @@ export function endSession(keepAlarm) {
   dbInsertReturning(sessNow).then(savedId => {
     state.lastSavedSessionId = savedId;
     const hint = document.getElementById('flow-hint');
-    hint.textContent = savedId ? '✓ Saved — log break or start next session' : '✗ Save failed — check connection';
+    hint.textContent = savedId ? '✓ Saved — log break or start next session' : '✗ Save failed — ' + (state.lastSaveError || 'check connection');
     hint.className = savedId ? '' : 'overtime';
     refreshMetrics();
     window.dispatchEvent(new CustomEvent('ft:refreshRoutine'));
@@ -385,7 +385,7 @@ export async function saveRecoveredSession() {
   const id = await dbInsertReturning(sessRow);
   markLastFocusEnd();
   const hint = document.getElementById('flow-hint');
-  hint.textContent = id ? '✓ Recovered session saved to DB' : '✗ Save failed — check connection';
+  hint.textContent = id ? '✓ Recovered session saved to DB' : '✗ Save failed — ' + (state.lastSaveError || 'check connection');
   hint.className = id ? '' : 'overtime';
   refreshMetrics();
 }
