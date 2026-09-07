@@ -10,6 +10,7 @@ export function loadOfflineQueue() {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.offlineQueue) || '[]');
     state.offlineQueue = Array.isArray(saved) ? saved : [];
   } catch (e) { state.offlineQueue = []; }
+  updateOfflineBannerVisibility();
 }
 function persistOfflineQueue() {
   try { localStorage.setItem(STORAGE_KEYS.offlineQueue, JSON.stringify(state.offlineQueue)); }
@@ -18,6 +19,27 @@ function persistOfflineQueue() {
 function queueOffline(item) {
   state.offlineQueue.push(item);
   persistOfflineQueue();
+  updateOfflineBannerVisibility();
+}
+
+// Single source of truth for the offline banner: previously this only
+// reacted to the browser's own online/offline events, so a fully-
+// connected browser whose writes kept failing for a DB-side reason
+// (bad migration, RLS, expired key) queued silently forever with no
+// visible signal at all -- exactly what happened with the client_id
+// index bug. Now it also reacts to queue length.
+export function updateOfflineBannerVisibility() {
+  const bar = document.getElementById('offline-bar');
+  if (!bar) return;
+  if (!navigator.onLine) {
+    bar.textContent = 'You are offline — sessions will sync when connection is restored';
+    bar.classList.add('show');
+  } else if (state.offlineQueue.length > 0) {
+    bar.textContent = state.offlineQueue.length + ' item' + (state.offlineQueue.length !== 1 ? 's' : '') + " failed to save and haven't synced" + (state.lastSaveError ? ' — ' + state.lastSaveError : ' — check Settings connection');
+    bar.classList.add('show');
+  } else {
+    bar.classList.remove('show');
+  }
 }
 
 export function setSupabaseClient(client) { state.sb = client; }
@@ -42,9 +64,11 @@ export async function dbInsertReturning(sess) {
   const res = await state.sb.from('focus_sessions').upsert([row], { onConflict: 'client_id' }).select('id').single();
   if (res.error) {
     console.error('insert error:', res.error.message);
+    state.lastSaveError = res.error.message;
     queueOffline(Object.assign({}, sess, { client_id: clientId }));
     return null;
   }
+  state.lastSaveError = null;
   return res.data ? res.data.id : null;
 }
 
@@ -65,9 +89,11 @@ export async function dbSave(sess) {
   const res = await state.sb.from('breaks').upsert([row], { onConflict: 'client_id' });
   if (res.error) {
     console.error('breaks insert error:', res.error.message);
+    state.lastSaveError = res.error.message;
     queueOffline(Object.assign({ _isBreak: true }, sess, { client_id: clientId }));
     return false;
   }
+  state.lastSaveError = null;
   return true;
 }
 
@@ -90,10 +116,11 @@ export async function flushQueue() {
       const res2 = await state.sb.from('focus_sessions').upsert([frow], { onConflict: 'client_id' });
       failed = !!res2.error;
     }
-    if (failed) { persistOfflineQueue(); return; }
+    if (failed) { persistOfflineQueue(); updateOfflineBannerVisibility(); return; }
     state.offlineQueue.shift();
     persistOfflineQueue();
   }
+  updateOfflineBannerVisibility();
 }
 
 export async function dbConfigGet(key) {

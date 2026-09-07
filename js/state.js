@@ -88,6 +88,7 @@ export function workdayNow() {
 // share one authoritative source and mutations are easy to trace.
 export const state = {
   sb: null,
+  lastSaveError: null,
   mode: 'pomodoro',
   timeLeft: settings.pomodoro * 60,
   totalSecs: settings.pomodoro * 60,
