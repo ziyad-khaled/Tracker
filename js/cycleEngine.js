@@ -28,6 +28,32 @@ export function setKillSwitchDisabledToday(disabled) {
   rtSaveManual(isoDate(), m);
 }
 
+// Merge rows that share a non-null run_id into one synthetic "session" for
+// chain-counting purposes -- these are switchTask() segments from one
+// continuous physical run (different task/category, same timer), not
+// separate cycles. Rows without a run_id (older data, or a run that was
+// never switched) pass through as their own entry, unchanged. Sessions
+// arrive ordered by start_time ascending, so the first row seen per
+// run_id is the earliest segment (its start_time is kept); each later
+// row updates end_time (last one wins = latest) and accumulates focus_sec.
+function mergeRunSegments(sessions) {
+  const merged = [];
+  const byRunId = {};
+  sessions.forEach(s => {
+    if (!s.run_id) { merged.push(s); return; }
+    if (!byRunId[s.run_id]) {
+      const entry = Object.assign({}, s);
+      byRunId[s.run_id] = entry;
+      merged.push(entry);
+    } else {
+      const entry = byRunId[s.run_id];
+      entry.end_time = s.end_time;
+      entry.focus_sec = (entry.focus_sec || 0) + (s.focus_sec || 0);
+    }
+  });
+  return merged;
+}
+
 /**
  * Pure chain-building logic.
  * @param {Array<{start_time:string,end_time:string,focus_sec:number}>} sessions - today's sessions, in start-time order
@@ -132,9 +158,9 @@ export async function computeRoutineState() {
   if (!state.sb) return base;
 
   const [sessRes] = await Promise.all([
-    state.sb.from('focus_sessions').select('id,start_time,end_time,focus_sec').eq('session_date', today).order('start_time', { ascending: true })
+    state.sb.from('focus_sessions').select('id,start_time,end_time,focus_sec,run_id').eq('session_date', today).order('start_time', { ascending: true })
   ]);
-  const sessions = sessRes.error ? [] : (sessRes.data || []);
+  const sessions = sessRes.error ? [] : mergeRunSegments(sessRes.data || []);
 
   const computed = computeChains(sessions, today, {
     killSwitchMin: settings.killSwitch || 17,

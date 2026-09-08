@@ -167,7 +167,10 @@ export async function loadAnalytics() {
   const sessions = allRows.filter(s => s.task_type !== '_break');
   const breaks = allRows.filter(s => s.task_type === '_break');
   const totalFocus = sessions.reduce((a, s) => a + Math.floor((s.focus_sec || 0) / 60), 0);
-  document.getElementById('an-sessions').textContent = sessions.length;
+  // Segments from the same switchTask()-split run count as one cycle, not
+  // one each -- same reasoning as state.seqToday in metrics.js.
+  const totalCycles = new Set(sessions.map(s => s.run_id || ('row:' + s.id))).size;
+  document.getElementById('an-sessions').textContent = totalCycles;
   document.getElementById('an-focus').textContent = totalFocus >= 60 ? Math.floor(totalFocus / 60) + 'h ' + (totalFocus % 60) + 'm' : totalFocus + 'm';
 
   const thisWeek = currentWeekBounds(), lastWeek = weekBounds(1);

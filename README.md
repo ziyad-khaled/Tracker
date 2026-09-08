@@ -127,7 +127,23 @@ Also remember to run `NOTIFY pgrst, 'reload schema';` after any `ALTER TABLE`
 — PostgREST caches the schema and can 400 on a brand-new column for a bit
 otherwise.
 
-This is also included in the in-app Settings → Migration SQL block.
+### run_id (task-switching without cycle inflation)
+
+`switchTask()` lets you change category/project/task mid-session without
+ending it — the timer keeps running, only the task metadata changes. Each
+task segment is saved as its own row so time is correctly attributed, but
+all segments of one continuous run share a `run_id` so the chain engine
+counts the whole run as **one** cycle, not one per segment.
+
+```sql
+ALTER TABLE focus_sessions ADD COLUMN IF NOT EXISTS run_id text;
+NOTIFY pgrst, 'reload schema';
+```
+
+No unique constraint needed — this is just a grouping key, not an
+idempotency key. Rows with `run_id IS NULL` (all your existing data, and
+any run that's never split) are treated as their own single cycle, same
+as before this feature — nothing needs backfilling.
 
 ## Known follow-ups (not done in this pass)
 

@@ -80,6 +80,8 @@ nav{width:100%;max-width:960px;display:flex;align-items:center;justify-content:s
 .btn-primary:hover{filter:brightness(1.08);}
 .btn-end{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:12px 18px;border-radius:var(--r);cursor:pointer;background:none;color:var(--danger);border:1px solid rgba(255,95,95,.4);transition:all .15s;display:none;}
 .btn-end.show{display:block;}
+#switch-task-btn{display:none;}
+#switch-task-btn.show{display:block;}
 .btn-end:hover{background:rgba(255,95,95,.1);border-color:var(--danger);}
 .btn-ghost{font-family:var(--mono);font-size:11px;padding:12px 16px;border-radius:var(--r);cursor:pointer;background:none;color:var(--muted);border:1px solid var(--border);transition:all .15s;}
 .btn-ghost:hover{color:var(--text);border-color:#444;}

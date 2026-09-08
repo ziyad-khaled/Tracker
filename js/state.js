@@ -104,6 +104,19 @@ export const state = {
   currentCat: null,
   currentProject: null,
   currentTask: null,
+  // Task-switching: a "run" is one continuous Start-to-End timer session,
+  // possibly split into multiple saved segments (different task/category)
+  // via switchTask(). runId links segments of the same run for chain/
+  // cycle-counting purposes (see cycleEngine.js's mergeRunSegments) so
+  // switching tasks mid-session doesn't inflate the completed-cycle count.
+  runId: null,
+  segmentStart: null,
+  segmentDateStr: null,
+  segmentStartTimeStr: null,
+  segmentPausedMsBase: 0,
+  segmentCat: null,
+  segmentProject: null,
+  segmentTask: null,
   projects: {},
   pending: null,
   breakActs: [],

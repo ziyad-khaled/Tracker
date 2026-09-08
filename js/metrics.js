@@ -162,10 +162,13 @@ export async function refreshMetrics() {
   if (!state.sb) return;
   const today = isoDate(), thisWeek = currentWeekBounds(), lastWeek = weekBounds(1);
 
-  const todayRes = await state.sb.from('focus_sessions').select('focus_sec').eq('session_date', today);
+  const todayRes = await state.sb.from('focus_sessions').select('focus_sec,run_id,id').eq('session_date', today);
   const todaySess = todayRes.data || [];
   const todayMin = todaySess.reduce((a, s) => a + Math.floor((s.focus_sec || 0) / 60), 0);
-  state.seqToday = todaySess.length;
+  // Segments sharing a run_id (via switchTask()) are one physical cycle,
+  // not one each -- count distinct run_ids, falling back to each row's own
+  // id for rows with no run_id (older data, or a run that was never split).
+  state.seqToday = new Set(todaySess.map(s => s.run_id || ('row:' + s.id))).size;
   document.getElementById('m-today').textContent = todayMin + 'm';
   document.getElementById('m-today-sub').textContent = state.seqToday + ' session' + (state.seqToday !== 1 ? 's' : '');
 

@@ -37,6 +37,7 @@ Object.assign(window, {
   setBreakMode: timer.setBreakMode,
   toggleTimer: timer.toggleTimer,
   endSession: timer.endSession,
+  switchTask: timer.switchTask,
   resetTimer: timer.resetTimer,
   recoverSession: timer.recoverSession,
   saveRecoveredSession: timer.saveRecoveredSession,
