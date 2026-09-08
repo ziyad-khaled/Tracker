@@ -2,7 +2,7 @@
 // starting/ending sessions, the kill-switch gap monitor, and crash recovery.
 import { STORAGE_KEYS, CIRC, MIN_SESSION_SEC } from './config.js';
 import { state, settings, focusDateKey, isoDate } from './state.js';
-import { fmt24, escHtml } from './utils.js';
+import { fmt24, escHtml, makeClientId } from './utils.js';
 import { dbInsertReturning } from './db.js';
 import { renderProjects, renderTasks } from './projects.js';
 import { renderCategoryChips } from './categories.js';
@@ -90,6 +90,15 @@ export function startTimer() {
     // end_time, corrupting span_sec downstream.
     state.sessionDateStr = focusDateKey(state.sessionStart);
     state.sessionStartTimeStr = fmt24(state.sessionStart);
+    state.runId = makeClientId();
+    state.segmentStart = state.sessionStart;
+    state.segmentDateStr = state.sessionDateStr;
+    state.segmentStartTimeStr = state.sessionStartTimeStr;
+    state.segmentPausedMsBase = 0;
+    state.segmentCat = state.currentCat;
+    state.segmentProject = state.currentProject;
+    state.segmentTask = state.currentTask;
+    document.getElementById('switch-task-btn').classList.add('show');
     finalizeOpenUrgentBreakIfAny(state.sessionStart); // fire-and-forget; see breaks.js
     state.pausedMs = 0; state.pauseStartMs = null;
     state.seqToday++;
@@ -141,19 +150,33 @@ export function endSession(keepAlarm) {
   state.pomodoroCount++;
   document.getElementById('start-btn').textContent = 'START';
   document.getElementById('end-btn').classList.remove('show');
+  document.getElementById('switch-task-btn').classList.remove('show');
   document.getElementById('overtime-badge').classList.remove('show');
   document.getElementById('timer-display').style.color = '';
 
   const end = new Date();
-  const focusSec = wallElapsedSecs();
-  const spanSec = Math.floor((end.getTime() - state.sessionStart.getTime()) / 1000);
+  // The run may have been split into segments via switchTask() -- what
+  // gets saved HERE is only the final segment (since the last switch, or
+  // since the true start if there was never a switch). Segment-relative,
+  // not run-relative -- wallElapsedSecs() measures from the overall
+  // sessionStart, which is the wrong basis once a switch has happened.
+  const segPausedMs = state.pausedMs - state.segmentPausedMsBase;
+  const focusSec = Math.max(0, Math.floor(((end.getTime() - state.segmentStart.getTime()) - segPausedMs) / 1000));
+  const spanSec = Math.floor((end.getTime() - state.segmentStart.getTime()) / 1000);
+  const hadEarlierSegments = state.segmentStart.getTime() !== state.sessionStart.getTime();
 
-  // Fix #2.10: sessions under a minute of real focus are almost always a
-  // mis-click (start then immediately end) rather than real work — drop them
-  // instead of saving a 0/near-0-minute row.
+  // Fix #2.10: segments under a minute of real focus are almost always a
+  // mis-click (start then immediately end) rather than real work — drop
+  // them instead of saving a 0/near-0-minute row. If earlier segments
+  // from this same run were already saved via switchTask(), a short
+  // trailing segment is just skipped quietly -- the run as a whole was
+  // real work, the "nothing was saved" messaging is only for the
+  // no-switch case.
   if (focusSec < MIN_SESSION_SEC) {
     state.sessionStart = null; state.pausedMs = 0; state.pauseStartMs = null; state.inOvertime = false;
-    document.getElementById('flow-hint').textContent = 'Session under a minute — not saved';
+    document.getElementById('flow-hint').textContent = hadEarlierSegments
+      ? '✓ Saved — final segment under a minute, skipped'
+      : 'Session under a minute — not saved';
     document.getElementById('flow-hint').className = '';
     markLastFocusEnd();
     setMode('pomodoro', keepAlarm);
@@ -165,11 +188,12 @@ export function endSession(keepAlarm) {
   const ratio = Math.round(focusSec / Math.max(spanSec, 1) * 100);
   const otMin = Math.max(0, Math.floor(focusSec / 60) - settings.pomodoro);
   const sessNow = {
-    session_date: state.sessionDateStr || focusDateKey(state.sessionStart), start_time: state.sessionStartTimeStr || fmt24(state.sessionStart), end_time: fmt24(end),
-    span_sec: spanSec, task_type: state.currentCat || null, focus_sec: focusSec, ratio,
-    project: state.currentProject && state.projects[state.currentProject] ? state.projects[state.currentProject].name : null,
-    task: state.currentTask && state.currentProject && state.projects[state.currentProject] ? state.projects[state.currentProject].tasks[state.currentTask] : null,
-    seq: state.seqToday, energy: state.currentEnergy, note: document.getElementById('session-note').value.trim() || null, _otMin: otMin
+    session_date: state.segmentDateStr, start_time: state.segmentStartTimeStr, end_time: fmt24(end),
+    span_sec: spanSec, task_type: state.segmentCat || null, focus_sec: focusSec, ratio,
+    project: state.segmentProject && state.projects[state.segmentProject] ? state.projects[state.segmentProject].name : null,
+    task: state.segmentTask && state.segmentProject && state.projects[state.segmentProject] ? state.projects[state.segmentProject].tasks[state.segmentTask] : null,
+    seq: state.seqToday, energy: state.currentEnergy, note: document.getElementById('session-note').value.trim() || null,
+    run_id: state.runId, _otMin: otMin
   };
   state.pending = Object.assign({}, sessNow);
   state.sessionStart = null; state.pausedMs = 0; state.pauseStartMs = null; state.inOvertime = false;
@@ -184,8 +208,63 @@ export function endSession(keepAlarm) {
     window.dispatchEvent(new CustomEvent('ft:refreshRoutine'));
   });
 
-  if (settings.autoBreak) showBreakOverlay(state.pomodoroCount % settings.interval === 0 ? 'long' : 'short', keepAlarm);
-  else setMode('pomodoro', keepAlarm);
+  if (settings.autoBreak) {
+    // Long break only at the actual end of a chain -- previously this used
+    // state.pomodoroCount % settings.interval, a completely independent
+    // counter from cyclesPerChain, so a long break could fire mid-chain
+    // whenever the two numbers happened not to align. state.rtCache is the
+    // same chain reconstruction the chain-dots UI already reads from; +1
+    // because the session that just ended isn't reflected in it yet.
+    const chain = state.rtCache && state.rtCache.currentChain;
+    const cyclesPerChain = settings.cyclesPerChain || 3;
+    const willCompleteChain = chain ? (chain.cyclesCompleted + 1) >= cyclesPerChain : false;
+    showBreakOverlay(willCompleteChain ? 'long' : 'short', keepAlarm);
+  } else setMode('pomodoro', keepAlarm);
+}
+
+// Split the current run into a new segment without stopping the timer.
+// Saves the OUTGOING segment (whatever category/project/task was locked
+// in since the run started or the last switch), then starts a fresh
+// segment using whatever's currently selected in the category/project
+// chips. All segments of one run share run_id, so cycleEngine.js counts
+// the whole run as ONE cycle for chain purposes -- switching tasks
+// doesn't inflate the completed-cycle count. The underlying timer
+// (sessionStart, pausedMs, running, tickInterval, kill-switch tracking)
+// is completely untouched by a switch.
+export function switchTask() {
+  if (!state.running || !state.sessionStart) return;
+  const now = new Date();
+  const segPausedMs = state.pausedMs - state.segmentPausedMsBase;
+  const focusSec = Math.max(0, Math.floor(((now.getTime() - state.segmentStart.getTime()) - segPausedMs) / 1000));
+  const spanSec = Math.max(0, Math.floor((now.getTime() - state.segmentStart.getTime()) / 1000));
+
+  if (focusSec >= MIN_SESSION_SEC) {
+    const ratio = Math.round(focusSec / Math.max(spanSec, 1) * 100);
+    const segRow = {
+      session_date: state.segmentDateStr, start_time: state.segmentStartTimeStr, end_time: fmt24(now),
+      span_sec: spanSec, task_type: state.segmentCat || null, focus_sec: focusSec, ratio,
+      project: state.segmentProject && state.projects[state.segmentProject] ? state.projects[state.segmentProject].name : null,
+      task: state.segmentTask && state.segmentProject && state.projects[state.segmentProject] ? state.projects[state.segmentProject].tasks[state.segmentTask] : null,
+      seq: state.seqToday, energy: state.currentEnergy, note: document.getElementById('session-note').value.trim() || null,
+      run_id: state.runId
+    };
+    dbInsertReturning(segRow).then(savedId => {
+      const hint = document.getElementById('flow-hint');
+      hint.textContent = savedId ? '✓ Segment logged — now tracking a new task' : '✗ Segment save failed — ' + (state.lastSaveError || 'check connection');
+      hint.className = savedId ? '' : 'overtime';
+      refreshMetrics();
+    });
+  }
+
+  state.segmentStart = now;
+  state.segmentDateStr = focusDateKey(now);
+  state.segmentStartTimeStr = fmt24(now);
+  state.segmentPausedMsBase = state.pausedMs;
+  state.segmentCat = state.currentCat;
+  state.segmentProject = state.currentProject;
+  state.segmentTask = state.currentTask;
+  document.getElementById('session-note').value = '';
+  updateTaskDisplay();
 }
 
 export function wallElapsedSecs() {

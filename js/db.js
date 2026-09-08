@@ -58,7 +58,7 @@ export async function dbInsertReturning(sess) {
     session_date: sess.session_date, start_time: sess.start_time, end_time: sess.end_time,
     span_sec: sess.span_sec, task_type: sess.task_type, focus_sec: sess.focus_sec,
     ratio: sess.ratio, project: sess.project, task: sess.task,
-    seq: sess.seq, energy: sess.energy, note: sess.note
+    seq: sess.seq, energy: sess.energy, note: sess.note, run_id: sess.run_id || null
   };
   if (!state.sb) { queueOffline(Object.assign({}, sess, { client_id: clientId })); return null; }
   const res = await state.sb.from('focus_sessions').upsert([row], { onConflict: 'client_id' }).select('id').single();
