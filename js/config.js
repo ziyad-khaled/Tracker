@@ -15,6 +15,7 @@ export const STORAGE_KEYS = {
   routineManual:'ft_routine_manual',
   cycleAnchor:  'ft_cycle_anchor',
   cycleTargetH: 'ft_cycle_target_h',
+  weekdayTargets: 'ft_weekday_targets',
   sbUrl:        'sb_url',
   sbKey:        'sb_key'
 };
@@ -24,6 +25,22 @@ export const STORAGE_KEYS = {
 // Editable later from Settings; this is only the first-run default.
 export const DEFAULT_CYCLE_ANCHOR = '2021-07-01';
 export const DEFAULT_CYCLE_TARGET_HOURS = 42; // weekly focus-hours goal
+
+// Day-of-week-aware floor/target/stretch, in focus minutes. Index by
+// Date.getDay() (0=Sun..6=Sat). Defaults from the Dec 2025-Sep 2026
+// report's own weekly template (Mon-Thu "strong", Fri taper, Sat
+// maintenance, Sun light/prep) -- real weekday averages ranged from
+// 3.22 hrs (Mon) down to 1.40 hrs (Sat), so one flat daily target was
+// always going to misrepresent at least half the week.
+export const DEFAULT_WEEKDAY_TARGETS = {
+  0: { floor: 20, target: 105, stretch: 180 }, // Sun
+  1: { floor: 30, target: 180, stretch: 270 }, // Mon
+  2: { floor: 30, target: 150, stretch: 240 }, // Tue
+  3: { floor: 30, target: 150, stretch: 240 }, // Wed
+  4: { floor: 30, target: 180, stretch: 270 }, // Thu
+  5: { floor: 20, target: 120, stretch: 210 }, // Fri
+  6: { floor: 15, target: 75, stretch: 150 }   // Sat
+};
 
 export const CIRC = 2 * Math.PI * 120;
 
@@ -69,7 +86,7 @@ export const DEFAULT_SETTINGS = {
   pomodoro: 25, short: 5, long: 15, interval: 4, overdue: 3,
   timerMode: 'flow', autoBreak: false, autoPomo: false,
   avgMode: 'include', nightDate: 'prev', nightCutoff: 1, defEnergy: 0,
-  ceilingMin: 260, cycleTarget: 41, cycleCap: 45, cycleBreak: 15,
+  ceilingMin: 260, cycleTarget: 25, cycleCap: 40, cycleBreak: 15,
   killSwitch: 17, chainKillSwitch: 45, cyclesPerChain: 3,
   streakMinFocusMin: 0
 };

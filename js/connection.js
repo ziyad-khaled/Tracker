@@ -7,6 +7,7 @@ import { refreshMetrics } from './metrics.js';
 import { refreshRoutine } from './cycleEngine.js';
 import { initCycle12Config, renderCycle12 } from './cycles12.js';
 import { renderTrends } from './trends.js';
+import { initWeekdayTargets } from './weekdayTargets.js';
 
 function setPill(cls, label) {
   document.getElementById('db-pill').className = 'db-pill ' + cls;
@@ -37,6 +38,7 @@ export function connectSB(url, key, fb) {
         refreshMetrics(); flushQueue(); refreshRoutine();
         initCycle12Config().then(renderCycle12);
         renderTrends();
+        initWeekdayTargets();
       }
     });
   } catch (e) {

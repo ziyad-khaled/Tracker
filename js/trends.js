@@ -7,7 +7,7 @@ import { fetchSessions } from './db.js';
 import { localDateKey } from './utils.js';
 import {
   buildDayTotals, computeStreaks, monthBounds, currentMonthBounds, weekTotal,
-  startOfMonday
+  startOfMonday, weekdayAverages
 } from './metrics.js';
 
 function fmtMin(min) {
@@ -93,6 +93,23 @@ function renderHeatmap(dayTotals) {
     '<div class="heat-legend">Less <span class="heat-cell heat-lvl0"></span><span class="heat-cell heat-lvl1"></span><span class="heat-cell heat-lvl2"></span><span class="heat-cell heat-lvl3"></span><span class="heat-cell heat-lvl4"></span> More</div>';
 }
 
+// Bar chart, Mon-Sun (report's own ordering), avg focus hours per weekday
+// among days that had any focus logged.
+function renderWeekdayChart(dayTotals) {
+  const wrap = document.getElementById('weekday-bars');
+  if (!wrap) return;
+  const byDow = weekdayAverages(dayTotals); // index 0=Sun..6=Sat
+  const order = [1, 2, 3, 4, 5, 6, 0]; // Mon..Sun
+  const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const maxMin = Math.max.apply(null, order.map(i => byDow[i].avgMin).concat([1]));
+  wrap.innerHTML = order.map((dow, i) => {
+    const d = byDow[dow];
+    const h = Math.round((d.avgMin / maxMin) * 100);
+    const title = labels[i] + ' · ' + fmtMin(d.avgMin) + ' avg over ' + d.n + ' active day' + (d.n !== 1 ? 's' : '');
+    return '<div class="bar-col"><div class="bar" style="height:' + Math.max(2, h) + 'px" title="' + title + '"></div><div class="bar-lbl">' + labels[i] + '</div></div>';
+  }).join('');
+}
+
 export async function renderTrends() {
   if (!state.sb) return;
   const allRows = await fetchSessions(20000);
@@ -102,4 +119,5 @@ export async function renderTrends() {
   renderStreakCards(dayTotals);
   renderMonthCards(sessions);
   renderHeatmap(dayTotals);
+  renderWeekdayChart(dayTotals);
 }

@@ -19,6 +19,7 @@ import * as edit from './edit.js';
 import { buildAlarm } from './alarm.js';
 import * as cycles12 from './cycles12.js';
 import * as trends from './trends.js';
+import * as weekdayTargets from './weekdayTargets.js';
 
 // ── Expose functions referenced by inline onclick="..." attributes ──────
 // The markup was left largely as-is (rewriting every handler to addEventListener
@@ -61,6 +62,7 @@ Object.assign(window, {
   updateCatEmoji: categories.updateCatEmoji,
   updateCatColor: categories.updateCatColor,
   toggleTimerViewMode: ui.toggleTimerViewMode,
+  setWeekdayTarget: weekdayTargets.setWeekdayTarget,
 
   shiftViewedCycle: cycles12.shiftViewedCycle,
   jumpToCurrentCycle: cycles12.jumpToCurrentCycle,
@@ -157,6 +159,7 @@ window.addEventListener('ft:pageShown', async (e) => {
   categories.loadCategories();
   categories.loadExcluded();
   cycles12.initCycle12Config();
+  weekdayTargets.initWeekdayTargets();
   projects.loadProjects();
   breakActs.loadBreakActs();
   ui.applyDefaultEnergy();

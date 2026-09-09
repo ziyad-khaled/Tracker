@@ -146,6 +146,7 @@
           <div class="metric-cell" style="flex:1;"><div class="metric-cell-lbl">Streak</div><div class="metric-cell-val" id="side-streak">—</div></div>
           <div class="metric-cell" style="flex:1;"><div class="metric-cell-lbl">Cycle-12 pace</div><div class="metric-cell-val" id="side-cyclepace">—</div></div>
         </div>
+        <div id="today-target-band" style="margin-top:10px;"></div>
       </div>
       <div class="sb-section">
         <div class="sb-label">Today's Chain <span id="rt-summary-toggle-lbl"></span></div>
@@ -306,6 +307,7 @@
   <div class="break-title" id="break-title">Short Break</div>
   <div class="break-sub" id="break-sub">Session complete</div>
   <div class="break-clock" id="break-clock">05:00</div>
+  <div class="break-sweet-hint" id="break-sweet-hint"></div>
   <div class="overdue-warn" id="overdue-warn">⚠ Break is running over — still coming back?</div>
   <div class="killswitch-warn" id="killswitch-warn">⚠ 17+ minute gap — this block is statistically dead. Don't try to resume it: log it and start a fresh block instead.</div>
   <div class="bo-lbl">What are you doing?</div>
@@ -425,6 +427,10 @@
   <div class="chart-section">
     <div class="chart-lbl">Focus Heatmap — last 12 weeks</div>
     <div id="heatmap-wrap"><span style="color:var(--muted);font-family:var(--mono);font-size:11px;">Open analytics to load</span></div>
+  </div>
+  <div class="chart-section">
+    <div class="chart-lbl">Avg Focus by Day of Week</div>
+    <div class="bar-chart" id="weekday-bars"><span style="color:var(--muted);font-family:var(--mono);font-size:11px;">Open analytics to load</span></div>
   </div>
   <div class="chart-section">
     <div class="chart-lbl">Daily Focus — last 14 days</div>
@@ -559,8 +565,8 @@
         <div class="settings-cols" style="gap:1.5rem;">
           <div>
             <div class="setting-row"><span class="setting-name">Daily focus ceiling (min)</span><input type="number" class="input-field w70" id="set-ceilingMin" value="260" min="60" max="600" onchange="saveSettings()"></div>
-            <div class="setting-row"><span class="setting-name">Cycle focus target (min)</span><input type="number" class="input-field w70" id="set-cycleTarget" value="41" min="10" max="90" onchange="saveSettings()"></div>
-            <div class="setting-row"><div><div class="setting-name">Cycle focus hard cap (min)</div><div class="setting-sub">Hybrid timer mode alarms and auto-ends the session here</div></div><input type="number" class="input-field w70" id="set-cycleCap" value="45" min="10" max="120" onchange="saveSettings()"></div>
+            <div class="setting-row"><span class="setting-name">Cycle focus target (min)</span><input type="number" class="input-field w70" id="set-cycleTarget" value="25" min="10" max="90" onchange="saveSettings()"></div>
+            <div class="setting-row"><div><div class="setting-name">Cycle focus hard cap (min)</div><div class="setting-sub">Hybrid timer mode alarms and auto-ends the session here</div></div><input type="number" class="input-field w70" id="set-cycleCap" value="40" min="10" max="120" onchange="saveSettings()"></div>
           </div>
           <div>
             <div class="setting-row"><span class="setting-name">Break target per cycle (min)</span><input type="number" class="input-field w70" id="set-cycleBreak" value="15" min="1" max="60" onchange="saveSettings()"></div>
@@ -569,7 +575,7 @@
             <div class="setting-row"><span class="setting-name">Cycles per chain</span><input type="number" class="input-field w70" id="set-cyclesPerChain" value="3" min="1" max="8" onchange="saveSettings()"></div>
           </div>
         </div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px;">Based on your data: 41m focus / 15m break is the sustainable sweet spot. A gap over the between-cycles kill-switch mid-chain breaks it — log it and start fresh instead of resuming. A gap over the between-chains kill-switch after you've already finished a full chain just closes it out cleanly and starts the next one.</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px;">Based on your data: focus ratio holds strong through ~40-45m then drops sharply (83.8% → 75.2%) — 25m is your most common high-ratio length, 40m is the edge of the cliff. A gap over the between-cycles kill-switch mid-chain breaks it — log it and start fresh instead of resuming. A gap over the between-chains kill-switch after you've already finished a full chain just closes it out cleanly and starts the next one.</div>
       </div>
     </details>
 
@@ -586,6 +592,27 @@
           </div>
         </div>
         <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px;">Changing the anchor date recomputes which cycle you're currently in and resets the Analytics view to it.</div>
+      </div>
+    </details>
+
+    <details class="settings-group">
+      <summary>Weekly Targets</summary>
+      <div class="settings-group-body">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:12px;">Per-weekday floor/target/stretch (minutes). Floor = minimum, always. Target = normal good day. Stretch = earned, not expected.</div>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);">
+            <th style="text-align:left;padding:4px 8px;">Day</th><th style="padding:4px 8px;">Floor</th><th style="padding:4px 8px;">Target</th><th style="padding:4px 8px;">Stretch</th>
+          </tr></thead>
+          <tbody id="weekday-targets-tbody">
+            <tr><td style="padding:4px 8px;font-family:var(--mono);font-size:11px;">Monday</td><td style="padding:4px 8px;"><input type="number" class="input-field w70" id="wt-1-floor" min="0" max="600" onchange="setWeekdayTarget(1,'floor',this.value)"></td><td style="padding:4px 8px;"><input type="number" class="input-field w70" id="wt-1-target" min="0" max="600" onchange="setWeekdayTarget(1,'target',this.value)"></td><td style="padding:4px 8px;"><input type="number" class="input-field w70" id="wt-1-stretch" min="0" max="600" onchange="setWeekdayTarget(1,'stretch',this.value)"></td></tr>
+            <tr><td style="padding:4px 8px;font-family:var(--mono);font-size:11px;">Tuesday</td><td style="padding:4px 8px;"><input type="number" class="input-field w70" id="wt-2-floor" min="0" max="600" onchange="setWeekdayTarget(2,'floor',this.value)"></td><td style="padding:4px 8px;"><input type="number" class="input-field w70" id="wt-2-target" min="0" max="600" onchange="setWeekdayTarget(2,'target',this.value)"></td><td style="padding:4px 8px;"><input type="number" class="input-field w70" id="wt-2-stretch" min="0" max="600" onchange="setWeekdayTarget(2,'stretch',this.value)"></td></tr>
+            <tr><td style="padding:4px 8px;font-family:var(--mono);font-size:11px;">Wednesday</td><td style="padding:4px 8px;"><input type="number" class="input-field w70" id="wt-3-floor" min="0" max="600" onchange="setWeekdayTarget(3,'floor',this.value)"></td><td style="padding:4px 8px;"><input type="number" class="input-field w70" id="wt-3-target" min="0" max="600" onchange="setWeekdayTarget(3,'target',this.value)"></td><td style="padding:4px 8px;"><input type="number" class="input-field w70" id="wt-3-stretch" min="0" max="600" onchange="setWeekdayTarget(3,'stretch',this.value)"></td></tr>
+            <tr><td style="padding:4px 8px;font-family:var(--mono);font-size:11px;">Thursday</td><td style="padding:4px 8px;"><input type="number" class="input-field w70" id="wt-4-floor" min="0" max="600" onchange="setWeekdayTarget(4,'floor',this.value)"></td><td style="padding:4px 8px;"><input type="number" class="input-field w70" id="wt-4-target" min="0" max="600" onchange="setWeekdayTarget(4,'target',this.value)"></td><td style="padding:4px 8px;"><input type="number" class="input-field w70" id="wt-4-stretch" min="0" max="600" onchange="setWeekdayTarget(4,'stretch',this.value)"></td></tr>
+            <tr><td style="padding:4px 8px;font-family:var(--mono);font-size:11px;">Friday</td><td style="padding:4px 8px;"><input type="number" class="input-field w70" id="wt-5-floor" min="0" max="600" onchange="setWeekdayTarget(5,'floor',this.value)"></td><td style="padding:4px 8px;"><input type="number" class="input-field w70" id="wt-5-target" min="0" max="600" onchange="setWeekdayTarget(5,'target',this.value)"></td><td style="padding:4px 8px;"><input type="number" class="input-field w70" id="wt-5-stretch" min="0" max="600" onchange="setWeekdayTarget(5,'stretch',this.value)"></td></tr>
+            <tr><td style="padding:4px 8px;font-family:var(--mono);font-size:11px;">Saturday</td><td style="padding:4px 8px;"><input type="number" class="input-field w70" id="wt-6-floor" min="0" max="600" onchange="setWeekdayTarget(6,'floor',this.value)"></td><td style="padding:4px 8px;"><input type="number" class="input-field w70" id="wt-6-target" min="0" max="600" onchange="setWeekdayTarget(6,'target',this.value)"></td><td style="padding:4px 8px;"><input type="number" class="input-field w70" id="wt-6-stretch" min="0" max="600" onchange="setWeekdayTarget(6,'stretch',this.value)"></td></tr>
+            <tr><td style="padding:4px 8px;font-family:var(--mono);font-size:11px;">Sunday</td><td style="padding:4px 8px;"><input type="number" class="input-field w70" id="wt-0-floor" min="0" max="600" onchange="setWeekdayTarget(0,'floor',this.value)"></td><td style="padding:4px 8px;"><input type="number" class="input-field w70" id="wt-0-target" min="0" max="600" onchange="setWeekdayTarget(0,'target',this.value)"></td><td style="padding:4px 8px;"><input type="number" class="input-field w70" id="wt-0-stretch" min="0" max="600" onchange="setWeekdayTarget(0,'stretch',this.value)"></td></tr>
+          </tbody>
+        </table>
       </div>
     </details>
 

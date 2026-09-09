@@ -121,6 +121,21 @@ export function buildDayTotals(sessions, exclude) {
   return totals;
 }
 
+// Average focus minutes per weekday, counting only days that actually had
+// focus logged that weekday (matches "avg hrs when active" framing, not
+// diluted by weekdays you simply didn't work). Index 0 = Sunday ... 6 = Saturday.
+export function weekdayAverages(dayTotals) {
+  const buckets = [[], [], [], [], [], [], []];
+  Object.keys(dayTotals).forEach(dateKey => {
+    const dow = parseLocalDate(dateKey).getDay();
+    buckets[dow].push(dayTotals[dateKey]);
+  });
+  return buckets.map(arr => ({
+    n: arr.length,
+    avgMin: arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0
+  }));
+}
+
 // Current + longest streak of qualifying days (>= minMinutesPerDay,
 // floored at 1 so a technically-zero day never counts). "Current"
 // tolerates today not having a session yet, so the streak doesn't
@@ -165,12 +180,14 @@ export async function refreshMetrics() {
   const todayRes = await state.sb.from('focus_sessions').select('focus_sec,run_id,id').eq('session_date', today);
   const todaySess = todayRes.data || [];
   const todayMin = todaySess.reduce((a, s) => a + Math.floor((s.focus_sec || 0) / 60), 0);
+  state.todayFocusMin = todayMin;
   // Segments sharing a run_id (via switchTask()) are one physical cycle,
   // not one each -- count distinct run_ids, falling back to each row's own
   // id for rows with no run_id (older data, or a run that was never split).
   state.seqToday = new Set(todaySess.map(s => s.run_id || ('row:' + s.id))).size;
   document.getElementById('m-today').textContent = todayMin + 'm';
   document.getElementById('m-today-sub').textContent = state.seqToday + ' session' + (state.seqToday !== 1 ? 's' : '');
+  import('./weekdayTargets.js').then(m => m.renderTodayBand());
 
   const twRes = await state.sb.from('focus_sessions').select('focus_sec,session_date,task_type').gte('session_date', thisWeek[0]).lte('session_date', thisWeek[1]);
   const twData = twRes.data || [];

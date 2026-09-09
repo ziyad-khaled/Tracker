@@ -49,6 +49,15 @@ export function showBreakOverlay(type, preserveAlarm, isManual) {
       document.getElementById('break-clock').className = 'break-clock dead';
       playAlarm();
     }
+    // Report finding: 15-20 min breaks have the best return rate (97.9%)
+    // of any bracket -- overdue risk climbs fast past that. Purely
+    // informational, doesn't affect any save/kill-switch logic.
+    const sweetHint = document.getElementById('break-sweet-hint');
+    if (sweetHint) {
+      const inSweetSpot = el >= 900 && el < 1200;
+      sweetHint.textContent = inSweetSpot ? '✓ Sweet spot — best historical return rate' : '';
+      sweetHint.classList.toggle('show', inSweetSpot);
+    }
   }
   tickBreak();
   state.breakTick = setInterval(tickBreak, 500);

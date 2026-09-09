@@ -117,6 +117,8 @@ export const state = {
   segmentCat: null,
   segmentProject: null,
   segmentTask: null,
+  weekdayTargets: null,
+  todayFocusMin: 0,
   projects: {},
   pending: null,
   breakActs: [],
