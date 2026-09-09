@@ -232,16 +232,9 @@ export function endSession(keepAlarm) {
 // (sessionStart, pausedMs, running, tickInterval, kill-switch tracking)
 // is completely untouched by a switch.
 export function switchTask() {
-  if (!state.sessionStart) return;
-  // If currently paused, state.pausedMs doesn't yet include the pause
-  // that's still in progress (that only gets folded in on resume, in
-  // startTimer()) -- fold it in here too, or a switch made while paused
-  // would miscount the ongoing pause as focus time for the outgoing
-  // segment.
-  let pausedMsNow = state.pausedMs;
-  if (state.pauseStartMs !== null) pausedMsNow += Date.now() - state.pauseStartMs;
+  if (!state.running || !state.sessionStart) return;
   const now = new Date();
-  const segPausedMs = pausedMsNow - state.segmentPausedMsBase;
+  const segPausedMs = state.pausedMs - state.segmentPausedMsBase;
   const focusSec = Math.max(0, Math.floor(((now.getTime() - state.segmentStart.getTime()) - segPausedMs) / 1000));
   const spanSec = Math.max(0, Math.floor((now.getTime() - state.segmentStart.getTime()) / 1000));
 
@@ -266,7 +259,7 @@ export function switchTask() {
   state.segmentStart = now;
   state.segmentDateStr = focusDateKey(now);
   state.segmentStartTimeStr = fmt24(now);
-  state.segmentPausedMsBase = pausedMsNow;
+  state.segmentPausedMsBase = state.pausedMs;
   state.segmentCat = state.currentCat;
   state.segmentProject = state.currentProject;
   state.segmentTask = state.currentTask;
