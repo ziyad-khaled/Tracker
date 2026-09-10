@@ -42,8 +42,14 @@ export function showBreakOverlay(type, preserveAlarm, isManual) {
     document.getElementById('break-clock').textContent = (left < 0 ? '+' : '') + mm + ':' + ss;
     if (left <= 0 && !state.breakAlarmFired) { state.breakAlarmFired = true; playAlarm(); document.getElementById('break-clock').className = 'break-clock ended'; }
     if (left <= -(settings.overdue * 60) && !state.overdueShown) { state.overdueShown = true; document.getElementById('overdue-warn').classList.add('show'); playAlarm(); }
+    // Measured the same way `overdue` is above -- minutes PAST the break's
+    // own scheduled end, not minutes since it started. Using raw elapsed
+    // time here made this fire before `overdue` even could on any break
+    // whose length (settings.long/short) was close to or over
+    // settings.killSwitch -- most obviously on long breaks, which are
+    // often intentionally longer than the kill-switch minute count.
     const killSec = (settings.killSwitch || 17) * 60;
-    if (el >= killSec && !state.killSwitchShown) {
+    if (left <= -killSec && !state.killSwitchShown) {
       state.killSwitchShown = true;
       document.getElementById('killswitch-warn').classList.add('show');
       document.getElementById('break-clock').className = 'break-clock dead';
