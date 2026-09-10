@@ -119,6 +119,8 @@ export const state = {
   segmentTask: null,
   weekdayTargets: null,
   todayFocusMin: 0,
+  gapActs: [],
+  pendingGap: null,
   projects: {},
   pending: null,
   breakActs: [],

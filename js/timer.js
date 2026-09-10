@@ -12,7 +12,8 @@ import { stopAlarm, playAlarm } from './alarm.js';
 
 // showBreakOverlay lives in breaks.js; imported lazily inside functions to
 // avoid a hard circular-import ordering requirement at module-eval time.
-import { showBreakOverlay, finalizeOpenUrgentBreakIfAny, renderOpenUrgentHint } from './breaks.js';
+import { showBreakOverlay, finalizeOpenUrgentBreakIfAny, renderOpenUrgentHint, loadOpenUrgentBreak } from './breaks.js';
+import { checkForUnloggedGap } from './gaps.js';
 
 export function setMode(m, preserveAlarm) {
   if (state.running) return;
@@ -99,11 +100,19 @@ export function startTimer() {
     state.segmentProject = state.currentProject;
     state.segmentTask = state.currentTask;
     document.getElementById('switch-task-btn').classList.add('show');
+    // An open Urgent break covers this exact stretch and will be logged
+    // by finalizeOpenUrgentBreakIfAny() below -- check for it BEFORE that
+    // clears it, so the same stretch doesn't also get flagged as an
+    // unplanned Gap (it was tracked, just with an unknown duration at
+    // the time).
+    const hadOpenUrgentBreak = !!loadOpenUrgentBreak();
     finalizeOpenUrgentBreakIfAny(state.sessionStart); // fire-and-forget; see breaks.js
     state.pausedMs = 0; state.pauseStartMs = null;
     state.seqToday++;
     startRecoveryInterval();
-    noteFreshChainStartIfNeeded();
+    const lastEnd = getLastFocusEndMs();
+    noteFreshChainStartIfNeeded(lastEnd);
+    if (!hadOpenUrgentBreak) checkForUnloggedGap(lastEnd, state.sessionStart); // see gaps.js -- distinct from a planned break
   } else if (state.pauseStartMs !== null) {
     state.pausedMs += Date.now() - state.pauseStartMs;
     state.pauseStartMs = null;
@@ -290,7 +299,7 @@ export function markLastFocusEnd() {
     localStorage.setItem(STORAGE_KEYS.lastFocusEnd, JSON.stringify({ date: focusDateKey(new Date()), ms: Date.now() }));
   } catch (e) { /* ignore */ }
 }
-function getLastFocusEndMs() {
+export function getLastFocusEndMs() {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.lastFocusEnd);
     if (!raw) return null;
@@ -299,8 +308,7 @@ function getLastFocusEndMs() {
     return null;
   } catch (e) { return null; }
 }
-function noteFreshChainStartIfNeeded() {
-  const lastEnd = getLastFocusEndMs();
+function noteFreshChainStartIfNeeded(lastEnd) {
   if (!lastEnd) return;
   const gapMin = Math.round((Date.now() - lastEnd) / 60000);
   const kMin = settings.killSwitch || 17;

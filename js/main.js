@@ -20,6 +20,7 @@ import { buildAlarm } from './alarm.js';
 import * as cycles12 from './cycles12.js';
 import * as trends from './trends.js';
 import * as weekdayTargets from './weekdayTargets.js';
+import * as gaps from './gaps.js';
 
 // ── Expose functions referenced by inline onclick="..." attributes ──────
 // The markup was left largely as-is (rewriting every handler to addEventListener
@@ -63,6 +64,9 @@ Object.assign(window, {
   updateCatColor: categories.updateCatColor,
   toggleTimerViewMode: ui.toggleTimerViewMode,
   setWeekdayTarget: weekdayTargets.setWeekdayTarget,
+  openGapForm: gaps.openGapForm,
+  dismissGap: gaps.dismissGap,
+  saveGap: gaps.saveGap,
 
   shiftViewedCycle: cycles12.shiftViewedCycle,
   jumpToCurrentCycle: cycles12.jumpToCurrentCycle,
@@ -72,6 +76,7 @@ Object.assign(window, {
 
   toggleBreakAct: breakActs.toggleBreakAct,
   toggleManualBreakAct: breakActs.toggleManualBreakAct,
+  toggleGapAct: breakActs.toggleGapAct,
   addBreakAct: breakActs.addBreakAct,
   deleteBreakAct: breakActs.deleteBreakAct,
   updateBreakActLabel: breakActs.updateBreakActLabel,

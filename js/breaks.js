@@ -97,6 +97,8 @@ export async function saveManualBreak() {
       break_note: null, break_duration_min: bDurMin, overdue: false, returned: true
     };
     await dbSave(breakRow);
+    const { markLastFocusEnd } = await import('./timer.js');
+    markLastFocusEnd(); // this break was properly logged -- next session's gap check should start from here, not before
   }
   state.manualBreakActs = [];
   document.querySelectorAll('#manual-break-chips-dynamic .break-chip').forEach(c => c.classList.remove('active'));

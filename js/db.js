@@ -83,7 +83,8 @@ export async function dbSave(sess) {
     break_activities: sess.break_activities || null,
     overdue: sess.overdue || false,
     returned: sess.returned,
-    break_note: sess.break_note || null
+    break_note: sess.break_note || null,
+    is_gap: sess.is_gap || false
   };
   if (!state.sb) { queueOffline(Object.assign({ _isBreak: true }, sess, { client_id: clientId })); return false; }
   const res = await state.sb.from('breaks').upsert([row], { onConflict: 'client_id' });

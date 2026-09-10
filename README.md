@@ -145,6 +145,27 @@ idempotency key. Rows with `run_id IS NULL` (all your existing data, and
 any run that's never split) are treated as their own single cycle, same
 as before this feature — nothing needs backfilling.
 
+### is_gap (unplanned gaps, distinct from breaks)
+
+A **Break** is planned upfront — you press a button, optionally pick
+activities, and it's tracked in real time. A **Gap** is the opposite:
+unaccounted time where nothing was logged at all, detected retroactively
+the moment your next session starts, with activities/note (if any) filled
+in afterward rather than before.
+
+```sql
+ALTER TABLE breaks ADD COLUMN IF NOT EXISTS is_gap boolean DEFAULT false;
+NOTIFY pgrst, 'reload schema';
+```
+
+Gaps are stored in the `breaks` table (same shape: start/end/duration/
+activities/note) with `is_gap: true`, `returned: true` (you did come
+back — that's why it's being detected), `overdue: false` (not
+applicable). A gap is only flagged if no break was already logged
+covering that stretch — every properly-closed break path (`endBreak()`,
+manual breaks, and Urgent breaks once finalized) marks "last activity
+end", so a real break is never mistaken for an unplanned gap.
+
 ## Known follow-ups (not done in this pass)
 
 Per the original review, these are still open if you want to keep going:

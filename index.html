@@ -115,6 +115,18 @@
         </div>
         <div id="flow-hint">Start a session to begin tracking</div>
         <div id="kill-switch-hint"></div>
+        <div id="gap-prompt">
+          <div class="gap-prompt-row">
+            <span id="gap-prompt-text"></span>
+            <button class="btn-ghost gap-btn" onclick="openGapForm()">Log it</button>
+            <button class="btn-ghost gap-btn" onclick="dismissGap()">Dismiss</button>
+          </div>
+          <div id="gap-form" style="display:none;">
+            <div id="gap-chips-dynamic" style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;"></div>
+            <textarea id="gap-note" class="input-field" placeholder="What happened? (optional)" rows="2" style="width:100%;margin-bottom:8px;resize:vertical;"></textarea>
+            <button class="btn-success" style="padding:6px 14px;font-size:11px;" onclick="saveGap()">Save Gap</button>
+          </div>
+        </div>
         <div id="manual-break-panel" style="display:none;margin-top:10px;width:100%;max-width:360px;text-align:center;">
           <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Break Activity</div>
           <div id="manual-break-chips-dynamic" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:8px;"></div>

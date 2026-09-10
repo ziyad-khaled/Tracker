@@ -46,15 +46,18 @@ function breakChipHtml(act, toggleFn) {
   const label = escHtml(act.label);
   // Uses data attributes + a single delegated-style inline call rather than
   // embedding the raw label inside a JS string literal.
-  return `<button class="break-chip" data-act="${label}" data-fn="${toggleFn}" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f==='toggleBreakAct')toggleBreakAct(this,a);else toggleManualBreakAct(this,a);">${act.emoji ? act.emoji + ' ' : ''}${label}</button>`;
+  return `<button class="break-chip" data-act="${label}" data-fn="${toggleFn}" onclick="var a=this.dataset.act,f=this.dataset.fn;if(f==='toggleBreakAct')toggleBreakAct(this,a);else if(f==='toggleGapAct')toggleGapAct(this,a);else toggleManualBreakAct(this,a);">${act.emoji ? act.emoji + ' ' : ''}${label}</button>`;
 }
 export function renderBreakChips() {
   const overlay = document.getElementById('break-chips-dynamic');
   const manual = document.getElementById('manual-break-chips-dynamic');
+  const gap = document.getElementById('gap-chips-dynamic');
   const html = state.breakActsList.map(a => breakChipHtml(a, 'toggleBreakAct')).join('');
   const htmlM = state.breakActsList.map(a => breakChipHtml(a, 'toggleManualBreakAct')).join('');
+  const htmlG = state.breakActsList.map(a => breakChipHtml(a, 'toggleGapAct')).join('');
   if (overlay) overlay.innerHTML = html;
   if (manual) manual.innerHTML = htmlM;
+  if (gap) gap.innerHTML = htmlG;
 }
 export function renderBreakActSettings() {
   const list = document.getElementById('break-acts-settings-list');
@@ -97,4 +100,9 @@ export function toggleManualBreakAct(el, act) {
   const idx = state.manualBreakActs.indexOf(act);
   if (idx >= 0) state.manualBreakActs.splice(idx, 1); else state.manualBreakActs.push(act);
   el.classList.toggle('active', state.manualBreakActs.includes(act));
+}
+export function toggleGapAct(el, act) {
+  const idx = state.gapActs.indexOf(act);
+  if (idx >= 0) state.gapActs.splice(idx, 1); else state.gapActs.push(act);
+  el.classList.toggle('active', state.gapActs.includes(act));
 }

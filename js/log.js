@@ -58,11 +58,12 @@ function renderTimeline(fSess, bRows, eMap) {
           + '</div>';
       }
       const urgent = i.returned === null;
-      const statusTxt = urgent ? '⚡ Urgent' : i.returned === false ? "✗ Didn't return" : '✓ Returned';
-      return '<div class="tl-block tl-break' + (urgent ? ' tl-urgent' : '') + '">'
+      const isGap = !!i.is_gap;
+      const statusTxt = isGap ? '⚠ Gap' : urgent ? '⚡ Urgent' : i.returned === false ? "✗ Didn't return" : '✓ Returned';
+      return '<div class="tl-block tl-break' + (isGap ? ' tl-gap' : urgent ? ' tl-urgent' : '') + '">'
         + '<button class="edit-row-btn tl-edit" onclick="openEditModal(\'' + i.id + '\',\'breaks\')" title="Edit">✏</button>'
         + '<div class="tl-time">' + startTxt + '–' + endTxt + '</div>'
-        + '<div class="tl-main">' + (i.break_duration_min != null ? i.break_duration_min + 'm' : '—') + ' break <span class="dim">· ' + statusTxt + '</span></div>'
+        + '<div class="tl-main">' + (i.break_duration_min != null ? i.break_duration_min + 'm' : '—') + ' ' + (isGap ? 'gap' : 'break') + ' <span class="dim">· ' + statusTxt + '</span></div>'
         + (i.break_activities || i.break_note ? '<div class="tl-sub dim">' + [i.break_activities, i.break_note].filter(Boolean).join(' · ') + '</div>' : '')
         + '</div>';
     }).join('');
