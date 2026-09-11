@@ -121,6 +121,7 @@ export const state = {
   todayFocusMin: 0,
   gapActs: [],
   pendingGap: null,
+  currentBreakType: 'short',
   projects: {},
   pending: null,
   breakActs: [],

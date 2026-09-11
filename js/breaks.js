@@ -14,6 +14,7 @@ export function showBreakOverlay(type, preserveAlarm, isManual) {
   clearInterval(state.breakTick); state.breakTick = null;
   if (!preserveAlarm) stopAlarm();
   document.getElementById('break-overlay').classList.add('show');
+  state.currentBreakType = type === 'long' ? 'long' : 'short'; // single source of truth -- endBreak()/snoozeBreak() read this instead of re-parsing DOM text
   document.getElementById('break-title').textContent = (isManual ? 'Manual ' : '') + (type === 'long' ? 'Long Break' : 'Short Break');
   const otMin = state.pending ? (state.pending._otMin || 0) : 0;
   const focMin = state.pending ? Math.floor((state.pending.focus_sec || 0) / 60) : 0;
@@ -48,10 +49,20 @@ export function showBreakOverlay(type, preserveAlarm, isManual) {
     // whose length (settings.long/short) was close to or over
     // settings.killSwitch -- most obviously on long breaks, which are
     // often intentionally longer than the kill-switch minute count.
-    const killSec = (settings.killSwitch || 17) * 60;
+    // Mid-chain (short) breaks get the strict kill-switch -- don't let a
+    // "quick break" quietly spiral, log it and start fresh. Between-chains
+    // (long) breaks are the planned, longer recovery period and get the
+    // separate, more lenient chainKillSwitch instead -- previously this
+    // always used the strict value regardless of type, so an intentional
+    // 30m long break got flagged "dead" using the same 17m threshold meant
+    // for a 5m short break, even though `type` was right here the whole time.
+    const killMin = type === 'long' ? (settings.chainKillSwitch || 45) : (settings.killSwitch || 17);
+    const killSec = killMin * 60;
     if (left <= -killSec && !state.killSwitchShown) {
       state.killSwitchShown = true;
-      document.getElementById('killswitch-warn').classList.add('show');
+      const warnEl = document.getElementById('killswitch-warn');
+      warnEl.textContent = '⚠ ' + killMin + '+ minute gap — this block is statistically dead. Don\'t try to resume it: log it and start a fresh block instead.';
+      warnEl.classList.add('show');
       document.getElementById('break-clock').className = 'break-clock dead';
       playAlarm();
     }
@@ -79,7 +90,7 @@ export function snoozeBreak(btnEl, extraMin) {
   document.getElementById('break-clock').className = 'break-clock';
   const label = 'Snooze +' + extraMin + 'm';
   if (!state.breakActs.includes(label)) state.breakActs.push(label);
-  const baseMins = document.getElementById('break-title').textContent === 'Long Break' ? settings.long : settings.short;
+  const baseMins = state.currentBreakType === 'long' ? settings.long : settings.short;
   const totalExtra = Math.round(state.breakTotalSecs / 60) - baseMins;
   document.getElementById('snooze-log').textContent = '⏰ Snoozed ' + state.snoozeCount + '× · +' + totalExtra + 'm added';
   if (btnEl) btnEl.classList.add('snoozed');
@@ -221,7 +232,7 @@ export async function endBreak(returned) {
   const breakEnd = new Date();
   const bDurSec = state.breakStart ? Math.floor((breakEnd.getTime() - state.breakStart.getTime()) / 1000) : 0;
   const bDurMin = Math.floor(bDurSec / 60);
-  const wasKilled = bDurSec >= ((settings.killSwitch || 17) * 60);
+  const wasKilled = bDurSec >= ((state.currentBreakType === 'long' ? (settings.chainKillSwitch || 45) : (settings.killSwitch || 17)) * 60);
   const breakRow = {
     session_date: focusDateKey(state.breakStart || breakEnd),
     start_time: state.breakStart ? fmt24(state.breakStart) : fmt24(new Date()),
