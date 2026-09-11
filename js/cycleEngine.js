@@ -101,11 +101,22 @@ export function computeChains(sessions, today, opts) {
       if (gapMin != null && gapMin > 0.5) {
         interruptions.push({ min: Math.round(gapMin), at: withTimes[i - 1].end ? rtFmtTime(withTimes[i - 1].end) : '—', type: gapMin >= threshold ? 'long' : 'short' });
       }
-      if (gapMin != null && gapMin >= threshold) {
-        // Only mark the chain "dead" (broken) if it hadn't already hit its
-        // target — a completed chain closing because of its own planned
-        // between-chains break is a clean finish, not a break.
-        current.dead = !priorChainComplete; current.end = withTimes[i - 1].end;
+      // A chain that already hit its cycle target is done, full stop -- the
+      // next session always starts a NEW chain, whether the gap before it
+      // was short or long. Previously this only split on gapMin >= threshold,
+      // so as long as each gap stayed under the lenient between-chains
+      // threshold, sessions kept silently appending onto the SAME already-
+      // "complete" chain forever -- cyclesCompleted stayed capped at
+      // cyclesPerChain (via the Math.min below) while sessions.length quietly
+      // grew past it, so real, distinct chains never appeared as separate
+      // entries. A completed chain can't be "broken" by a short gap after
+      // it -- it's just followed by another chain, always.
+      if (priorChainComplete) {
+        current.dead = false; current.end = withTimes[i - 1].end;
+        chains.push(current);
+        current = { start: s.start, sessions: [s], focusMin: s.focusMin, cyclesCompleted: 0, dead: false };
+      } else if (gapMin != null && gapMin >= threshold) {
+        current.dead = true; current.end = withTimes[i - 1].end;
         chains.push(current);
         current = { start: s.start, sessions: [s], focusMin: s.focusMin, cyclesCompleted: 0, dead: false };
       } else {
